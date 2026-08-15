@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://misbah-inc.github.io/Library/sitemap.xml
