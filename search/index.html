@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-root=".." data-book="..">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مكتبة مصباح</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="../assets/reader.css">
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <a class="brand" href="../">مكتبة مصباح<small>MISBAH</small></a>
+  <a class="tbtn" href="../" data-i18n="home"></a>
+  <div class="spacer"></div>
+  <div class="langs" role="group">
+    <button data-lang="ar">ع</button><button data-lang="fa">فا</button>
+    <button data-lang="ur">اردو</button><button data-lang="en">EN</button>
+  </div>
+  <button class="tbtn" id="btn-theme" aria-pressed="false"></button>
+</div></header>
+<section class="hero"><div class="hero-in">
+  <form id="res-form">
+    <div class="searchbox">
+      <input id="res-input" data-i18n-ph="ph" autocomplete="off">
+      <select id="res-scope">
+        <option value="text" data-i18n="scopeText"></option>
+        <option value="title" data-i18n="scopeTitle"></option>
+        <option value="author" data-i18n="scopeAuthor"></option>
+      </select>
+      <button type="submit" aria-label="search">⌕</button>
+    </div>
+  </form>
+</div></section>
+<main class="wrapmain">
+  <div class="sec-h"><h2 data-i18n="results"></h2><span id="res-q"></span></div>
+  <div id="results"></div>
+</main>
+<script src="../assets/reader.js" defer></script>
+</body>
+</html>

@@ -13,34 +13,36 @@
 </head>
 <body data-cover="0" data-vol="1">
 <a class="skip" href="#text">إلى النص</a>
-<header class="bar">
-  <div class="bar-in">
-    <a class="brand" href="../../../">بحار الأنوار<small>المجلد 1</small></a>
-    <a class="btn ghost" href="../../../../">المكتبة</a>
-    <div class="spacer"></div>
-    <button class="btn" id="btn-toc"><span class="icon">☰</span> الفهرس</button>
-    <button class="btn" id="btn-search"><span class="icon">⌕</span> بحث</button>
-    <button class="btn" id="btn-cite">نسخ الإحالة</button>
-    <button class="btn" id="btn-smaller" aria-label="تصغير الخط">ﺍ−</button>
-    <button class="btn" id="btn-bigger" aria-label="تكبير الخط">ﺍ+</button>
-    <button class="btn" id="btn-theme" aria-pressed="false">ليلي</button>
+<header class="bar"><div class="bar-in">
+  <a class="brand" href="../../../../">بحار الأنوار<small>التقديم · ج ١</small></a>
+  <a class="tbtn" href="../../../../" data-i18n="home"></a>
+  <button class="tbtn" id="btn-toc" data-i18n="contents"></button>
+  <button class="tbtn" id="btn-search" data-i18n="search"></button>
+  <button class="tbtn" id="btn-cite" data-i18n="cite"></button>
+  <button class="tbtn" id="btn-smaller" data-i18n-label="smaller">ﺍ−</button>
+  <button class="tbtn" id="btn-bigger" data-i18n-label="bigger">ﺍ+</button>
+  <div class="spacer"></div>
+  <div class="langs" role="group">
+    <button data-lang="ar">ع</button><button data-lang="fa">فا</button>
+    <button data-lang="ur">اردو</button><button data-lang="en">EN</button>
   </div>
-  <nav class="edge" aria-label="صفحات هذا القسم"><a href="../../../../bihar/1/0/1/" data-numbered="1" title="صفحة ١"></a><a href="../../../../bihar/1/0/2/" data-numbered="1" title="صفحة ٢" aria-current="page"></a><a href="../../../../bihar/1/0/5/" data-numbered="1" title="صفحة ٥"></a></nav>
-</header>
+  <button class="tbtn" id="btn-theme" aria-pressed="false"></button>
+</div></header>
+<div class="edgewrap"><nav class="edge" aria-label="pages"><a href="../../../../bihar/1/0/1/" data-numbered="1" title="صفحة ١"></a><a href="../../../../bihar/1/0/2/" data-numbered="1" title="صفحة ٢" aria-current="page"></a><a href="../../../../bihar/1/0/5/" data-numbered="1" title="صفحة ٥"></a></nav></div>
 <main class="wrap">
   <article>
     <div class="leaf" id="text">
       <div class="folio">صفحة <b>٢</b></div>
-      <div class="part-label"><span>العلامة محمد باقر المجلسي</span><span>التقديم · المجلد ١</span></div>
+      <div class="part-label"><span>العلامة محمد باقر المجلسي</span><span>التقديم · ج ١</span></div>
       <div class="body"><p lang="ar">[ترجمه]</p></div>
       
     </div>
     <nav class="pager">
-      <a class="btn " href="../../../../bihar/1/0/1/" rel="related">الأولى ⟩⟩</a><a class="btn prev" href="../../../../bihar/1/0/1/" rel="prev">السابقة ⟩</a>
+      <a class="btn " href="../../../../bihar/1/0/1/" rel="related">⟩⟩</a><a class="btn prev" href="../../../../bihar/1/0/1/" rel="prev">⟩</a>
       <form id="jump" data-tpl="bihar/1/0/{p}/" action="../../../../" method="get">
         <input id="jump-num" name="p" inputmode="numeric" aria-label="رقم الصفحة" value="٢">
       </form>
-      <a class="btn next" href="../../../../bihar/1/0/5/" rel="next">⟨ التالية</a><a class="btn " href="../../../../bihar/1/0/5/" rel="related">⟨⟨ الأخيرة</a>
+      <a class="btn next" href="../../../../bihar/1/0/5/" rel="next">⟨</a><a class="btn " href="../../../../bihar/1/0/5/" rel="related">⟨⟨</a>
     </nav>
     <p class="cite" id="cite-text" data-cite="بحار الأنوار الجامعة لدرر أخبار الأئمة الأطهار، العلامة محمد باقر المجلسي، المجلد ١، ص ٢.">الإحالة: بحار الأنوار الجامعة لدرر أخبار الأئمة الأطهار، العلامة محمد باقر المجلسي، المجلد ١، ص ٢.&nbsp;·&nbsp;<code>/bihar/1/0/2/</code></p>
   </article>
@@ -53,6 +55,9 @@
   </div>
   <div class="drawer-body" id="drawer-body"></div>
 </aside>
+<div id="page-meta" hidden data-slug="bihar" data-title="بحار الأنوار"
+     data-href="bihar/1/0/2/" data-label="٢" data-volume="1"
+     data-pos="1" data-total="100"></div>
 <script src="../../../../assets/reader.js" defer></script>
 </body>
 </html>

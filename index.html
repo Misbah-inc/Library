@@ -7,20 +7,62 @@
 <meta name="description" content="نصوص كاملة قابلة للإحالة، صفحةً بصفحة">
 <link rel="stylesheet" href="assets/reader.css">
 </head>
-<body data-cover="0">
+<body>
+<a class="skip" href="#cats">→</a>
 <header class="bar"><div class="bar-in">
-  <span class="brand">مكتبة مصباح<small>مكتبة</small></span>
+  <a class="brand" href="./">مكتبة مصباح<small>MISBAH</small></a>
+  <a class="tbtn" href="./" data-i18n="home"></a>
+  <a class="tbtn" href="search/" data-i18n="search"></a>
   <div class="spacer"></div>
-  <button class="btn" id="btn-theme" aria-pressed="false">ليلي</button>
+  <div class="langs" role="group">
+    <button data-lang="ar">ع</button><button data-lang="fa">فا</button>
+    <button data-lang="ur">اردو</button><button data-lang="en">EN</button>
+  </div>
+  <button class="tbtn" id="btn-theme" aria-pressed="false"></button>
 </div></header>
-<main class="cover">
+
+<section class="hero"><div class="hero-in">
   <h1>مكتبة مصباح</h1>
-  <p class="by">نصوص كاملة قابلة للإحالة، صفحةً بصفحة</p>
-  <div class="rule"></div>
-  <h2>الكتب (١)</h2>
-  <div class="shelf"><a class="book" href="bihar/"><span class="book-t">بحار الأنوار الجامعة لدرر أخبار الأئمة الأطهار</span><span class="book-a">العلامة محمد باقر المجلسي</span><span class="book-m">المجلد ١ · ١٠٠ صفحة</span></a></div>
-  <p class="foot">لكل صفحة عنوان ثابت على هيئة <code>/الكتاب/المجلد/القسم/الصفحة</code>،
-  ورقم الصفحة هو رقم الطبعة المخطوطة، فتبقى الإحالة صالحة.</p>
+  <p>نصوص كاملة قابلة للإحالة، صفحةً بصفحة</p>
+  <form id="home-search" action="search/" method="get">
+    <div class="searchbox">
+      <input id="home-q" name="q" data-i18n-ph="ph" autocomplete="off">
+      <select id="home-scope" name="in">
+        <option value="text" data-i18n="scopeText"></option>
+        <option value="title" data-i18n="scopeTitle"></option>
+        <option value="author" data-i18n="scopeAuthor"></option>
+      </select>
+      <button type="submit" aria-label="search">⌕</button>
+    </div>
+  </form>
+  <button class="btn adv-toggle" id="adv-toggle" data-i18n="advanced"></button>
+  <div class="adv" id="adv" data-open="0">
+    <div class="adv-grid">
+      <div class="field"><label data-i18n="allWords"></label><input id="adv-all"></div>
+      <div class="field"><label data-i18n="phrase"></label><input id="adv-phrase"></div>
+      <div class="field"><label data-i18n="anyWord"></label><input id="adv-any"></div>
+      <div class="field"><label data-i18n="without"></label><input id="adv-not"></div>
+      <div class="field"><label data-i18n="inBook"></label><select id="adv-book"></select></div>
+      <div class="field"><label data-i18n="inCat"></label><select id="adv-cat"></select></div>
+    </div>
+    <div class="adv-actions">
+      <button class="btn" id="adv-clear" data-i18n="clear"></button>
+      <button class="btn solid" id="adv-run" data-i18n="run"></button>
+    </div>
+  </div>
+</div></section>
+
+<main class="wrapmain">
+  <section class="sec">
+    <div class="sec-h"><h2 data-i18n="continue"></h2></div>
+    <div id="continue"></div>
+  </section>
+  <section class="sec" id="cats">
+    <div class="sec-h"><h2 data-i18n="categories"></h2><span>١ كتاب</span></div>
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <div id="cat-body"></div>
+  </section>
+  <p class="foot">لكل صفحة عنوان ثابت على هيئة <code>/الكتاب/المجلد/القسم/الصفحة</code>، ورقم الصفحة هو رقم الطبعة المخطوطة.</p>
 </main>
 <script src="assets/reader.js" defer></script>
 </body>

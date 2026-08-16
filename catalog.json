@@ -1,0 +1,137 @@
+{
+ "categories": [
+  {
+   "id": "hadith",
+   "name": {
+    "ar": "الحديث",
+    "fa": "حدیث",
+    "ur": "حدیث",
+    "en": "Hadith"
+   },
+   "desc": {
+    "ar": "الجوامع والمصنفات الحديثية.",
+    "fa": "",
+    "ur": "",
+    "en": "Hadith collections and compendia."
+   },
+   "always": true
+  },
+  {
+   "id": "fazail",
+   "name": {
+    "ar": "الفضائل",
+    "fa": "فضائل",
+    "ur": "فضائل",
+    "en": "Fazail"
+   },
+   "desc": {
+    "ar": "فضائل المعصومين عليهم السلام.",
+    "fa": "",
+    "ur": "",
+    "en": "The virtues and merits of the fourteen Infallibles."
+   },
+   "always": true
+  },
+  {
+   "id": "aqaid",
+   "name": {
+    "ar": "العقائد",
+    "fa": "عقاید",
+    "ur": "عقائد",
+    "en": "Aqaid"
+   },
+   "desc": {
+    "ar": "أصول الدين والكلام.",
+    "fa": "",
+    "ur": "",
+    "en": "Doctrine and theology."
+   },
+   "always": true
+  },
+  {
+   "id": "ahkam",
+   "name": {
+    "ar": "الأحكام",
+    "fa": "احکام",
+    "ur": "احکام",
+    "en": "Ahkam"
+   },
+   "desc": {
+    "ar": "الفقه والرسائل العملية.",
+    "fa": "",
+    "ur": "",
+    "en": "Jurisprudence and practical rulings."
+   },
+   "always": true
+  },
+  {
+   "id": "tarikh",
+   "name": {
+    "ar": "التاريخ والسيرة",
+    "fa": "تاریخ و سیره",
+    "ur": "تاریخ و سیرت",
+    "en": "History"
+   },
+   "desc": {
+    "ar": "السيرة والتراجم.",
+    "fa": "",
+    "ur": "",
+    "en": "History, biography and lives of the Imams."
+   },
+   "always": true
+  },
+  {
+   "id": "adiya",
+   "name": {
+    "ar": "الأدعية والزيارات",
+    "fa": "ادعیه و زیارات",
+    "ur": "ادعیہ و زیارات",
+    "en": "Supplications"
+   },
+   "desc": {
+    "ar": "الأدعية والزيارات والمناجاة.",
+    "fa": "",
+    "ur": "",
+    "en": "Supplications, ziyarat and munajat."
+   },
+   "always": true
+  },
+  {
+   "id": "general",
+   "name": {
+    "ar": "عام",
+    "fa": "عمومی",
+    "ur": "عام",
+    "en": "General"
+   },
+   "desc": {
+    "ar": "",
+    "fa": "",
+    "ur": "",
+    "en": ""
+   },
+   "always": true
+  }
+ ],
+ "books": [
+  {
+   "slug": "bihar",
+   "category": "hadith",
+   "title": {
+    "ar": "بحار الأنوار الجامعة لدرر أخبار الأئمة الأطهار",
+    "en": "Bihar al-Anwar"
+   },
+   "subtitle": {
+    "en": "Oceans of Light"
+   },
+   "author": {
+    "ar": "العلامة محمد باقر المجلسي",
+    "en": "Allama Muhammad Baqir al-Majlisi"
+   },
+   "volumes": 110,
+   "volume": 1,
+   "pages": 100,
+   "href": "bihar/"
+  }
+ ]
+}
