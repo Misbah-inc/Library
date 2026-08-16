@@ -1,68 +1,97 @@
-/* Misbah Library.
-   Pages render fully server-side; this file adds interface language, night mode,
-   continue-reading, category filtering, search and keyboard paging. */
+/* Misbah Library — interface behaviour.
+   Everything the server renders that is language-dependent carries
+   data-ar / data-fa / data-ur / data-en attributes, so switching language
+   translates the whole page, not just the buttons. */
 (function () {
   "use strict";
   var H = document.documentElement;
   var ROOT = H.getAttribute('data-root') || '.';
   var BOOK = H.getAttribute('data-book') || ROOT;
 
-  /* ---------------- storage ---------------- */
   var store = {
     get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
     set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   };
 
-  /* ---------------- interface languages ---------------- */
-  var STRINGS = {
-    ar: { home:'الرئيسية', library:'المكتبة', search:'بحث', contents:'الفهرس',
-          cite:'نسخ الإحالة', copied:'تم النسخ ✓', night:'ليلي', day:'نهاري',
-          bigger:'تكبير الخط', smaller:'تصغير الخط',
+  var T = {
+    ar: { home:'الرئيسية', mylib:'مكتبتي', search:'بحث', allBooks:'كل الكتب',
+          contact:'اتصل بنا', about:'من نحن', menu:'القائمة', close:'إغلاق',
+          contents:'الفهرس', cite:'نسخ الإحالة', copied:'تم النسخ ✓',
+          night:'ليلي', day:'نهاري', bigger:'تكبير الخط', smaller:'تصغير الخط',
+          libName:'مكتبة مصباح', tagline:'نصوص كاملة قابلة للإحالة، صفحةً بصفحة',
+          quote:'تمضي أيامي في ولاء عليٍّ عليه السلام',
           ph:'ابحث في المكتبة…', scopeText:'نصوص الكتب', scopeTitle:'عناوين الكتب',
           scopeAuthor:'المؤلفون', advanced:'بحث متقدم',
           allWords:'كل هذه الكلمات', phrase:'هذه العبارة بالضبط', anyWord:'أي من هذه الكلمات',
-          without:'بدون هذه الكلمات', inBook:'في كتاب', inCat:'في قسم', anyBook:'كل الكتب',
-          anyCat:'كل الأقسام', run:'ابحث', clear:'مسح',
+          without:'بدون هذه الكلمات', inBook:'في كتاب', inCat:'في قسم',
+          anyBook:'كل الكتب', anyCat:'كل الأقسام', run:'ابحث', clear:'مسح',
           continue:'متابعة القراءة', continueNone:'ستظهر هنا الكتب التي بدأت قراءتها.',
-          categories:'الأقسام', books:'كتاب', page:'صفحة', volume:'المجلد',
+          categories:'الأقسام', statBooks:'كتب', statVolumes:'مجلدات', statPages:'صفحات',
+          books:'كتاب', page:'صفحة', volume:'مجلد', volumes:'مجلداً',
           results:'النتائج', noResults:'لا نتائج.', minChars:'اكتب حرفين على الأقل.',
           searching:'جارٍ البحث…', occurrences:'موضع', loadFail:'تعذّر التحميل.',
-          first:'الأولى', prev:'السابقة', next:'التالية', last:'الأخيرة',
           start:'ابدأ القراءة', pages:'الصفحات', notes:'الحواشي', edition:'النسخة',
-          parts:'الأقسام', noBooks:'لا كتب في هذا القسم بعد.' },
-    fa: { home:'خانه', library:'کتابخانه', search:'جستجو', contents:'فهرست',
-          cite:'کپی ارجاع', copied:'کپی شد ✓', night:'شب', day:'روز',
-          bigger:'بزرگ‌تر', smaller:'کوچک‌تر',
+          parts:'الأقسام', noBooks:'لا كتب في هذا القسم بعد.', citation:'الإحالة',
+          urlNote:'لكل صفحة عنوان ثابت، ورقم الصفحة هو رقم الطبعة المطبوعة، فتبقى الإحالة صالحة.',
+          rights:'مكتبة مصباح — نصوص تراثية بصيغة مفتوحة.',
+          browse:'تصفح', aboutBody:'مكتبة مصباح مشروع لنشر النصوص التراثية على الإنترنت بصيغة '
+                 + 'قابلة للإحالة الدقيقة: كل صفحة تحمل رقمها في الطبعة المطبوعة وعنواناً ثابتاً '
+                 + 'لا يتغير، ليستطيع الباحث أن يحيل إليها ويثق ببقاء الرابط.',
+          contactBody:'للاقتراحات وتصحيح الأخطاء والمساهمة في المكتبة، يرجى التواصل معنا.' },
+    fa: { home:'خانه', mylib:'کتابخانهٔ من', search:'جستجو', allBooks:'همهٔ کتاب‌ها',
+          contact:'تماس با ما', about:'دربارهٔ ما', menu:'فهرست', close:'بستن',
+          contents:'فهرست', cite:'کپی ارجاع', copied:'کپی شد ✓',
+          night:'شب', day:'روز', bigger:'بزرگ‌تر', smaller:'کوچک‌تر',
+          libName:'کتابخانهٔ مصباح', tagline:'متن‌های کامل و قابل ارجاع، صفحه به صفحه',
+          quote:'روزگارم با غلامی علی سر می‌شود',
           ph:'در کتابخانه جستجو کنید…', scopeText:'متن کتاب‌ها', scopeTitle:'عنوان کتاب‌ها',
           scopeAuthor:'مؤلفان', advanced:'جستجوی پیشرفته',
-          allWords:'همه این کلمات', phrase:'دقیقاً این عبارت', anyWord:'هر یک از این کلمات',
-          without:'بدون این کلمات', inBook:'در کتاب', inCat:'در بخش', anyBook:'همه کتاب‌ها',
-          anyCat:'همه بخش‌ها', run:'جستجو', clear:'پاک کردن',
-          continue:'ادامه مطالعه', continueNone:'کتاب‌هایی که شروع کرده‌اید اینجا می‌آید.',
-          categories:'بخش‌ها', books:'کتاب', page:'صفحه', volume:'جلد',
-          results:'نتایج', noResults:'نتیجه‌ای نیست.', minChars:'حداقل دو حرف بنویسید.',
+          allWords:'همهٔ این کلمات', phrase:'دقیقاً این عبارت', anyWord:'هر یک از این کلمات',
+          without:'بدون این کلمات', inBook:'در کتاب', inCat:'در بخش',
+          anyBook:'همهٔ کتاب‌ها', anyCat:'همهٔ بخش‌ها', run:'جستجو', clear:'پاک کردن',
+          continue:'ادامهٔ مطالعه', continueNone:'کتاب‌هایی که آغاز کرده‌اید اینجا می‌آید.',
+          categories:'بخش‌ها', statBooks:'کتاب', statVolumes:'جلد', statPages:'صفحه',
+          books:'کتاب', page:'صفحه', volume:'جلد', volumes:'جلد',
+          results:'نتایج', noResults:'نتیجه‌ای یافت نشد.', minChars:'دست‌کم دو حرف بنویسید.',
           searching:'در حال جستجو…', occurrences:'مورد', loadFail:'بارگذاری ناموفق بود.',
-          first:'اول', prev:'قبلی', next:'بعدی', last:'آخر',
           start:'شروع مطالعه', pages:'صفحات', notes:'پانوشت‌ها', edition:'نسخه',
-          parts:'بخش‌ها', noBooks:'هنوز کتابی در این بخش نیست.' },
-    ur: { home:'صفحہ اول', library:'کتب خانہ', search:'تلاش', contents:'فہرست',
-          cite:'حوالہ نقل کریں', copied:'نقل ہو گیا ✓', night:'رات', day:'دن',
-          bigger:'بڑا', smaller:'چھوٹا',
-          ph:'کتب خانے میں تلاش کریں…', scopeText:'کتابوں کا متن', scopeTitle:'کتابوں کے نام',
+          parts:'بخش‌ها', noBooks:'هنوز کتابی در این بخش نیست.', citation:'ارجاع',
+          urlNote:'هر صفحه نشانی ثابت دارد و شمارهٔ صفحه همان شمارهٔ چاپی است؛ ارجاع معتبر می‌ماند.',
+          rights:'کتابخانهٔ مصباح — متون تراثی به شکل باز.',
+          browse:'مرور', aboutBody:'کتابخانهٔ مصباح پروژه‌ای است برای انتشار متون تراثی بر '
+                 + 'بستر وب به شکلی که ارجاع دقیق ممکن باشد: هر صفحه شمارهٔ چاپی خود و نشانی '
+                 + 'ثابتی دارد که تغییر نمی‌کند.',
+          contactBody:'برای پیشنهاد، گزارش اشتباه یا همکاری با کتابخانه با ما در تماس باشید.' },
+    ur: { home:'صفحۂ اول', mylib:'میری لائبریری', search:'تلاش', allBooks:'تمام کتب',
+          contact:'رابطہ کریں', about:'ہمارے بارے میں', menu:'مینو', close:'بند کریں',
+          contents:'فہرست', cite:'حوالہ نقل کریں', copied:'نقل ہو گیا ✓',
+          night:'رات', day:'دن', bigger:'بڑا', smaller:'چھوٹا',
+          libName:'مصباح لائبریری', tagline:'مکمل متون، صفحہ بہ صفحہ قابلِ حوالہ',
+          quote:'میرا زمانہ علیؑ کی غلامی میں بسر ہوتا ہے',
+          ph:'لائبریری میں تلاش کریں…', scopeText:'کتابوں کا متن', scopeTitle:'کتابوں کے نام',
           scopeAuthor:'مصنفین', advanced:'اعلیٰ تلاش',
           allWords:'یہ تمام الفاظ', phrase:'بالکل یہی جملہ', anyWord:'ان میں سے کوئی لفظ',
           without:'ان الفاظ کے بغیر', inBook:'کتاب میں', inCat:'زمرے میں',
           anyBook:'تمام کتابیں', anyCat:'تمام زمرے', run:'تلاش کریں', clear:'صاف کریں',
-          continue:'مطالعہ جاری رکھیں', continueNone:'جو کتابیں آپ نے شروع کیں وہ یہاں آئیں گی۔',
-          categories:'زمرے', books:'کتاب', page:'صفحہ', volume:'جلد',
+          continue:'مطالعہ جاری رکھیں', continueNone:'جو کتابیں آپ نے کھولیں وہ یہاں آئیں گی۔',
+          categories:'زمرے', statBooks:'کتب', statVolumes:'جلدیں', statPages:'صفحات',
+          books:'کتاب', page:'صفحہ', volume:'جلد', volumes:'جلدیں',
           results:'نتائج', noResults:'کوئی نتیجہ نہیں۔', minChars:'کم از کم دو حروف لکھیں۔',
           searching:'تلاش جاری ہے…', occurrences:'مقام', loadFail:'لوڈ نہیں ہو سکا۔',
-          first:'پہلا', prev:'پچھلا', next:'اگلا', last:'آخری',
           start:'مطالعہ شروع کریں', pages:'صفحات', notes:'حواشی', edition:'نسخہ',
-          parts:'حصے', noBooks:'اس زمرے میں ابھی کوئی کتاب نہیں۔' },
-    en: { home:'Home', library:'Library', search:'Search', contents:'Contents',
-          cite:'Copy citation', copied:'Copied ✓', night:'Night', day:'Day',
-          bigger:'Larger text', smaller:'Smaller text',
+          parts:'حصے', noBooks:'اس زمرے میں ابھی کوئی کتاب نہیں۔', citation:'حوالہ',
+          urlNote:'ہر صفحے کا مستقل پتہ ہے اور صفحہ نمبر مطبوعہ نسخے کا ہے، اس لیے حوالہ قائم رہتا ہے۔',
+          rights:'مصباح لائبریری — تراثی متون، کھلے انداز میں۔',
+          browse:'دیکھیں', aboutBody:'مصباح لائبریری کا مقصد تراثی متون کو ایسے انداز میں '
+                 + 'شائع کرنا ہے کہ درست حوالہ ممکن ہو: ہر صفحہ اپنا مطبوعہ نمبر اور ایک '
+                 + 'مستقل پتہ رکھتا ہے۔',
+          contactBody:'تجاویز، اغلاط کی نشاندہی یا تعاون کے لیے ہم سے رابطہ کریں۔' },
+    en: { home:'Home', mylib:'My library', search:'Search', allBooks:'All books',
+          contact:'Contact us', about:'About us', menu:'Menu', close:'Close',
+          contents:'Contents', cite:'Copy citation', copied:'Copied ✓',
+          night:'Night', day:'Day', bigger:'Larger text', smaller:'Smaller text',
+          libName:'Misbah Library', tagline:'Complete texts, citable page by page',
+          quote:'My days are spent in the service of Ali',
           ph:'Search the library…', scopeText:'Book texts', scopeTitle:'Book titles',
           scopeAuthor:'Authors', advanced:'Advanced search',
           allWords:'All of these words', phrase:'This exact phrase',
@@ -70,19 +99,48 @@
           inBook:'In book', inCat:'In category', anyBook:'All books',
           anyCat:'All categories', run:'Search', clear:'Clear',
           continue:'Continue reading', continueNone:'Books you have opened will appear here.',
-          categories:'Categories', books:'books', page:'page', volume:'Volume',
+          categories:'Categories', statBooks:'Books', statVolumes:'Volumes', statPages:'Pages',
+          books:'books', page:'Page', volume:'volume', volumes:'volumes',
           results:'Results', noResults:'No results.', minChars:'Type at least two characters.',
           searching:'Searching…', occurrences:'matches', loadFail:'Could not load.',
-          first:'First', prev:'Previous', next:'Next', last:'Last',
           start:'Start reading', pages:'Pages', notes:'Footnotes', edition:'Edition',
-          parts:'Parts', noBooks:'No books in this category yet.' }
+          parts:'Parts', noBooks:'No books in this category yet.', citation:'Citation',
+          urlNote:'Every page has a permanent address and carries its printed page number, '
+                + 'so a citation stays valid.',
+          rights:'Misbah Library — classical texts in an open format.',
+          browse:'Browse', aboutBody:'Misbah Library publishes classical texts on the web in a '
+                 + 'form that can be cited precisely: every page carries its printed page number '
+                 + 'and a permanent address that does not change, so a reference made today still '
+                 + 'resolves years from now.',
+          contactBody:'For suggestions, corrections, or to contribute to the library, '
+                    + 'please get in touch.' }
   };
   var RTL = { ar: 1, fa: 1, ur: 1 };
-  var lang = store.get('lang') || 'ar';
-  if (!STRINGS[lang]) lang = 'ar';
-  function t(k) { return (STRINGS[lang] && STRINGS[lang][k]) || STRINGS.ar[k] || k; }
+  var DIGITS = { ar: '٠١٢٣٤٥٦٧٨٩', fa: '۰۱۲۳۴۵۶۷۸۹', ur: '۰۱۲۳۴۵۶۷۸۹', en: '0123456789' };
+  var lang = store.get('lang') || H.getAttribute('lang') || 'ar';
+  if (!T[lang]) lang = 'ar';
+  function t(k) { return (T[lang] && T[lang][k]) || T.ar[k] || k; }
+  function num(n) {
+    var d = DIGITS[lang] || DIGITS.ar;
+    return String(n).replace(/\d/g, function (c) { return d[+c]; });
+  }
+  function toEn(s) {
+    return String(s).replace(/[٠-٩۰-۹]/g, function (c) {
+      var a = '٠١٢٣٤٥٦٧٨٩'.indexOf(c);
+      return String(a >= 0 ? a : '۰۱۲۳۴۵۶۷۸۹'.indexOf(c));
+    });
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c];
+    });
+  }
+  function each(sel, fn) { Array.prototype.forEach.call(document.querySelectorAll(sel), fn); }
+  function on(id, ev, fn) { var el = document.getElementById(id); if (el) el.addEventListener(ev, fn); }
 
+  /* ---------- apply language everywhere ---------- */
   function applyLang() {
+    H.setAttribute('lang', lang);
     H.setAttribute('data-lang', lang);
     H.setAttribute('dir', RTL[lang] ? 'rtl' : 'ltr');
     each('[data-i18n]', function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
@@ -92,27 +150,30 @@
     each('[data-i18n-label]', function (el) {
       el.setAttribute('aria-label', t(el.getAttribute('data-i18n-label')));
     });
-    /* names carried in several languages: <b data-ar="…" data-en="…"> */
     each('[data-ar]', function (el) {
-      var v = el.getAttribute('data-' + lang) || el.getAttribute('data-ar');
-      if (v) el.textContent = v;
+      var v = el.getAttribute('data-' + lang);
+      if (v === null || v === '') v = el.getAttribute('data-ar');
+      if (v !== null) el.textContent = v;
     });
+    each('[data-num]', function (el) { el.textContent = num(el.getAttribute('data-num')); });
+    each('[data-num-val]', function (el) { el.value = num(el.getAttribute('data-num-val')); });
     each('.langs button', function (b) {
       b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === lang));
     });
     var th = document.getElementById('btn-theme');
     if (th) th.textContent = H.getAttribute('data-theme') === 'night' ? t('day') : t('night');
+    document.title = document.title;
+    if (document.getElementById('tabs')) renderCats();
+    if (document.getElementById('continue')) renderContinue();
+    if (document.getElementById('all-books')) renderAll();
   }
-  function each(sel, fn) { Array.prototype.forEach.call(document.querySelectorAll(sel), fn); }
   each('.langs button', function (b) {
     b.addEventListener('click', function () {
       lang = b.getAttribute('data-lang'); store.set('lang', lang); applyLang();
-      if (document.getElementById('cats')) renderCats();
-      if (document.getElementById('continue')) renderContinue();
     });
   });
 
-  /* ---------------- theme + type size ---------------- */
+  /* ---------- theme + size ---------- */
   function applyTheme(night) {
     H.setAttribute('data-theme', night ? 'night' : '');
     var b = document.getElementById('btn-theme');
@@ -131,9 +192,23 @@
   }
   on('btn-bigger', 'click', function () { bump(0.06); });
   on('btn-smaller', 'click', function () { bump(-0.06); });
-  function on(id, ev, fn) { var el = document.getElementById(id); if (el) el.addEventListener(ev, fn); }
 
-  /* ---------------- Arabic / Persian folding ---------------- */
+  /* ---------- nav drawer ---------- */
+  var nav = document.getElementById('nav'), scrim = document.getElementById('scrim');
+  function closeAll() {
+    if (nav) { nav.setAttribute('data-open', '0'); nav.setAttribute('aria-hidden', 'true'); }
+    var d = document.getElementById('drawer');
+    if (d) { d.setAttribute('data-open', '0'); d.setAttribute('aria-hidden', 'true'); }
+    if (scrim) scrim.setAttribute('data-open', '0');
+  }
+  on('btn-menu', 'click', function () {
+    nav.setAttribute('data-open', '1'); nav.setAttribute('aria-hidden', 'false');
+    if (scrim) scrim.setAttribute('data-open', '1');
+  });
+  on('nav-close', 'click', closeAll);
+  if (scrim) scrim.addEventListener('click', closeAll);
+
+  /* ---------- folding / highlight ---------- */
   var FOLD = { 'أ':'ا','إ':'ا','آ':'ا','ٱ':'ا','ى':'ی','ي':'ی','ك':'ک','ة':'ه','ؤ':'و','ئ':'ی' };
   var DROP = /[\u0610-\u061A\u064B-\u0652\u0670\u06D6-\u06ED\u0640]/;
   function fold(text) {
@@ -145,56 +220,31 @@
     }
     return { text: out, map: map };
   }
-  function esc(s) {
-    return String(s).replace(/[&<>"]/g, function (c) {
-      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c];
-    });
-  }
   function marked(text, q) {
-    var f = fold(text), out = '', cursor = 0, pos = 0;
+    if (!q) return null;
+    var f = fold(text), out = '', cur = 0, pos = 0;
     while ((pos = f.text.indexOf(q, pos)) !== -1) {
       var s = f.map[pos], e2 = f.map[pos + q.length - 1] + 1;
-      if (s < cursor) { pos += q.length; continue; }
-      out += esc(text.slice(cursor, s)) + '<mark>' + esc(text.slice(s, e2)) + '</mark>';
-      cursor = e2; pos += q.length;
+      if (s < cur) { pos += q.length; continue; }
+      out += esc(text.slice(cur, s)) + '<mark>' + esc(text.slice(s, e2)) + '</mark>';
+      cur = e2; pos += q.length;
     }
-    return out ? out + esc(text.slice(cursor)) : null;
-  }
-  var AR_D = '٠١٢٣٤٥٦٧٨٩';
-  function toAr(n) {
-    return lang === 'en' ? String(n)
-      : String(n).replace(/\d/g, function (d) { return AR_D[+d]; });
-  }
-  function toEn(s) {
-    return String(s).replace(/[٠-٩۰-۹]/g, function (c) {
-      var a = '٠١٢٣٤٥٦٧٨٩'.indexOf(c);
-      return String(a >= 0 ? a : '۰۱۲۳۴۵۶۷۸۹'.indexOf(c));
-    });
+    return out ? out + esc(text.slice(cur)) : null;
   }
 
-  /* ---------------- data ---------------- */
   var cache = {};
   function load(url) {
     if (!cache[url]) {
       cache[url] = fetch(url).then(function (r) {
-        if (!r.ok) throw new Error(r.status);
-        return r.json();
+        if (!r.ok) throw new Error(r.status); return r.json();
       });
     }
     return cache[url];
   }
-  var catalogURL = ROOT + '/catalog.json';
+  var CATURL = ROOT + '/catalog.json';
 
-  /* ---------------- continue reading ---------------- */
-  var KEY = 'reading';
-  function readList() {
-    try { return JSON.parse(store.get(KEY) || '[]'); } catch (e) { return []; }
-  }
-  function recordRead(entry) {
-    var list = readList().filter(function (x) { return x.slug !== entry.slug; });
-    list.unshift(entry);
-    store.set(KEY, JSON.stringify(list.slice(0, 8)));
-  }
+  /* ---------- continue reading ---------- */
+  function readList() { try { return JSON.parse(store.get('reading') || '[]'); } catch (e) { return []; } }
   function renderContinue() {
     var box = document.getElementById('continue');
     if (!box) return;
@@ -205,86 +255,108 @@
     }
     box.innerHTML = '<div class="rail">' + list.map(function (x) {
       var pct = x.total ? Math.round(100 * (x.pos + 1) / x.total) : 0;
+      var title = (x.titles && (x.titles[lang] || x.titles.ar)) || x.title || '';
       return '<a class="rcard" href="' + ROOT + '/' + esc(x.href) + '">' +
-        '<b>' + esc(x.title) + '</b><span>' + esc(t('page')) + ' ' + esc(x.label) +
-        ' · ' + esc(t('volume')) + ' ' + toAr(x.volume || 1) + '</span>' +
+        '<b>' + esc(title) + '</b><span>' + esc(t('page')) + ' ' + num(x.pageNum) +
+        ' · ' + esc(t('volume')) + ' ' + num(x.volume || 1) + '</span>' +
         '<span class="prog"><i style="width:' + pct + '%"></i></span></a>';
     }).join('') + '</div>';
   }
-  renderContinue();
 
   var meta = document.getElementById('page-meta');
   if (meta) {
-    recordRead({
-      slug: meta.getAttribute('data-slug'),
-      title: meta.getAttribute('data-title'),
-      href: meta.getAttribute('data-href'),
-      label: meta.getAttribute('data-label'),
+    var titles = {};
+    ['ar','fa','ur','en'].forEach(function (L) {
+      titles[L] = meta.getAttribute('data-title-' + L) || meta.getAttribute('data-title-ar');
+    });
+    var entry = { slug: meta.getAttribute('data-slug'), titles: titles,
+      href: meta.getAttribute('data-href'), pageNum: meta.getAttribute('data-pagenum'),
       volume: meta.getAttribute('data-volume'),
       pos: parseInt(meta.getAttribute('data-pos'), 10) || 0,
-      total: parseInt(meta.getAttribute('data-total'), 10) || 0,
-      at: Date.now()
-    });
+      total: parseInt(meta.getAttribute('data-total'), 10) || 0, at: Date.now() };
+    var list = readList().filter(function (x) { return x.slug !== entry.slug; });
+    list.unshift(entry);
+    store.set('reading', JSON.stringify(list.slice(0, 8)));
   }
 
-  /* ---------------- categories + book list (home) ---------------- */
+  /* ---------- catalog rendering ---------- */
   var CAT = null, active = null;
+  function pick(o) { return o ? (o[lang] || o.ar || o.en || '') : ''; }
+  /* subtitles are optional and must not leak another language onto the page */
+  function pickStrict(o) { return (o && o[lang]) || ''; }
+  function bookCard(b) {
+    var sub = pickStrict(b.subtitle);
+    var spine = (b.title && (b.title.ar || b.title.en) || '').slice(0, 16);
+    return '<a class="bcard" href="' + ROOT + '/' + esc(b.href) + '">' +
+      '<span class="spine"><span>' + esc(spine) + '</span></span>' +
+      '<span class="bmeta"><b>' + esc(pick(b.title)) + '</b>' +
+      (sub ? '<i>' + esc(sub) + '</i>' : '') +
+      (b.volumes > 1 ? '<span class="badge">' + num(b.volumes) + ' ' + esc(t('volumes')) +
+        '</span>' : '') +
+      '<span class="who"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/>' +
+      '<path d="M5 20c1.2-3.6 4-5.4 7-5.4s5.8 1.8 7 5.4"/></svg>' +
+      esc(pick(b.author)) + '</span></span></a>';
+  }
   function renderCats() {
     if (!CAT) return;
-    var tabs = document.getElementById('tabs');
-    var body = document.getElementById('cat-body');
+    var tabs = document.getElementById('tabs'), body = document.getElementById('cat-body');
     if (!tabs || !body) return;
-    var cats = CAT.categories.filter(function (c) {
-      return CAT.books.some(function (b) { return b.category === c.id; }) || c.always;
-    });
+    var cats = CAT.categories;
     if (!active || !cats.some(function (c) { return c.id === active; })) {
-      active = cats.length ? cats[0].id : null;
+      var first = cats.filter(function (c) {
+        return CAT.books.some(function (b) { return b.category === c.id; }); })[0];
+      active = (first || cats[0]).id;
     }
     tabs.innerHTML = cats.map(function (c) {
       var n = CAT.books.filter(function (b) { return b.category === c.id; }).length;
       return '<button class="tab" role="tab" data-cat="' + esc(c.id) + '" aria-selected="' +
-             (c.id === active) + '">' + esc(c.name[lang] || c.name.ar) +
-             ' <small>· ' + toAr(n) + '</small></button>';
+        (c.id === active) + '">' + esc(pick(c.name)) + ' <small>· ' + num(n) + '</small></button>';
     }).join('');
     var cat = cats.filter(function (c) { return c.id === active; })[0];
     var books = CAT.books.filter(function (b) { return b.category === active; });
-    body.innerHTML =
-      (cat && cat.desc ? '<p class="cat-desc">' + esc(cat.desc[lang] || cat.desc.ar || '') + '</p>' : '') +
+    body.innerHTML = (cat && pick(cat.desc) ? '<p class="cat-desc">' + esc(pick(cat.desc)) + '</p>' : '') +
       (books.length ? '<div class="books">' + books.map(bookCard).join('') + '</div>'
                     : '<p class="empty-note">' + esc(t('noBooks')) + '</p>');
     Array.prototype.forEach.call(tabs.children, function (b) {
       b.addEventListener('click', function () { active = b.getAttribute('data-cat'); renderCats(); });
     });
+    var st = document.getElementById('stats');
+    if (st) {
+      var vols = CAT.books.reduce(function (a, b) { return a + (b.volumes || 1); }, 0);
+      var pgs = CAT.books.reduce(function (a, b) { return a + (b.pages || 0); }, 0);
+      st.innerHTML = [[CAT.books.length, 'statBooks'], [vols, 'statVolumes'], [pgs, 'statPages']]
+        .map(function (p) {
+          return '<div class="stat"><b>' + num(p[0]) + '</b><span>' + esc(t(p[1])) + '</span></div>';
+        }).join('');
+    }
   }
-  function bookCard(b) {
-    var title = (b.title && (b.title[lang] || b.title.ar)) || '';
-    var sub = b.subtitle && (b.subtitle[lang] || b.subtitle.en);
-    var who = (b.author && (b.author[lang] || b.author.ar)) || '';
-    return '<a class="bcard" href="' + ROOT + '/' + esc(b.href) + '">' +
-      '<span class="spine"><span>' + esc((b.title.ar || '').slice(0, 14)) + '</span></span>' +
-      '<span class="bmeta"><b>' + esc(title) + '</b>' +
-      (sub ? '<i>' + esc(sub) + '</i>' : '') +
-      (b.volumes > 1 ? '<em>(' + toAr(b.volumes) + ' ' + esc(t('volume')) + ')</em>' : '') +
-      '<span class="who">' + esc(who) + '</span></span>' +
-      '<span class="chev">›</span></a>';
+  function renderAll() {
+    var box = document.getElementById('all-books');
+    if (!box || !CAT) return;
+    box.innerHTML = CAT.categories.map(function (c) {
+      var books = CAT.books.filter(function (b) { return b.category === c.id; });
+      if (!books.length) return '';
+      return '<section class="sec"><div class="sec-h"><h2>' + esc(pick(c.name)) +
+        '</h2><span>' + num(books.length) + ' ' + esc(t('books')) + '</span></div>' +
+        '<div class="books">' + books.map(bookCard).join('') + '</div></section>';
+    }).join('') || '<p class="empty-note">' + esc(t('noBooks')) + '</p>';
   }
-  if (document.getElementById('tabs')) {
-    load(catalogURL).then(function (c) { CAT = c; renderCats(); })
+  if (document.getElementById('tabs') || document.getElementById('all-books')) {
+    load(CATURL).then(function (c) { CAT = c; renderCats(); renderAll(); })
       .catch(function () {
-        document.getElementById('cat-body').innerHTML =
-          '<p class="empty-note">' + esc(t('loadFail')) + '</p>';
+        var b = document.getElementById('cat-body') || document.getElementById('all-books');
+        if (b) b.innerHTML = '<p class="empty-note">' + esc(t('loadFail')) + '</p>';
       });
   }
 
-  /* ---------------- search ---------------- */
+  /* ---------- search ---------- */
   function params() {
-    var out = {}, s = location.search.replace(/^\?/, '');
-    s.split('&').forEach(function (kv) {
+    var out = {};
+    location.search.replace(/^\?/, '').split('&').forEach(function (kv) {
       if (!kv) return;
       var i = kv.indexOf('=');
       var k = decodeURIComponent(kv.slice(0, i < 0 ? kv.length : i).replace(/\+/g, ' '));
-      var v = i < 0 ? '' : decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' '));
-      out[k] = v;
+      out[k] = i < 0 ? '' : decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' '));
     });
     return out;
   }
@@ -293,12 +365,12 @@
       .map(function (k) { return k + '=' + encodeURIComponent(p[k]); }).join('&');
     location.href = ROOT + '/search/?' + q;
   }
+  function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
   var homeForm = document.getElementById('home-search');
   if (homeForm) {
     homeForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      goSearch({ q: document.getElementById('home-q').value.trim(),
-                 in: document.getElementById('home-scope').value });
+      goSearch({ q: val('home-q'), 'in': document.getElementById('home-scope').value });
     });
     on('adv-toggle', 'click', function () {
       var a = document.getElementById('adv');
@@ -306,59 +378,54 @@
     });
     on('adv-run', 'click', function () {
       goSearch({ all: val('adv-all'), phrase: val('adv-phrase'), any: val('adv-any'),
-                 without: val('adv-not'), book: val('adv-book'), cat: val('adv-cat'),
-                 in: 'text' });
+                 without: val('adv-not'), book: val('adv-book'), cat: val('adv-cat'), 'in': 'text' });
     });
     on('adv-clear', 'click', function () {
       ['adv-all','adv-phrase','adv-any','adv-not'].forEach(function (id) {
         var el = document.getElementById(id); if (el) el.value = '';
       });
     });
-    load(catalogURL).then(function (c) {
+    load(CATURL).then(function (c) {
       var sb = document.getElementById('adv-book'), sc = document.getElementById('adv-cat');
       if (sb) sb.innerHTML = '<option value="">' + esc(t('anyBook')) + '</option>' +
         c.books.map(function (b) {
-          return '<option value="' + esc(b.slug) + '">' + esc(b.title.ar) + '</option>';
+          return '<option value="' + esc(b.slug) + '">' + esc(pick(b.title)) + '</option>';
         }).join('');
       if (sc) sc.innerHTML = '<option value="">' + esc(t('anyCat')) + '</option>' +
         c.categories.map(function (x) {
-          return '<option value="' + esc(x.id) + '">' + esc(x.name.ar) + '</option>';
+          return '<option value="' + esc(x.id) + '">' + esc(pick(x.name)) + '</option>';
         }).join('');
     }).catch(function () {});
   }
-  function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
 
   var resBox = document.getElementById('results');
   if (resBox) {
-    var p = params();
-    var titleEl = document.getElementById('res-q');
-    if (titleEl) titleEl.textContent = p.q || p.phrase || p.all || p.any || '';
-    var qInput = document.getElementById('res-input');
-    if (qInput) qInput.value = p.q || '';
-    var form = document.getElementById('res-form');
-    if (form) form.addEventListener('submit', function (e) {
+    var P = params();
+    var qi = document.getElementById('res-input');
+    if (qi) qi.value = P.q || P.phrase || P.all || P.any || '';
+    var rf = document.getElementById('res-form');
+    if (rf) rf.addEventListener('submit', function (e) {
       e.preventDefault();
-      goSearch({ q: qInput.value.trim(), in: document.getElementById('res-scope').value });
+      goSearch({ q: qi.value.trim(), 'in': document.getElementById('res-scope').value });
     });
-    runSearch(p);
+    runSearch(P);
   }
-
-  function tokens(s) {
+  function tok(s) {
     return fold(s || '').text.split(/\s+/).filter(function (x) { return x.length > 1; });
   }
-  function runSearch(p) {
+  function runSearch(P) {
     resBox.innerHTML = '<p class="empty-note">' + esc(t('searching')) + '</p>';
-    var scope = p['in'] || 'text';
-    load(catalogURL).then(function (cat) {
+    var scope = P['in'] || 'text';
+    load(CATURL).then(function (cat) {
+      CAT = cat;
       var books = cat.books.filter(function (b) {
-        return (!p.book || b.slug === p.book) && (!p.cat || b.category === p.cat);
+        return (!P.book || b.slug === P.book) && (!P.cat || b.category === P.cat);
       });
       if (scope === 'title' || scope === 'author') {
-        var q = fold(p.q || '').text.trim();
+        var q = fold(P.q || '').text.trim();
         var hits = books.filter(function (b) {
-          var hay = scope === 'title'
-            ? Object.keys(b.title).map(function (k) { return b.title[k]; }).join(' ')
-            : Object.keys(b.author).map(function (k) { return b.author[k]; }).join(' ');
+          var o = scope === 'title' ? b.title : b.author;
+          var hay = Object.keys(o).map(function (k) { return o[k]; }).join(' ');
           return fold(hay).text.indexOf(q) !== -1;
         });
         resBox.innerHTML = hits.length
@@ -366,11 +433,10 @@
           : '<p class="empty-note">' + esc(t('noResults')) + '</p>';
         return;
       }
-      var phrase = fold(p.phrase || p.q || '').text.trim();
-      var all = tokens(p.all), any = tokens(p.any), not = tokens(p['without']);
+      var phrase = fold(P.phrase || P.q || '').text.trim();
+      var all = tok(P.all), any = tok(P.any), not = tok(P['without']);
       if (!phrase && !all.length && !any.length) {
-        resBox.innerHTML = '<p class="empty-note">' + esc(t('minChars')) + '</p>';
-        return;
+        resBox.innerHTML = '<p class="empty-note">' + esc(t('minChars')) + '</p>'; return;
       }
       Promise.all(books.map(function (b) {
         return load(ROOT + '/' + b.slug + '/assets/search-index.json')
@@ -382,29 +448,29 @@
           set.idx.forEach(function (row) {
             var txt = row.t;
             if (not.some(function (w) { return txt.indexOf(w) !== -1; })) return;
+            if (phrase && txt.indexOf(phrase) === -1) return;
             if (all.length && !all.every(function (w) { return txt.indexOf(w) !== -1; })) return;
             if (any.length && !any.some(function (w) { return txt.indexOf(w) !== -1; })) return;
-            var mark = phrase || all[0] || any.filter(function (w) {
-              return txt.indexOf(w) !== -1; })[0] || '';
-            if (phrase && txt.indexOf(phrase) === -1) return;
+            var mark = phrase || all[0] ||
+              any.filter(function (w) { return txt.indexOf(w) !== -1; })[0] || '';
             var at = mark ? txt.indexOf(mark) : 0, n = 0, i = 0;
             if (mark) { while ((i = txt.indexOf(mark, i)) !== -1) { n++; i += mark.length; } }
             out.push({ b: set.book, row: row, at: Math.max(0, at), n: n, mark: mark });
-            });
+          });
         });
         if (!out.length) {
-          resBox.innerHTML = '<p class="empty-note">' + esc(t('noResults')) + '</p>';
-          return;
+          resBox.innerHTML = '<p class="empty-note">' + esc(t('noResults')) + '</p>'; return;
         }
         out.sort(function (x, y) { return y.n - x.n; });
-        var head = '<p class="empty-note">' + toAr(out.length) + ' · ' + esc(t('results')) + '</p>';
-        resBox.innerHTML = head + out.slice(0, 300).map(function (h) {
+        resBox.innerHTML = '<p class="empty-note">' + num(out.length) + ' · ' +
+          esc(t('results')) + '</p>' + out.slice(0, 300).map(function (h) {
           var s = Math.max(0, h.at - 50);
           var snip = h.row.t.slice(s, Math.min(h.row.t.length, h.at + 60));
-          var link = ROOT + '/' + h.row.href + (h.mark ? '?q=' + encodeURIComponent(h.mark) : '');
-          return '<a class="res" href="' + link + '"><span class="res-h">' +
-            esc(h.b.title.ar) + ' · ' + esc(h.row.part) + ' · ' + esc(t('page')) + ' ' +
-            esc(h.row.label) + (h.n ? ' · ' + toAr(h.n) + ' ' + esc(t('occurrences')) : '') +
+          var part = h.row.part && (h.row.part[lang] || h.row.part.ar) || '';
+          return '<a class="res" href="' + ROOT + '/' + h.row.href +
+            (h.mark ? '?q=' + encodeURIComponent(h.mark) : '') + '"><span class="res-h">' +
+            esc(pick(h.b.title)) + ' · ' + esc(part) + ' · ' + esc(t('page')) + ' ' +
+            num(h.row.p) + (h.n ? ' · ' + num(h.n) + ' ' + esc(t('occurrences')) : '') +
             '</span><span class="res-t">…' + (marked(snip, h.mark) || esc(snip)) +
             '…</span></a>';
         }).join('');
@@ -414,7 +480,7 @@
     });
   }
 
-  /* ---------------- reading page ---------------- */
+  /* ---------- reading page ---------- */
   var Q = (function () {
     var m = location.search.match(/[?&]q=([^&]*)/);
     if (!m) return '';
@@ -427,41 +493,31 @@
       var html = marked(el.textContent, Q);
       if (html) el.innerHTML = html;
     });
-    var first = document.querySelector('mark');
-    if (first) first.scrollIntoView({ block: 'center' });
+    var fm = document.querySelector('mark');
+    if (fm) fm.scrollIntoView({ block: 'center' });
   }
 
-  var drawer = document.getElementById('drawer');
-  var scrim = document.getElementById('scrim');
-  function closeDrawer() {
-    if (!drawer) return;
-    drawer.setAttribute('data-open', '0');
-    drawer.setAttribute('aria-hidden', 'true');
-    if (scrim) scrim.setAttribute('data-open', '0');
-  }
   function openDrawer(title) {
-    drawer.setAttribute('data-open', '1');
-    drawer.setAttribute('aria-hidden', 'false');
+    var d = document.getElementById('drawer');
+    d.setAttribute('data-open', '1'); d.setAttribute('aria-hidden', 'false');
     if (scrim) scrim.setAttribute('data-open', '1');
     document.getElementById('drawer-title').textContent = title;
     return document.getElementById('drawer-body');
   }
-  on('drawer-close', 'click', closeDrawer);
-  if (scrim) scrim.addEventListener('click', closeDrawer);
-
+  on('drawer-close', 'click', closeAll);
   on('btn-toc', 'click', function () {
     var body = openDrawer(t('contents'));
-    body.innerHTML = '<p class="note-msg">…</p>';
+    body.innerHTML = '<p class="note-msg">' + esc(t('searching')) + '</p>';
     load(BOOK + '/assets/toc.json').then(function (toc) {
-      body.innerHTML = toc.length ? toc.map(function (x) {
+      body.innerHTML = toc.map(function (x) {
         return '<a class="toc-i" href="' + ROOT + '/' + x.href + '"><span>' +
-               (x.label || '—') + '</span>' + esc(x.title) + '</a>';
-      }).join('') : '<p class="note-msg">—</p>';
+          (x.p == null ? '—' : num(x.p)) + '</span><span style="flex:1">' +
+          esc(x.title) + '</span></a>';
+      }).join('') || '<p class="note-msg">—</p>';
     }).catch(function () {
       body.innerHTML = '<p class="note-msg">' + esc(t('loadFail')) + '</p>';
     });
   });
-
   on('btn-search', 'click', function () {
     var body = openDrawer(t('search'));
     body.innerHTML = '<div class="search-row"><input id="dq" data-i18n-ph="ph">' +
@@ -485,9 +541,10 @@
         box.innerHTML = hits.map(function (h) {
           var s = Math.max(0, h.at - 45);
           var snip = h.row.t.slice(s, Math.min(h.row.t.length, h.at + needle.length + 45));
+          var part = h.row.part && (h.row.part[lang] || h.row.part.ar) || '';
           return '<a class="hit" href="' + ROOT + '/' + h.row.href + '?q=' +
-            encodeURIComponent(raw) + '"><span class="hit-p">' + esc(h.row.part) + ' · ' +
-            esc(t('page')) + ' ' + esc(h.row.label) + ' · ' + toAr(h.n) + ' ' +
+            encodeURIComponent(raw) + '"><span class="hit-p">' + esc(part) + ' · ' +
+            esc(t('page')) + ' ' + num(h.row.p) + ' · ' + num(h.n) + ' ' +
             esc(t('occurrences')) + '</span><span class="hit-t">…' +
             (marked(snip, needle) || esc(snip)) + '…</span></a>';
         }).join('');
@@ -502,7 +559,8 @@
   on('btn-cite', 'click', function (e) {
     var el = document.getElementById('cite-text');
     if (!el) return;
-    var text = el.getAttribute('data-cite') + ' ' + location.href.split('?')[0];
+    var text = (el.getAttribute('data-cite-' + lang) || el.getAttribute('data-cite-ar')) +
+      ' ' + location.href.split('?')[0];
     var btn = e.currentTarget;
     function done(ok) {
       btn.textContent = ok ? t('copied') : '—';
@@ -534,12 +592,13 @@
     var back = RTL[lang] ? 'ArrowRight' : 'ArrowLeft';
     if (e.key === fwd && rel('next')) location.href = rel('next');
     else if (e.key === back && rel('prev')) location.href = rel('prev');
+    else if (e.key === 'Escape') closeAll();
     else if (e.key === '/') {
-      e.preventDefault();
       var b = document.getElementById('btn-search') || document.getElementById('home-q');
-      if (b) b.focus ? b.focus() : b.click();
-      if (b && b.id === 'btn-search') b.click();
-    } else if (e.key === 'Escape') closeDrawer();
+      if (!b) return;
+      e.preventDefault();
+      if (b.id === 'btn-search') b.click(); else b.focus();
+    }
   });
 
   applyLang();
