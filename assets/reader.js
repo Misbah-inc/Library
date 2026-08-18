@@ -14,7 +14,7 @@
   };
 
   var T = {
-    ar: { home:'الرئيسية', mylib:'مكتبتي', search:'بحث', allBooks:'كل الكتب',
+    ar: { citeAr:'للإحالة استعمل الصفحة العربية:', machineTr:'ترجمة آلية بالذكاء الاصطناعي، غير مراجَعة وقد تحتوي أخطاء. للإحالة يُعتمد الأصل العربي.', viewAr:'العربية', viewTr:'الترجمة', viewBoth:'مقابل', noTr:'لم تُترجم هذه الصفحة بعد؛ النص معروض بالعربية.', draft:'ترجمة أولية غير مراجَعة.', trBy:'الترجمة', home:'الرئيسية', mylib:'مكتبتي', search:'بحث', allBooks:'كل الكتب',
           contact:'اتصل بنا', about:'من نحن', menu:'القائمة', close:'إغلاق',
           contents:'الفهرس', cite:'نسخ الإحالة', copied:'تم النسخ ✓',
           night:'ليلي', day:'نهاري', bigger:'تكبير الخط', smaller:'تصغير الخط',
@@ -38,7 +38,7 @@
                  + 'قابلة للإحالة الدقيقة: كل صفحة تحمل رقمها في الطبعة المطبوعة وعنواناً ثابتاً '
                  + 'لا يتغير، ليستطيع الباحث أن يحيل إليها ويثق ببقاء الرابط.',
           contactBody:'للاقتراحات وتصحيح الأخطاء والمساهمة في المكتبة، يرجى التواصل معنا.' },
-    fa: { home:'خانه', mylib:'کتابخانهٔ من', search:'جستجو', allBooks:'همهٔ کتاب‌ها',
+    fa: { citeAr:'برای ارجاع از صفحهٔ عربی استفاده کنید:', machineTr:'ترجمهٔ ماشینی با هوش مصنوعی، بازبینی‌نشده و ممکن است خطا داشته باشد. برای ارجاع به متن عربی استناد کنید.', viewAr:'عربی', viewTr:'ترجمه', viewBoth:'دوستونه', noTr:'این صفحه هنوز ترجمه نشده است؛ متن عربی نمایش داده می‌شود.', draft:'ترجمهٔ اولیه و بازبینی‌نشده.', trBy:'ترجمه', home:'خانه', mylib:'کتابخانهٔ من', search:'جستجو', allBooks:'همهٔ کتاب‌ها',
           contact:'تماس با ما', about:'دربارهٔ ما', menu:'فهرست', close:'بستن',
           contents:'فهرست', cite:'کپی ارجاع', copied:'کپی شد ✓',
           night:'شب', day:'روز', bigger:'بزرگ‌تر', smaller:'کوچک‌تر',
@@ -62,7 +62,7 @@
                  + 'بستر وب به شکلی که ارجاع دقیق ممکن باشد: هر صفحه شمارهٔ چاپی خود و نشانی '
                  + 'ثابتی دارد که تغییر نمی‌کند.',
           contactBody:'برای پیشنهاد، گزارش اشتباه یا همکاری با کتابخانه با ما در تماس باشید.' },
-    ur: { home:'صفحۂ اول', mylib:'میری لائبریری', search:'تلاش', allBooks:'تمام کتب',
+    ur: { citeAr:'حوالے کے لیے عربی صفحہ استعمال کریں:', machineTr:'مصنوعی ذہانت سے تیار کردہ مشینی ترجمہ، غیر نظرثانی شدہ اور اس میں غلطیاں ممکن ہیں۔ حوالے کے لیے عربی اصل پر اعتماد کریں۔', viewAr:'عربی', viewTr:'ترجمہ', viewBoth:'آمنے سامنے', noTr:'اس صفحے کا ترجمہ ابھی نہیں ہوا؛ عربی متن دکھایا جا رہا ہے۔', draft:'ابتدائی، غیر نظرثانی شدہ ترجمہ۔', trBy:'ترجمہ', home:'صفحۂ اول', mylib:'میری لائبریری', search:'تلاش', allBooks:'تمام کتب',
           contact:'رابطہ کریں', about:'ہمارے بارے میں', menu:'مینو', close:'بند کریں',
           contents:'فہرست', cite:'حوالہ نقل کریں', copied:'نقل ہو گیا ✓',
           night:'رات', day:'دن', bigger:'بڑا', smaller:'چھوٹا',
@@ -86,7 +86,7 @@
                  + 'شائع کرنا ہے کہ درست حوالہ ممکن ہو: ہر صفحہ اپنا مطبوعہ نمبر اور ایک '
                  + 'مستقل پتہ رکھتا ہے۔',
           contactBody:'تجاویز، اغلاط کی نشاندہی یا تعاون کے لیے ہم سے رابطہ کریں۔' },
-    en: { home:'Home', mylib:'My library', search:'Search', allBooks:'All books',
+    en: { citeAr:'For citation use the Arabic page:', machineTr:'Machine translation by AI. Not reviewed and may contain errors — cite the Arabic original, not this translation.', viewAr:'Arabic', viewTr:'Translation', viewBoth:'Side by side', noTr:'This page has not been translated yet; the Arabic text is shown.', draft:'Draft translation, not yet reviewed.', trBy:'Translation', home:'Home', mylib:'My library', search:'Search', allBooks:'All books',
           contact:'Contact us', about:'About us', menu:'Menu', close:'Close',
           contents:'Contents', cite:'Copy citation', copied:'Copied ✓',
           night:'Night', day:'Day', bigger:'Larger text', smaller:'Smaller text',
@@ -117,7 +117,8 @@
   };
   var RTL = { ar: 1, fa: 1, ur: 1 };
   var DIGITS = { ar: '٠١٢٣٤٥٦٧٨٩', fa: '۰۱۲۳۴۵۶۷۸۹', ur: '۰۱۲۳۴۵۶۷۸۹', en: '0123456789' };
-  var lang = store.get('lang') || H.getAttribute('lang') || 'ar';
+  var FIXED = H.getAttribute('data-sitelang') || '';
+  var lang = FIXED || store.get('lang') || 'ar';
   if (!T[lang]) lang = 'ar';
   function t(k) { return (T[lang] && T[lang][k]) || T.ar[k] || k; }
   function num(n) {
@@ -169,7 +170,20 @@
   }
   each('.langs button', function (b) {
     b.addEventListener('click', function () {
-      lang = b.getAttribute('data-lang'); store.set('lang', lang); applyLang();
+      var to = b.getAttribute('data-lang');
+      store.set('lang', to);
+      /* a translated page lives at its own URL, so follow it rather than
+         re-rendering — that URL is what search engines have indexed */
+      var m = document.getElementById('page-meta');
+      var alt = m && m.getAttribute('data-alt-' + to);
+      if (alt) { location.href = alt; return; }
+      if (FIXED) {
+        var back = document.querySelector('link[rel="alternate"][hreflang="ar"]');
+        if (to === 'ar' && back) { location.href = back.getAttribute('href'); return; }
+        var other = document.querySelector('link[rel="alternate"][hreflang="' + to + '"]');
+        if (other) { location.href = other.getAttribute('href'); return; }
+      }
+      lang = to; applyLang();
     });
   });
 
@@ -510,9 +524,10 @@
     body.innerHTML = '<p class="note-msg">' + esc(t('searching')) + '</p>';
     load(BOOK + '/assets/toc.json').then(function (toc) {
       body.innerHTML = toc.map(function (x) {
+        var label = (lang !== 'ar' && x[lang]) ? x[lang] : x.title;
         return '<a class="toc-i" href="' + ROOT + '/' + x.href + '"><span>' +
           (x.p == null ? '—' : num(x.p)) + '</span><span style="flex:1">' +
-          esc(x.title) + '</span></a>';
+          esc(label) + '</span></a>';
       }).join('') || '<p class="note-msg">—</p>';
     }).catch(function () {
       body.innerHTML = '<p class="note-msg">' + esc(t('loadFail')) + '</p>';
@@ -600,6 +615,87 @@
       if (b.id === 'btn-search') b.click(); else b.focus();
     }
   });
+
+  /* ---------- body translation layer ----------
+     Pages ship as Arabic. When a reader picks another language we look for a
+     translation file for this book and swap in whatever exists, block by block.
+     Nothing translated yet simply stays Arabic, and the page says so. */
+  var TRVIEW = store.get('trview') || 'tr';   /* tr | both | ar */
+  function blocks() { return document.querySelectorAll('.body > [data-i]'); }
+  function clearTr() {
+    each('.tr-line', function (el) { el.parentNode.removeChild(el); });
+    each('.body > [data-i]', function (el) { el.hidden = false; });
+    var b = document.getElementById('tr-bar');
+    if (b) b.parentNode.removeChild(b);
+  }
+  function applyTranslation() {
+    if (document.querySelector('.body.tr')) return;   /* already a translated page */
+    if (!document.querySelector('.body') || !meta) return;
+    clearTr();
+    if (lang === 'ar') return;
+    var slug = meta.getAttribute('data-slug');
+    var page = meta.getAttribute('data-pagenum');
+    load(BOOK + '/assets/tr/' + lang + '.json').then(function (tr) {
+      var rows = tr[page] || [];
+      var head = document.createElement('div');
+      head.id = 'tr-bar';
+      head.className = 'tr-bar';
+      if (!rows.length) {
+        head.innerHTML = '<span class="tr-note">' + esc(t('noTr')) + '</span>';
+      } else {
+        head.innerHTML = '<div class="tr-modes">' +
+          ['tr','both','ar'].map(function (m) {
+            var lbl = m === 'tr' ? 'viewTr' : (m === 'both' ? 'viewBoth' : 'viewAr');
+            return '<button data-mode="' + m + '" aria-pressed="' + (TRVIEW === m) + '">' +
+                   esc(t(lbl)) + '</button>';
+          }).join('') + '</div>' +
+          (tr._meta && tr._meta.machine
+            ? '<span class="tr-note machine"><svg class="ic" viewBox="0 0 24 24">' +
+              '<path d="M12 3v2M5 8h14v11H5z"/><circle cx="9" cy="13" r="1.2"/>' +
+              '<circle cx="15" cy="13" r="1.2"/></svg>' + esc(t('machineTr')) + '</span>'
+            : (tr._meta && tr._meta.reviewed === false
+               ? '<span class="tr-note draft">' + esc(t('draft')) + '</span>' : '')) +
+          (tr._meta && tr._meta.translator
+            ? '<span class="tr-note">' + esc(t('trBy')) + ': ' + esc(tr._meta.translator) +
+              '</span>' : '');
+      }
+      var leaf = document.querySelector('.body');
+      leaf.parentNode.insertBefore(head, leaf);
+      Array.prototype.forEach.call(head.querySelectorAll('[data-mode]'), function (b) {
+        b.addEventListener('click', function () {
+          TRVIEW = b.getAttribute('data-mode'); store.set('trview', TRVIEW);
+          applyTranslation();
+        });
+      });
+      if (!rows.length) return;
+      rows.forEach(function (r) {
+        var el = document.querySelector('.body > [data-i="' + r.i + '"]');
+        if (!el) return;
+        var p = document.createElement(el.tagName === 'H3' ? 'h3' : 'p');
+        p.className = 'tr-line';
+        p.setAttribute('lang', lang);
+        p.setAttribute('dir', RTL[lang] ? 'rtl' : 'ltr');
+        if (r.h) {
+          var tag = document.createElement('span');
+          tag.className = 'h-num';
+          tag.textContent = num(r.h);
+          p.appendChild(tag);
+        }
+        p.appendChild(document.createTextNode(r.text));
+        el.parentNode.insertBefore(p, el.nextSibling);
+        if (TRVIEW === 'tr') el.hidden = true;
+      });
+      if (TRVIEW === 'ar') each('.tr-line', function (el) { el.hidden = true; });
+    }).catch(function () {
+      var leaf = document.querySelector('.body');
+      var head = document.createElement('div');
+      head.id = 'tr-bar'; head.className = 'tr-bar';
+      head.innerHTML = '<span class="tr-note">' + esc(t('noTr')) + '</span>';
+      leaf.parentNode.insertBefore(head, leaf);
+    });
+  }
+  var _applyLang = applyLang;
+  applyLang = function () { _applyLang(); applyTranslation(); };
 
   applyLang();
 })();
