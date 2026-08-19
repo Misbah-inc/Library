@@ -100,7 +100,7 @@
           anyCat:'All categories', run:'Search', clear:'Clear',
           continue:'Continue reading', continueNone:'Books you have opened will appear here.',
           categories:'Categories', statBooks:'Books', statVolumes:'Volumes', statPages:'Pages',
-          books:'books', page:'Page', volume:'volume', volumes:'volumes',
+          books:'books', page:'Page', volume:'Volume', volumes:'volumes',
           results:'Results', noResults:'No results.', minChars:'Type at least two characters.',
           searching:'Searching…', occurrences:'matches', loadFail:'Could not load.',
           start:'Start reading', pages:'Pages', notes:'Footnotes', edition:'Edition',
@@ -167,6 +167,7 @@
     if (document.getElementById('tabs')) renderCats();
     if (document.getElementById('continue')) renderContinue();
     if (document.getElementById('all-books')) renderAll();
+    fillAdv();
   }
   each('.langs button', function (b) {
     b.addEventListener('click', function () {
@@ -380,6 +381,26 @@
     location.href = ROOT + '/search/?' + q;
   }
   function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+  function fillAdv() {
+    var sb = document.getElementById('adv-book'), sc = document.getElementById('adv-cat');
+    if (!CAT || (!sb && !sc)) return;
+    if (sb) {
+      var keepB = sb.value;
+      sb.innerHTML = '<option value="">' + esc(t('anyBook')) + '</option>' +
+        CAT.books.map(function (b) {
+          return '<option value="' + esc(b.slug) + '">' + esc(pick(b.title)) + '</option>';
+        }).join('');
+      sb.value = keepB;
+    }
+    if (sc) {
+      var keepC = sc.value;
+      sc.innerHTML = '<option value="">' + esc(t('anyCat')) + '</option>' +
+        CAT.categories.map(function (x) {
+          return '<option value="' + esc(x.id) + '">' + esc(pick(x.name)) + '</option>';
+        }).join('');
+      sc.value = keepC;
+    }
+  }
   var homeForm = document.getElementById('home-search');
   if (homeForm) {
     homeForm.addEventListener('submit', function (e) {
@@ -399,17 +420,7 @@
         var el = document.getElementById(id); if (el) el.value = '';
       });
     });
-    load(CATURL).then(function (c) {
-      var sb = document.getElementById('adv-book'), sc = document.getElementById('adv-cat');
-      if (sb) sb.innerHTML = '<option value="">' + esc(t('anyBook')) + '</option>' +
-        c.books.map(function (b) {
-          return '<option value="' + esc(b.slug) + '">' + esc(pick(b.title)) + '</option>';
-        }).join('');
-      if (sc) sc.innerHTML = '<option value="">' + esc(t('anyCat')) + '</option>' +
-        c.categories.map(function (x) {
-          return '<option value="' + esc(x.id) + '">' + esc(pick(x.name)) + '</option>';
-        }).join('');
-    }).catch(function () {});
+    load(CATURL).then(function (c) { CAT = c; fillAdv(); }).catch(function () {});
   }
 
   var resBox = document.getElementById('results');

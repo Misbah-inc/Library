@@ -2,8 +2,6 @@
   src:url(fonts/amiri-400.woff2) format('woff2')}
 @font-face{font-family:'Amiri';font-style:normal;font-weight:700;font-display:swap;
   src:url(fonts/amiri-700.woff2) format('woff2')}
-@font-face{font-family:'Aref Ruqaa';font-style:normal;font-weight:400;font-display:swap;
-  src:url(fonts/aref-ruqaa-400.woff2) format('woff2')}
 @font-face{font-family:'Vazirmatn';font-style:normal;font-weight:400;font-display:swap;
   src:url(fonts/vazirmatn-400.woff2) format('woff2')}
 @font-face{font-family:'Vazirmatn';font-style:normal;font-weight:700;font-display:swap;
@@ -24,10 +22,12 @@
   --leaf-w:44rem; --page-w:66rem; --body-size:1.24rem; --lead:2.15; --radius:12px;
   --ui:'Vazirmatn',system-ui,sans-serif;
   --ar:'Amiri','Traditional Arabic',serif;
-  --display:'Aref Ruqaa','Amiri',serif;
+  --display:'Amiri','Traditional Arabic',serif;
   --latin-display:'Oswald',system-ui,sans-serif;
   --shadow:0 18px 40px -34px rgba(12,28,18,.65);
 }
+/* Persian and Urdu read poorly in a naskh display face; Vazirmatn is clearer */
+html[data-lang="fa"],html[data-lang="ur"]{--display:'Vazirmatn',sans-serif}
 html[data-theme="night"]{
   --green:#0B1510; --green-2:#152318; --green-3:#060D09; --band:#152318; --paper:#0B1510;
   --surface:#152318; --ink:#E4E6D6; --ink-2:#A8B7AB; --ink-3:#7A8A7E;
@@ -58,8 +58,8 @@ img,svg{display:block}
         align-items:center}
 .brand{display:flex;flex-direction:column;gap:.1rem;line-height:1.2;
        padding-inline-end:.9rem;margin-inline-end:.2rem;min-width:0}
-.brand b{font-family:var(--display);font-size:1.16rem;font-weight:400;white-space:nowrap}
-html[data-lang="en"] .brand b{font-family:var(--latin-display);text-transform:uppercase;
+.brand b{font-weight:700;font-family:var(--display);font-size:1.16rem;font-weight:400;white-space:nowrap}
+html[data-lang="en"] .brand b{font-weight:700;font-family:var(--latin-display);text-transform:uppercase;
                               letter-spacing:.03em;font-size:1.06rem}
 .brand small{font-size:.58rem;letter-spacing:.2em;color:var(--gold);
              font-family:var(--latin-display);text-transform:uppercase;white-space:nowrap}
@@ -95,7 +95,7 @@ html[dir="ltr"] .nav:not([data-open="1"]){transform:translateX(-100%)}
 .nav[data-open="1"]{transform:translateX(0)!important;visibility:visible}
 .nav-head{background:var(--green);color:var(--on-green);padding:1rem;display:flex;
           align-items:center;gap:.6rem}
-.nav-head b{font-family:var(--display);font-size:1.1rem;font-weight:400}
+.nav-head b{font-weight:700;font-family:var(--display);font-size:1.1rem;font-weight:400}
 .nav-head button{margin-inline-start:auto;background:transparent;border:0;
                  color:var(--on-green);cursor:pointer;font-size:1rem}
 .nav ul{list-style:none;margin:0;padding:.6rem 0;flex:1;overflow-y:auto}
@@ -117,9 +117,9 @@ html[data-theme="night"] .hero::before{opacity:.16}
 .quote{font-family:var(--ar);font-size:1.02rem;color:var(--gold-2);margin:0 0 .9rem;
        letter-spacing:.01em}
 html[data-lang="en"] .quote{font-family:var(--ui);font-style:italic;font-size:.95rem}
-.hero h1{font-family:var(--display);font-size:clamp(1.9rem,5.4vw,2.9rem);line-height:1.5;
+.hero h1{font-weight:700;font-family:var(--display);font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.45;
          margin:0 0 .35rem}
-html[data-lang="en"] .hero h1{font-family:var(--latin-display);text-transform:uppercase;
+html[data-lang="en"] .hero h1{font-weight:700;font-family:var(--latin-display);text-transform:uppercase;
                               letter-spacing:.02em}
 .hero .sub{color:var(--ink-2);margin:0 0 1.3rem;font-size:.92rem}
 .orn{display:flex;align-items:center;justify-content:center;gap:.6rem;margin:0 0 1.3rem;
@@ -153,9 +153,9 @@ html[data-lang="en"] .hero h1{font-family:var(--latin-display);text-transform:up
 .stats{position:relative;display:flex;justify-content:center;gap:2.4rem;margin-top:1.5rem;
        flex-wrap:wrap}
 .stat{text-align:center}
-.stat b{display:block;font-family:var(--display);font-size:1.55rem;color:var(--gold-2);
+.stat b{font-weight:700;display:block;font-family:var(--display);font-size:1.55rem;color:var(--gold-2);
         font-weight:400;line-height:1.2}
-html[data-lang="en"] .stat b{font-family:var(--latin-display)}
+html[data-lang="en"] .stat b{font-weight:700;font-family:var(--latin-display)}
 .stat span{font-size:.66rem;letter-spacing:.14em;color:var(--ink-3)}
 
 /* ================= main ================= */
@@ -171,9 +171,9 @@ html[data-lang="en"] .stat b{font-family:var(--latin-display)}
 .rcard{flex:0 0 16.5rem;background:var(--surface);border:1px solid var(--line);
        border-radius:var(--radius);padding:.9rem 1rem;color:inherit}
 .rcard:hover{border-color:var(--gold)}
-.rcard b{display:block;font-family:var(--ar);font-size:1.05rem;font-weight:400;
+.rcard b{font-weight:700;display:block;font-family:var(--ar);font-size:1.05rem;font-weight:400;
          line-height:1.6;margin-bottom:.3rem}
-html[data-lang="en"] .rcard b{font-family:var(--ui);font-weight:700;font-size:.95rem}
+html[data-lang="en"] .rcard b{font-weight:700;font-family:var(--ui);font-weight:700;font-size:.95rem}
 .rcard span{display:block;font-size:.72rem;color:var(--ink-3)}
 .rcard .prog{height:3px;background:var(--hair);border-radius:2px;margin-top:.7rem}
 .rcard .prog i{display:block;height:100%;background:var(--gold);border-radius:2px}
@@ -199,11 +199,11 @@ html[data-lang="en"] .rcard b{font-family:var(--ui);font-weight:700;font-size:.9
        background:linear-gradient(150deg,#2C5238 0%,#16301E 55%,#0A170F 100%);
        box-shadow:inset 0 0 0 1px rgba(200,164,74,.45),
                   inset 0 0 0 4px rgba(200,164,74,.14), var(--shadow)}
-.spine span{font-family:var(--display);font-size:.62rem;color:var(--gold);text-align:center;
+.spine span{font-weight:700;font-family:var(--display);font-size:.62rem;color:var(--gold);text-align:center;
             line-height:1.6;writing-mode:vertical-rl;max-height:5.4rem;overflow:hidden}
 .bmeta{flex:1;min-width:0;display:flex;flex-direction:column}
-.bmeta b{font-family:var(--ar);font-size:1.2rem;font-weight:400;line-height:1.5}
-html[data-lang="en"] .bmeta b{font-family:var(--ui);font-weight:700;font-size:1.02rem}
+.bmeta b{font-weight:700;font-family:var(--ar);font-size:1.2rem;font-weight:400;line-height:1.5}
+html[data-lang="en"] .bmeta b{font-weight:700;font-family:var(--ui);font-weight:700;font-size:1.02rem}
 .bmeta i{font-size:.8rem;color:var(--ink-2);margin-top:.2rem}
 .badge{display:inline-flex;align-items:center;gap:.3rem;font-size:.66rem;letter-spacing:.06em;
        color:var(--gold-2);border:1px solid var(--line);border-radius:999px;
@@ -239,12 +239,12 @@ mark{background:var(--mark);color:inherit;padding:0 .12em;border-radius:3px}
 .part-label{font-size:.63rem;letter-spacing:.14em;color:var(--ink-3);margin:0 0 1.3rem;
             padding-bottom:.7rem;border-bottom:1px solid var(--hair);display:flex;
             justify-content:space-between;gap:1rem}
-.body p,.body h3{margin:0 0 1.05rem}
+.body p,.body h3{font-weight:700;margin:0 0 1.05rem}
 .body p{font-family:var(--ar);font-size:var(--body-size);line-height:var(--lead);
         text-align:justify;hyphens:none}
 .body p[lang="fa"]{font-family:var(--ui);font-size:calc(var(--body-size) - .2rem);
                    line-height:calc(var(--lead) - .2)}
-.body h3{font-family:var(--display);font-size:1.18rem;margin-top:1.9rem;line-height:1.7;
+.body h3{font-weight:700;font-family:var(--display);font-size:1.2rem;margin-top:1.9rem;line-height:1.7;
          text-align:start}
 .body h3::before{content:"";display:block;width:2.6rem;height:1px;background:var(--gold);
                  margin-bottom:.7rem}
@@ -298,7 +298,7 @@ html[dir="ltr"] .drawer{transform:translateX(100%)}
 
 /* ================= book cover / info pages ================= */
 .cover{max-width:48rem;margin:0 auto;padding:2.4rem 1rem 5rem}
-.cover h1{font-family:var(--display);font-size:clamp(1.6rem,4.6vw,2.3rem);line-height:1.5;
+.cover h1{font-weight:700;font-family:var(--display);font-size:clamp(1.6rem,4.6vw,2.3rem);line-height:1.5;
           margin:0 0 .5rem}
 .cover .by{font-family:var(--ar);font-size:1.05rem;color:var(--ink-2);margin:0 0 1.4rem}
 .cover .rule{height:2px;background:var(--gold);width:4rem;margin:0 0 1.8rem}
@@ -316,8 +316,8 @@ html[dir="ltr"] .drawer{transform:translateX(100%)}
       padding:2.2rem 1rem 1.6rem}
 .foot-in{max-width:var(--page-w);margin:0 auto;display:grid;gap:1.6rem;
          grid-template-columns:repeat(auto-fit,minmax(13rem,1fr))}
-.foot h3{font-family:var(--display);color:var(--on-green);font-size:1.05rem;margin-bottom:.5rem}
-html[data-lang="en"] .foot h3{font-family:var(--latin-display);text-transform:uppercase}
+.foot h3{font-weight:700;font-family:var(--display);color:var(--on-green);font-size:1.05rem;margin-bottom:.5rem}
+html[data-lang="en"] .foot h3{font-weight:700;font-family:var(--latin-display);text-transform:uppercase}
 .foot p{font-size:.78rem;line-height:1.95;margin:0}
 .foot ul{list-style:none;margin:0;padding:0}
 .foot li a{color:var(--on-green-2);font-size:.8rem;line-height:2.1}
@@ -340,7 +340,7 @@ html[data-lang="en"] .foot h3{font-family:var(--latin-display);text-transform:up
   .searchbox select{display:none}
   .books{grid-template-columns:1fr}
   .stats{gap:1.4rem}
-  .stat b{font-size:1.25rem}
+  .stat b{font-weight:700;font-size:1.25rem}
   .hero{padding:1.9rem .9rem 1.7rem}
   .tbtn span.lbl{display:none}
   .tbtn{padding:.34rem .55rem}
@@ -367,7 +367,7 @@ html[data-lang="en"] .foot h3{font-family:var(--latin-display);text-transform:up
          line-height:1.95;color:var(--ink);margin:0 0 1.15rem;text-align:start}
 .body > [data-i] + .tr-line{border-inline-start:2px solid var(--gold);
          padding-inline-start:.85rem;margin-top:-.4rem}
-h3.tr-line{font-family:var(--display);font-size:1.05rem;border:0;padding:0;
+h3.tr-line{font-weight:700;font-family:var(--display);font-size:1.05rem;border:0;padding:0;
            color:var(--ink-2)}
 .h-num{display:inline-block;min-width:1.6rem;font-size:.7rem;font-weight:700;
        color:var(--rubric);vertical-align:.2em}
