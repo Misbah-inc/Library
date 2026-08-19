@@ -233,12 +233,13 @@ mark{background:var(--mark);color:inherit;padding:0 .12em;border-radius:3px}
 .leaf{position:relative;width:100%;max-width:var(--leaf-w);background:var(--leaf);
       border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
       padding:2.6rem 2.4rem 2rem}
-.folio{position:absolute;inset-inline-end:-2.9rem;top:2.4rem;writing-mode:vertical-rl;
-       font-size:.64rem;letter-spacing:.18em;color:var(--ink-3)}
-.folio b{color:var(--rubric);font-size:.92rem;font-weight:700;letter-spacing:.05em}
-.part-label{font-size:.63rem;letter-spacing:.14em;color:var(--ink-3);margin:0 0 1.3rem;
-            padding-bottom:.7rem;border-bottom:1px solid var(--hair);display:flex;
-            justify-content:space-between;gap:1rem}
+
+
+.part-label{font-size:.66rem;letter-spacing:.12em;color:var(--ink-3);margin:0 0 1.4rem;
+            padding-bottom:.75rem;border-bottom:1px solid var(--hair);display:flex;
+            justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap}
+.part-label .folio{color:var(--rubric);font-weight:700;font-size:.8rem;letter-spacing:.04em;
+                   white-space:nowrap}
 .body p,.body h3{font-weight:700;margin:0 0 1.05rem}
 .body p{font-family:var(--ar);font-size:var(--body-size);line-height:var(--lead);
         text-align:justify;hyphens:none}
@@ -286,11 +287,11 @@ html[dir="ltr"] .drawer{transform:translateX(100%)}
 .hit-p{font-size:.62rem;letter-spacing:.08em;color:var(--rubric);display:block;
        margin-bottom:.28rem}
 .hit-t{font-family:var(--ar);font-size:.92rem;line-height:1.85;color:var(--ink-2)}
-.toc-i{display:flex;gap:.6rem;padding:.55rem .2rem;font-family:var(--ar);font-size:.98rem;
-       line-height:1.7;border-bottom:1px solid var(--hair);color:var(--ink)}
+.toc-i{display:flex;gap:.75rem;padding:.72rem .2rem;font-family:var(--ar);font-size:1.1rem;
+       line-height:1.85;border-bottom:1px solid var(--hair);color:var(--ink)}
 .toc-i:hover{color:var(--gold-2)}
-.toc-i span{flex:0 0 2.2rem;font-family:var(--ui);font-size:.66rem;color:var(--ink-3);
-            padding-top:.3rem}
+.toc-i span{flex:0 0 2.4rem;font-family:var(--ui);font-size:.8rem;color:var(--rubric);
+            padding-top:.22rem}
 .note-msg{font-size:.76rem;color:var(--ink-3);line-height:1.85;padding:.5rem .2rem}
 .scrim{position:fixed;inset:0;background:rgba(8,16,10,.45);z-index:40;opacity:0;
        pointer-events:none;transition:opacity .2s}
@@ -331,7 +332,7 @@ html[data-lang="en"] .foot h3{font-weight:700;font-family:var(--latin-display);t
   .brand{padding-inline-end:.4rem}
 }
 @media (max-width:820px){
-  .folio{position:static;writing-mode:horizontal-tb;margin-bottom:.9rem;letter-spacing:.12em}
+  
 }
 @media (max-width:640px){
   .leaf{padding:1.9rem 1.15rem 1.4rem}
@@ -363,7 +364,7 @@ html[data-lang="en"] .foot h3{font-weight:700;font-family:var(--latin-display);t
                                       color:var(--on-green)}
 .tr-note{font-size:.72rem;color:var(--ink-3);line-height:1.7}
 .tr-note.draft{color:var(--rubric)}
-.tr-line{font-family:var(--ui);font-size:calc(var(--body-size) - .28rem);
+.tr-line{font-family:var(--ui);font-size:calc(var(--body-size) - .18rem);
          line-height:1.95;color:var(--ink);margin:0 0 1.15rem;text-align:start}
 .body > [data-i] + .tr-line{border-inline-start:2px solid var(--gold);
          padding-inline-start:.85rem;margin-top:-.4rem}
@@ -376,8 +377,14 @@ h3.tr-line{font-weight:700;font-family:var(--display);font-size:1.05rem;border:0
 .tr-note.machine .ic{width:1rem;height:1rem;flex:0 0 auto}
 .tr-bar{border-inline-start:3px solid var(--gold)}
 .body.tr p,.body.tr h3{font-family:var(--ui);text-align:start}
-.body.tr p{font-size:calc(var(--body-size) - .26rem);line-height:2}
+.body.tr p{font-size:calc(var(--body-size) - .16rem);line-height:2.05}
 .body.tr h3{font-family:var(--display);font-size:1.15rem}
 html[dir="ltr"] .body.tr h3{font-family:var(--latin-display);text-transform:uppercase;
                             font-size:1.05rem}
 .tr-bar.static{margin-bottom:1.5rem}
+
+html[data-lang="en"] .toc-i,html[data-lang="fa"] .toc-i,html[data-lang="ur"] .toc-i{
+  font-family:var(--ui);font-size:1rem}
+.note .tr-note-line{display:block;font-family:var(--ui);font-size:.88rem;line-height:1.9;
+  color:var(--ink);border-inline-start:2px solid var(--gold);padding-inline-start:.7rem;
+  margin-top:.35rem}
