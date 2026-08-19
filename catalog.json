@@ -17,22 +17,6 @@
    "always": true
   },
   {
-   "id": "fazail",
-   "name": {
-    "ar": "الفضائل",
-    "fa": "فضائل",
-    "ur": "فضائل",
-    "en": "Fazail"
-   },
-   "desc": {
-    "ar": "فضائل المعصومين عليهم السلام.",
-    "fa": "",
-    "ur": "",
-    "en": "The virtues and merits of the fourteen Infallibles."
-   },
-   "always": true
-  },
-  {
    "id": "aqaid",
    "name": {
     "ar": "العقائد",
@@ -49,54 +33,6 @@
    "always": true
   },
   {
-   "id": "ahkam",
-   "name": {
-    "ar": "الأحكام",
-    "fa": "احکام",
-    "ur": "احکام",
-    "en": "Ahkam"
-   },
-   "desc": {
-    "ar": "الفقه والرسائل العملية.",
-    "fa": "",
-    "ur": "",
-    "en": "Jurisprudence and practical rulings."
-   },
-   "always": true
-  },
-  {
-   "id": "tarikh",
-   "name": {
-    "ar": "التاريخ والسيرة",
-    "fa": "تاریخ و سیره",
-    "ur": "تاریخ و سیرت",
-    "en": "History"
-   },
-   "desc": {
-    "ar": "السيرة والتراجم.",
-    "fa": "",
-    "ur": "",
-    "en": "History, biography and lives of the Imams."
-   },
-   "always": true
-  },
-  {
-   "id": "adiya",
-   "name": {
-    "ar": "الأدعية والزيارات",
-    "fa": "ادعیه و زیارات",
-    "ur": "ادعیہ و زیارات",
-    "en": "Supplications"
-   },
-   "desc": {
-    "ar": "الأدعية والزيارات والمناجاة.",
-    "fa": "",
-    "ur": "",
-    "en": "Supplications, ziyarat and munajat."
-   },
-   "always": true
-  },
-  {
    "id": "tafsir",
    "name": {
     "ar": "التفسير",
@@ -109,22 +45,6 @@
     "fa": "",
     "ur": "",
     "en": "Commentary on the Qur'an."
-   },
-   "always": true
-  },
-  {
-   "id": "general",
-   "name": {
-    "ar": "عام",
-    "fa": "عمومی",
-    "ur": "عام",
-    "en": "General"
-   },
-   "desc": {
-    "ar": "",
-    "fa": "",
-    "ur": "",
-    "en": ""
    },
    "always": true
   }
