@@ -97,6 +97,22 @@
    "always": true
   },
   {
+   "id": "tafsir",
+   "name": {
+    "ar": "التفسير",
+    "fa": "تفسیر",
+    "ur": "تفسیر",
+    "en": "Tafsir"
+   },
+   "desc": {
+    "ar": "تفاسير القرآن الكريم.",
+    "fa": "",
+    "ur": "",
+    "en": "Commentary on the Qur'an."
+   },
+   "always": true
+  },
+  {
    "id": "general",
    "name": {
     "ar": "عام",
@@ -114,6 +130,75 @@
   }
  ],
  "books": [
+  {
+   "slug": "ghadir",
+   "category": "aqaid",
+   "placeholder": true,
+   "volumes": 11,
+   "title": {
+    "ar": "الغدير",
+    "fa": "الغدیر",
+    "ur": "الغدیر",
+    "en": "Al-Ghadir"
+   },
+   "subtitle": {
+    "en": "On Ghadir Khumm in the Qur'an, hadith and literature"
+   },
+   "author": {
+    "ar": "العلامة الأميني",
+    "fa": "علامه امینی",
+    "ur": "علامہ امینی",
+    "en": "Allama al-Amini"
+   },
+   "pages": 0,
+   "href": ""
+  },
+  {
+   "slug": "wafi",
+   "category": "hadith",
+   "placeholder": true,
+   "volumes": 27,
+   "title": {
+    "ar": "الوافي",
+    "fa": "الوافی",
+    "ur": "الوافی",
+    "en": "Al-Wafi"
+   },
+   "subtitle": {
+    "en": "A synthesis of the four canonical collections"
+   },
+   "author": {
+    "ar": "الفيض الكاشاني",
+    "fa": "فیض کاشانی",
+    "ur": "فیض کاشانی",
+    "en": "Al-Fayd al-Kashani"
+   },
+   "pages": 0,
+   "href": ""
+  },
+  {
+   "slug": "burhan",
+   "category": "tafsir",
+   "placeholder": true,
+   "volumes": 5,
+   "title": {
+    "ar": "تفسير البرهان",
+    "fa": "تفسیر البرهان",
+    "ur": "تفسیر البرہان",
+    "en": "Tafsir al-Burhan"
+   },
+   "subtitle": {
+    "en": "Qur'anic exegesis by way of narration"
+   },
+   "author": {
+    "ar": "السيد هاشم البحراني",
+    "fa": "سید هاشم بحرانی",
+    "ur": "سید ہاشم بحرانی",
+    "en": "Sayyid Hashim al-Bahrani"
+   },
+   "pages": 0,
+   "href": ""
+  },
   {
    "slug": "bihar",
    "category": "hadith",
@@ -143,7 +228,10 @@
     "fa",
     "ur"
    ],
-   "href": "bihar/"
+   "href": "bihar/",
+   "volumesPublished": [
+    1
+   ]
   }
  ]
 }

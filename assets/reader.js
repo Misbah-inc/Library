@@ -14,7 +14,7 @@
   };
 
   var T = {
-    ar: { citeAr:'للإحالة استعمل الصفحة العربية:', machineTr:'ترجمة آلية بالذكاء الاصطناعي، غير مراجَعة وقد تحتوي أخطاء. للإحالة يُعتمد الأصل العربي.', viewAr:'العربية', viewTr:'الترجمة', viewBoth:'مقابل', noTr:'لم تُترجم هذه الصفحة بعد؛ النص معروض بالعربية.', draft:'ترجمة أولية غير مراجَعة.', trBy:'الترجمة', home:'الرئيسية', mylib:'مكتبتي', search:'بحث', allBooks:'كل الكتب',
+    ar: { volumes:'المجلدات', published:'المنشور', pickVolume:'اختر المجلد', otherVolumes:'مجلدات أخرى', volsNote:'المجلدات غير المفعّلة لم تُنشر بعد.', soon:'قريباً', citeAr:'للإحالة استعمل الصفحة العربية:', machineTr:'ترجمة آلية بالذكاء الاصطناعي، غير مراجَعة وقد تحتوي أخطاء. للإحالة يُعتمد الأصل العربي.', viewAr:'العربية', viewTr:'الترجمة', viewBoth:'مقابل', noTr:'لم تُترجم هذه الصفحة بعد؛ النص معروض بالعربية.', draft:'ترجمة أولية غير مراجَعة.', trBy:'الترجمة', home:'الرئيسية', mylib:'مكتبتي', search:'بحث', allBooks:'كل الكتب',
           contact:'اتصل بنا', about:'من نحن', menu:'القائمة', close:'إغلاق',
           contents:'الفهرس', cite:'نسخ الإحالة', copied:'تم النسخ ✓',
           night:'ليلي', day:'نهاري', bigger:'تكبير الخط', smaller:'تصغير الخط',
@@ -27,7 +27,7 @@
           anyBook:'كل الكتب', anyCat:'كل الأقسام', run:'ابحث', clear:'مسح',
           continue:'متابعة القراءة', continueNone:'ستظهر هنا الكتب التي بدأت قراءتها.',
           categories:'الأقسام', statBooks:'كتب', statVolumes:'مجلدات', statPages:'صفحات',
-          books:'كتاب', page:'صفحة', volume:'مجلد', volumes:'مجلداً',
+          books:'كتاب', page:'صفحة', volume:'مجلد',
           results:'النتائج', noResults:'لا نتائج.', minChars:'اكتب حرفين على الأقل.',
           searching:'جارٍ البحث…', occurrences:'موضع', loadFail:'تعذّر التحميل.',
           start:'ابدأ القراءة', pages:'الصفحات', notes:'الحواشي', edition:'النسخة',
@@ -38,7 +38,7 @@
                  + 'قابلة للإحالة الدقيقة: كل صفحة تحمل رقمها في الطبعة المطبوعة وعنواناً ثابتاً '
                  + 'لا يتغير، ليستطيع الباحث أن يحيل إليها ويثق ببقاء الرابط.',
           contactBody:'للاقتراحات وتصحيح الأخطاء والمساهمة في المكتبة، يرجى التواصل معنا.' },
-    fa: { citeAr:'برای ارجاع از صفحهٔ عربی استفاده کنید:', machineTr:'ترجمهٔ ماشینی با هوش مصنوعی، بازبینی‌نشده و ممکن است خطا داشته باشد. برای ارجاع به متن عربی استناد کنید.', viewAr:'عربی', viewTr:'ترجمه', viewBoth:'دوستونه', noTr:'این صفحه هنوز ترجمه نشده است؛ متن عربی نمایش داده می‌شود.', draft:'ترجمهٔ اولیه و بازبینی‌نشده.', trBy:'ترجمه', home:'خانه', mylib:'کتابخانهٔ من', search:'جستجو', allBooks:'همهٔ کتاب‌ها',
+    fa: { volumes:'مجلدات', published:'منتشرشده', pickVolume:'انتخاب جلد', otherVolumes:'جلدهای دیگر', volsNote:'جلدهای غیرفعال هنوز منتشر نشده‌اند.', soon:'به‌زودی', citeAr:'برای ارجاع از صفحهٔ عربی استفاده کنید:', machineTr:'ترجمهٔ ماشینی با هوش مصنوعی، بازبینی‌نشده و ممکن است خطا داشته باشد. برای ارجاع به متن عربی استناد کنید.', viewAr:'عربی', viewTr:'ترجمه', viewBoth:'دوستونه', noTr:'این صفحه هنوز ترجمه نشده است؛ متن عربی نمایش داده می‌شود.', draft:'ترجمهٔ اولیه و بازبینی‌نشده.', trBy:'ترجمه', home:'خانه', mylib:'کتابخانهٔ من', search:'جستجو', allBooks:'همهٔ کتاب‌ها',
           contact:'تماس با ما', about:'دربارهٔ ما', menu:'فهرست', close:'بستن',
           contents:'فهرست', cite:'کپی ارجاع', copied:'کپی شد ✓',
           night:'شب', day:'روز', bigger:'بزرگ‌تر', smaller:'کوچک‌تر',
@@ -51,7 +51,7 @@
           anyBook:'همهٔ کتاب‌ها', anyCat:'همهٔ بخش‌ها', run:'جستجو', clear:'پاک کردن',
           continue:'ادامهٔ مطالعه', continueNone:'کتاب‌هایی که آغاز کرده‌اید اینجا می‌آید.',
           categories:'بخش‌ها', statBooks:'کتاب', statVolumes:'جلد', statPages:'صفحه',
-          books:'کتاب', page:'صفحه', volume:'جلد', volumes:'جلد',
+          books:'کتاب', page:'صفحه', volume:'جلد',
           results:'نتایج', noResults:'نتیجه‌ای یافت نشد.', minChars:'دست‌کم دو حرف بنویسید.',
           searching:'در حال جستجو…', occurrences:'مورد', loadFail:'بارگذاری ناموفق بود.',
           start:'شروع مطالعه', pages:'صفحات', notes:'پانوشت‌ها', edition:'نسخه',
@@ -62,7 +62,7 @@
                  + 'بستر وب به شکلی که ارجاع دقیق ممکن باشد: هر صفحه شمارهٔ چاپی خود و نشانی '
                  + 'ثابتی دارد که تغییر نمی‌کند.',
           contactBody:'برای پیشنهاد، گزارش اشتباه یا همکاری با کتابخانه با ما در تماس باشید.' },
-    ur: { citeAr:'حوالے کے لیے عربی صفحہ استعمال کریں:', machineTr:'مصنوعی ذہانت سے تیار کردہ مشینی ترجمہ، غیر نظرثانی شدہ اور اس میں غلطیاں ممکن ہیں۔ حوالے کے لیے عربی اصل پر اعتماد کریں۔', viewAr:'عربی', viewTr:'ترجمہ', viewBoth:'آمنے سامنے', noTr:'اس صفحے کا ترجمہ ابھی نہیں ہوا؛ عربی متن دکھایا جا رہا ہے۔', draft:'ابتدائی، غیر نظرثانی شدہ ترجمہ۔', trBy:'ترجمہ', home:'صفحۂ اول', mylib:'میری لائبریری', search:'تلاش', allBooks:'تمام کتب',
+    ur: { volumes:'جلدیں', published:'شائع شدہ', pickVolume:'جلد منتخب کریں', otherVolumes:'دیگر جلدیں', volsNote:'غیر فعال جلدیں ابھی شائع نہیں ہوئیں۔', soon:'جلد آ رہا ہے', citeAr:'حوالے کے لیے عربی صفحہ استعمال کریں:', machineTr:'مصنوعی ذہانت سے تیار کردہ مشینی ترجمہ، غیر نظرثانی شدہ اور اس میں غلطیاں ممکن ہیں۔ حوالے کے لیے عربی اصل پر اعتماد کریں۔', viewAr:'عربی', viewTr:'ترجمہ', viewBoth:'آمنے سامنے', noTr:'اس صفحے کا ترجمہ ابھی نہیں ہوا؛ عربی متن دکھایا جا رہا ہے۔', draft:'ابتدائی، غیر نظرثانی شدہ ترجمہ۔', trBy:'ترجمہ', home:'صفحۂ اول', mylib:'میری لائبریری', search:'تلاش', allBooks:'تمام کتب',
           contact:'رابطہ کریں', about:'ہمارے بارے میں', menu:'مینو', close:'بند کریں',
           contents:'فہرست', cite:'حوالہ نقل کریں', copied:'نقل ہو گیا ✓',
           night:'رات', day:'دن', bigger:'بڑا', smaller:'چھوٹا',
@@ -75,7 +75,7 @@
           anyBook:'تمام کتابیں', anyCat:'تمام زمرے', run:'تلاش کریں', clear:'صاف کریں',
           continue:'مطالعہ جاری رکھیں', continueNone:'جو کتابیں آپ نے کھولیں وہ یہاں آئیں گی۔',
           categories:'زمرے', statBooks:'کتب', statVolumes:'جلدیں', statPages:'صفحات',
-          books:'کتاب', page:'صفحہ', volume:'جلد', volumes:'جلدیں',
+          books:'کتاب', page:'صفحہ', volume:'جلد',
           results:'نتائج', noResults:'کوئی نتیجہ نہیں۔', minChars:'کم از کم دو حروف لکھیں۔',
           searching:'تلاش جاری ہے…', occurrences:'مقام', loadFail:'لوڈ نہیں ہو سکا۔',
           start:'مطالعہ شروع کریں', pages:'صفحات', notes:'حواشی', edition:'نسخہ',
@@ -86,7 +86,7 @@
                  + 'شائع کرنا ہے کہ درست حوالہ ممکن ہو: ہر صفحہ اپنا مطبوعہ نمبر اور ایک '
                  + 'مستقل پتہ رکھتا ہے۔',
           contactBody:'تجاویز، اغلاط کی نشاندہی یا تعاون کے لیے ہم سے رابطہ کریں۔' },
-    en: { citeAr:'For citation use the Arabic page:', machineTr:'Machine translation by AI. Not reviewed and may contain errors — cite the Arabic original, not this translation.', viewAr:'Arabic', viewTr:'Translation', viewBoth:'Side by side', noTr:'This page has not been translated yet; the Arabic text is shown.', draft:'Draft translation, not yet reviewed.', trBy:'Translation', home:'Home', mylib:'My library', search:'Search', allBooks:'All books',
+    en: { volumes:'Volumes', published:'Published', pickVolume:'Choose a volume', otherVolumes:'Other volumes', volsNote:'Greyed volumes have not been published yet.', soon:'Coming soon', citeAr:'For citation use the Arabic page:', machineTr:'Machine translation by AI. Not reviewed and may contain errors — cite the Arabic original, not this translation.', viewAr:'Arabic', viewTr:'Translation', viewBoth:'Side by side', noTr:'This page has not been translated yet; the Arabic text is shown.', draft:'Draft translation, not yet reviewed.', trBy:'Translation', home:'Home', mylib:'My library', search:'Search', allBooks:'All books',
           contact:'Contact us', about:'About us', menu:'Menu', close:'Close',
           contents:'Contents', cite:'Copy citation', copied:'Copied ✓',
           night:'Night', day:'Day', bigger:'Larger text', smaller:'Smaller text',
@@ -100,7 +100,7 @@
           anyCat:'All categories', run:'Search', clear:'Clear',
           continue:'Continue reading', continueNone:'Books you have opened will appear here.',
           categories:'Categories', statBooks:'Books', statVolumes:'Volumes', statPages:'Pages',
-          books:'books', page:'Page', volume:'Volume', volumes:'volumes',
+          books:'books', page:'Page', volume:'Volume',
           results:'Results', noResults:'No results.', minChars:'Type at least two characters.',
           searching:'Searching…', occurrences:'matches', loadFail:'Could not load.',
           start:'Start reading', pages:'Pages', notes:'Footnotes', edition:'Edition',
@@ -302,6 +302,15 @@
   function bookCard(b) {
     var sub = pickStrict(b.subtitle);
     var spine = (b.title && (b.title.ar || b.title.en) || '').slice(0, 16);
+    if (b.placeholder) {
+      return '<div class="bcard soon">' +
+        '<span class="spine"><span>' + esc(spine) + '</span></span>' +
+        '<span class="bmeta"><b>' + esc(pick(b.title)) + '</b>' +
+        (sub ? '<i>' + esc(sub) + '</i>' : '') +
+        '<span class="badge">' + num(b.volumes) + ' ' + esc(t('volumes')) + '</span>' +
+        '<span class="who">' + esc(pick(b.author)) +
+        '<em class="soon-tag">' + esc(t('soon')) + '</em></span></span></div>';
+    }
     return '<a class="bcard" href="' + ROOT + '/' + esc(b.href) + '">' +
       '<span class="spine"><span>' + esc(spine) + '</span></span>' +
       '<span class="bmeta"><b>' + esc(pick(b.title)) + '</b>' +
@@ -337,9 +346,12 @@
     });
     var st = document.getElementById('stats');
     if (st) {
-      var vols = CAT.books.reduce(function (a, b) { return a + (b.volumes || 1); }, 0);
-      var pgs = CAT.books.reduce(function (a, b) { return a + (b.pages || 0); }, 0);
-      st.innerHTML = [[CAT.books.length, 'statBooks'], [vols, 'statVolumes'], [pgs, 'statPages']]
+      /* count what is actually readable, not what is announced */
+      var live = CAT.books.filter(function (b) { return !b.placeholder; });
+      var vols = live.reduce(function (a, b) {
+        return a + ((b.volumesPublished && b.volumesPublished.length) || 1); }, 0);
+      var pgs = live.reduce(function (a, b) { return a + (b.pages || 0); }, 0);
+      st.innerHTML = [[live.length, 'statBooks'], [vols, 'statVolumes'], [pgs, 'statPages']]
         .map(function (p) {
           return '<div class="stat"><b>' + num(p[0]) + '</b><span>' + esc(t(p[1])) + '</span></div>';
         }).join('');
