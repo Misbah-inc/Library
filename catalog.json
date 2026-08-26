@@ -1,6 +1,38 @@
 {
  "categories": [
   {
+   "id": "quran",
+   "name": {
+    "ar": "القرآن",
+    "fa": "قرآن",
+    "ur": "قرآن",
+    "en": "Qur'an"
+   },
+   "desc": {
+    "ar": "القرآن الكريم وعلومه.",
+    "fa": "",
+    "ur": "",
+    "en": "The Qur'an and its sciences."
+   },
+   "always": true
+  },
+  {
+   "id": "tafsir",
+   "name": {
+    "ar": "التفسير",
+    "fa": "تفسیر",
+    "ur": "تفسیر",
+    "en": "Tafsir"
+   },
+   "desc": {
+    "ar": "تفاسير القرآن الكريم.",
+    "fa": "",
+    "ur": "",
+    "en": "Commentary on the Qur'an."
+   },
+   "always": true
+  },
+  {
    "id": "hadith",
    "name": {
     "ar": "الحديث",
@@ -33,18 +65,18 @@
    "always": true
   },
   {
-   "id": "tafsir",
+   "id": "dua",
    "name": {
-    "ar": "التفسير",
-    "fa": "تفسیر",
-    "ur": "تفسیر",
-    "en": "Tafsir"
+    "ar": "الأدعية والزيارات",
+    "fa": "ادعیه و زیارات",
+    "ur": "ادعیہ و زیارات",
+    "en": "Supplications"
    },
    "desc": {
-    "ar": "تفاسير القرآن الكريم.",
+    "ar": "الأدعية والزيارات والمناجاة.",
     "fa": "",
     "ur": "",
-    "en": "Commentary on the Qur'an."
+    "en": "Supplications, ziyarat and munajat."
    },
    "always": true
   }
@@ -74,24 +106,70 @@
    "href": ""
   },
   {
-   "slug": "wafi",
-   "category": "hadith",
+   "slug": "mafatih",
+   "category": "dua",
    "placeholder": true,
-   "volumes": 27,
+   "volumes": 1,
    "title": {
-    "ar": "الوافي",
-    "fa": "الوافی",
-    "ur": "الوافی",
-    "en": "Al-Wafi"
+    "ar": "مفاتيح الجنان",
+    "fa": "مفاتیح الجنان",
+    "ur": "مفاتیح الجنان",
+    "en": "Mafatih al-Jinan"
    },
    "subtitle": {
-    "en": "A synthesis of the four canonical collections"
+    "en": "Supplications, ziyarat and daily devotions"
    },
    "author": {
-    "ar": "الفيض الكاشاني",
-    "fa": "فیض کاشانی",
-    "ur": "فیض کاشانی",
-    "en": "Al-Fayd al-Kashani"
+    "ar": "الشيخ عباس القمي",
+    "fa": "شیخ عباس قمی",
+    "ur": "شیخ عباس قمی",
+    "en": "Shaykh 'Abbas al-Qummi"
+   },
+   "pages": 0,
+   "href": ""
+  },
+  {
+   "slug": "kutub-arbaa",
+   "category": "hadith",
+   "placeholder": true,
+   "volumes": 26,
+   "title": {
+    "ar": "الكتب الأربعة",
+    "fa": "کتب اربعه",
+    "ur": "کتبِ اربعہ",
+    "en": "The Four Canonical Collections"
+   },
+   "subtitle": {
+    "en": "Al-Kafi, Man la Yahduruhu al-Faqih, al-Tahdhib, al-Istibsar"
+   },
+   "author": {
+    "ar": "الكليني والصدوق والطوسي",
+    "fa": "کلینی، صدوق و طوسی",
+    "ur": "کلینی، صدوق اور طوسی",
+    "en": "Al-Kulayni, al-Saduq and al-Tusi"
+   },
+   "pages": 0,
+   "href": ""
+  },
+  {
+   "slug": "quran",
+   "category": "quran",
+   "placeholder": true,
+   "volumes": 1,
+   "title": {
+    "ar": "القرآن الكريم",
+    "fa": "قرآن کریم",
+    "ur": "قرآنِ کریم",
+    "en": "The Holy Qur'an"
+   },
+   "subtitle": {
+    "en": "The Qur'anic text with translation"
+   },
+   "author": {
+    "ar": "كلام الله تعالى",
+    "fa": "کلام الله تعالی",
+    "ur": "کلامِ اللہ تعالیٰ",
+    "en": "The Word of God"
    },
    "pages": 0,
    "href": ""

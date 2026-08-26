@@ -405,3 +405,9 @@ a.vol:hover{border-color:var(--gold);background:var(--tint);color:var(--gold-2)}
           padding:.1rem .5rem}
 .bmeta .who{justify-content:space-between}
 @media (max-width:640px){.vols{grid-template-columns:repeat(auto-fill,minmax(3rem,1fr))}}
+/* pager reads by word, not by arrow glyphs (those mirror under bidi) */
+.pager .btn{font-size:.8rem}
+@media (max-width:560px){
+  .pager .btn:first-child,.pager .btn:last-child,
+  .pager span.btn:first-child,.pager span.btn:last-child{display:none}
+}
