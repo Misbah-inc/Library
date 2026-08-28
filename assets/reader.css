@@ -257,7 +257,8 @@ mark{background:var(--mark);color:inherit;padding:0 .12em;border-radius:3px}
 .note{display:flex;gap:.55rem;font-family:var(--ar);font-size:.95rem;line-height:1.95;
       color:var(--ink-2);margin-bottom:.5rem}
 .note[lang="fa"]{font-family:var(--ui);font-size:.85rem}
-.note-n{flex:0 0 auto;font-size:.66rem;font-weight:700;color:var(--rubric);padding-top:.42rem}
+.note-n{flex:0 0 auto;font-size:.66rem;font-weight:700;color:var(--rubric);padding-top:.42rem;
+        direction:ltr;unicode-bidi:embed}
 .note:target{background:var(--tint);border-radius:5px}
 .pager{max-width:var(--leaf-w);margin:1.4rem auto 0;display:flex;align-items:center;gap:.4rem;
        justify-content:center;flex-wrap:wrap}
