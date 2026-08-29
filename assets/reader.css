@@ -267,6 +267,7 @@ mark{background:var(--mark);color:inherit;padding:0 .12em;border-radius:3px}
 .cite{max-width:var(--leaf-w);margin:1.1rem auto 0;font-size:.72rem;color:var(--ink-3);
       text-align:center;line-height:1.95}
 .cite code{color:var(--ink-2);direction:ltr;unicode-bidi:embed}
+html[data-lang="en"] .cite,html[data-lang="ur"] .cite,html[data-lang="fa"] .cite{display:none}
 
 /* ================= side drawer (toc/search) ================= */
 .drawer{position:fixed;top:0;bottom:0;inset-inline-end:0;width:min(23rem,86vw);z-index:45;

@@ -1,235 +1,304 @@
 {
- "categories": [
-  {
-   "id": "quran",
-   "name": {
-    "ar": "القرآن",
-    "fa": "قرآن",
-    "ur": "قرآن",
-    "en": "Qur'an"
-   },
-   "desc": {
-    "ar": "القرآن الكريم وعلومه.",
-    "fa": "",
-    "ur": "",
-    "en": "The Qur'an and its sciences."
-   },
-   "always": true
-  },
-  {
-   "id": "tafsir",
-   "name": {
-    "ar": "التفسير",
-    "fa": "تفسیر",
-    "ur": "تفسیر",
-    "en": "Tafsir"
-   },
-   "desc": {
-    "ar": "تفاسير القرآن الكريم.",
-    "fa": "",
-    "ur": "",
-    "en": "Commentary on the Qur'an."
-   },
-   "always": true
-  },
-  {
-   "id": "hadith",
-   "name": {
-    "ar": "الحديث",
-    "fa": "حدیث",
-    "ur": "حدیث",
-    "en": "Hadith"
-   },
-   "desc": {
-    "ar": "الجوامع والمصنفات الحديثية.",
-    "fa": "",
-    "ur": "",
-    "en": "Hadith collections and compendia."
-   },
-   "always": true
-  },
-  {
-   "id": "aqaid",
-   "name": {
-    "ar": "العقائد",
-    "fa": "عقاید",
-    "ur": "عقائد",
-    "en": "Aqaid"
-   },
-   "desc": {
-    "ar": "أصول الدين والكلام.",
-    "fa": "",
-    "ur": "",
-    "en": "Doctrine and theology."
-   },
-   "always": true
-  },
-  {
-   "id": "dua",
-   "name": {
-    "ar": "الأدعية والزيارات",
-    "fa": "ادعیه و زیارات",
-    "ur": "ادعیہ و زیارات",
-    "en": "Supplications"
-   },
-   "desc": {
-    "ar": "الأدعية والزيارات والمناجاة.",
-    "fa": "",
-    "ur": "",
-    "en": "Supplications, ziyarat and munajat."
-   },
-   "always": true
-  }
- ],
- "books": [
-  {
-   "slug": "ghadir",
-   "category": "aqaid",
-   "placeholder": true,
-   "volumes": 11,
-   "title": {
-    "ar": "الغدير",
-    "fa": "الغدیر",
-    "ur": "الغدیر",
-    "en": "Al-Ghadir"
-   },
-   "subtitle": {
-    "en": "On Ghadir Khumm in the Qur'an, hadith and literature"
-   },
-   "author": {
-    "ar": "العلامة الأميني",
-    "fa": "علامه امینی",
-    "ur": "علامہ امینی",
-    "en": "Allama al-Amini"
-   },
-   "pages": 0,
-   "href": ""
-  },
-  {
-   "slug": "mafatih",
-   "category": "dua",
-   "placeholder": true,
-   "volumes": 1,
-   "title": {
-    "ar": "مفاتيح الجنان",
-    "fa": "مفاتیح الجنان",
-    "ur": "مفاتیح الجنان",
-    "en": "Mafatih al-Jinan"
-   },
-   "subtitle": {
-    "en": "Supplications, ziyarat and daily devotions"
-   },
-   "author": {
-    "ar": "الشيخ عباس القمي",
-    "fa": "شیخ عباس قمی",
-    "ur": "شیخ عباس قمی",
-    "en": "Shaykh 'Abbas al-Qummi"
-   },
-   "pages": 0,
-   "href": ""
-  },
-  {
-   "slug": "kutub-arbaa",
-   "category": "hadith",
-   "placeholder": true,
-   "volumes": 26,
-   "title": {
-    "ar": "الكتب الأربعة",
-    "fa": "کتب اربعه",
-    "ur": "کتبِ اربعہ",
-    "en": "The Four Canonical Collections"
-   },
-   "subtitle": {
-    "en": "Al-Kafi, Man la Yahduruhu al-Faqih, al-Tahdhib, al-Istibsar"
-   },
-   "author": {
-    "ar": "الكليني والصدوق والطوسي",
-    "fa": "کلینی، صدوق و طوسی",
-    "ur": "کلینی، صدوق اور طوسی",
-    "en": "Al-Kulayni, al-Saduq and al-Tusi"
-   },
-   "pages": 0,
-   "href": ""
-  },
-  {
-   "slug": "quran",
-   "category": "quran",
-   "placeholder": true,
-   "volumes": 1,
-   "title": {
-    "ar": "القرآن الكريم",
-    "fa": "قرآن کریم",
-    "ur": "قرآنِ کریم",
-    "en": "The Holy Qur'an"
-   },
-   "subtitle": {
-    "en": "The Qur'anic text with translation"
-   },
-   "author": {
-    "ar": "كلام الله تعالى",
-    "fa": "کلام الله تعالی",
-    "ur": "کلامِ اللہ تعالیٰ",
-    "en": "The Word of God"
-   },
-   "pages": 0,
-   "href": ""
-  },
-  {
-   "slug": "burhan",
-   "category": "tafsir",
-   "placeholder": true,
-   "volumes": 5,
-   "title": {
-    "ar": "تفسير البرهان",
-    "fa": "تفسیر البرهان",
-    "ur": "تفسیر البرہان",
-    "en": "Tafsir al-Burhan"
-   },
-   "subtitle": {
-    "en": "Qur'anic exegesis by way of narration"
-   },
-   "author": {
-    "ar": "السيد هاشم البحراني",
-    "fa": "سید هاشم بحرانی",
-    "ur": "سید ہاشم بحرانی",
-    "en": "Sayyid Hashim al-Bahrani"
-   },
-   "pages": 0,
-   "href": ""
-  },
-  {
-   "slug": "bihar",
-   "category": "hadith",
-   "title": {
-    "ar": "بحار الأنوار الجامعة لدرر أخبار الأئمة الأطهار",
-    "fa": "بحار الأنوار الجامعة لدرر أخبار الأئمة الأطهار",
-    "ur": "بحار الأنوار الجامعة لدرر أخبار الأئمة الأطهار",
-    "en": "Bihar al-Anwar"
-   },
-   "subtitle": {
-    "ar": "الجامعة لدرر أخبار الأئمة الأطهار",
-    "fa": "دریاهای نور",
-    "ur": "انوار کے سمندر",
-    "en": "Oceans of Light"
-   },
-   "author": {
-    "ar": "العلامة محمد باقر المجلسي",
-    "fa": "علامه محمدباقر مجلسی",
-    "ur": "علامہ محمد باقر مجلسی",
-    "en": "Allama Muhammad Baqir al-Majlisi"
-   },
-   "volumes": 110,
-   "volume": 1,
-   "pages": 231,
-   "translated": [
-    "en",
-    "fa",
-    "ur"
-   ],
-   "href": "bihar/",
-   "volumesPublished": [
-    1
-   ]
-  }
- ]
+  "categories": [
+    {
+      "id": "quran",
+      "name": {
+        "ar": "القرآن",
+        "fa": "قرآن",
+        "ur": "قرآن",
+        "en": "Qur'an"
+      },
+      "desc": {
+        "ar": "القرآن الكريم وعلومه.",
+        "fa": "",
+        "ur": "",
+        "en": "The Qur'an and its sciences."
+      },
+      "always": true
+    },
+    {
+      "id": "tafsir",
+      "name": {
+        "ar": "التفسير",
+        "fa": "تفسیر",
+        "ur": "تفسیر",
+        "en": "Tafsir"
+      },
+      "desc": {
+        "ar": "تفاسير القرآن الكريم.",
+        "fa": "",
+        "ur": "",
+        "en": "Commentary on the Qur'an."
+      },
+      "always": true
+    },
+    {
+      "id": "hadith",
+      "name": {
+        "ar": "الحديث",
+        "fa": "حدیث",
+        "ur": "حدیث",
+        "en": "Hadith"
+      },
+      "desc": {
+        "ar": "الجوامع والمصنفات الحديثية.",
+        "fa": "",
+        "ur": "",
+        "en": "Hadith collections and compendia."
+      },
+      "always": true
+    },
+    {
+      "id": "aqaid",
+      "name": {
+        "ar": "العقائد",
+        "fa": "عقاید",
+        "ur": "عقائد",
+        "en": "Aqaid"
+      },
+      "desc": {
+        "ar": "أصول الدين والكلام.",
+        "fa": "",
+        "ur": "",
+        "en": "Doctrine and theology."
+      },
+      "always": true
+    },
+    {
+      "id": "dua",
+      "name": {
+        "ar": "الأدعية والزيارات",
+        "fa": "ادعیه و زیارات",
+        "ur": "ادعیہ و زیارات",
+        "en": "Supplications"
+      },
+      "desc": {
+        "ar": "الأدعية والزيارات والمناجاة.",
+        "fa": "",
+        "ur": "",
+        "en": "Supplications, ziyarat and munajat."
+      },
+      "always": true
+    }
+  ],
+  "books": [
+    {
+      "slug": "ghadir",
+      "category": "aqaid",
+      "placeholder": true,
+      "volumes": 11,
+      "title": {
+        "ar": "الغدير",
+        "fa": "الغدیر",
+        "ur": "الغدیر",
+        "en": "Al-Ghadir"
+      },
+      "subtitle": {
+        "en": "On Ghadir Khumm in the Qur'an, hadith and literature"
+      },
+      "author": {
+        "ar": "العلامة الأميني",
+        "fa": "علامه امینی",
+        "ur": "علامہ امینی",
+        "en": "Allama al-Amini"
+      },
+      "pages": 0,
+      "href": ""
+    },
+    {
+      "slug": "mafatih",
+      "category": "dua",
+      "placeholder": true,
+      "volumes": 1,
+      "title": {
+        "ar": "مفاتيح الجنان",
+        "fa": "مفاتیح الجنان",
+        "ur": "مفاتیح الجنان",
+        "en": "Mafatih al-Jinan"
+      },
+      "subtitle": {
+        "en": "Supplications, ziyarat and daily devotions"
+      },
+      "author": {
+        "ar": "الشيخ عباس القمي",
+        "fa": "شیخ عباس قمی",
+        "ur": "شیخ عباس قمی",
+        "en": "Shaykh 'Abbas al-Qummi"
+      },
+      "pages": 0,
+      "href": ""
+    },
+    {
+      "slug": "kafi",
+      "category": "hadith",
+      "placeholder": true,
+      "volumes": 8,
+      "title": {
+        "ar": "الكافي",
+        "fa": "الکافی",
+        "ur": "الکافی",
+        "en": "Al-Kafi"
+      },
+      "subtitle": {
+        "en": "The foundational hadith compendium of the Twelver school"
+      },
+      "author": {
+        "ar": "الشيخ الكليني",
+        "fa": "شیخ کلینی",
+        "ur": "شیخ کلینی",
+        "en": "Shaykh al-Kulayni"
+      },
+      "pages": 0,
+      "href": ""
+    },
+    {
+      "slug": "faqih",
+      "category": "hadith",
+      "placeholder": true,
+      "volumes": 4,
+      "title": {
+        "ar": "من لا يحضره الفقيه",
+        "fa": "من لا يحضره الفقيه",
+        "ur": "من لا يحضره الفقيه",
+        "en": "Man la Yahduruhu al-Faqih"
+      },
+      "subtitle": {
+        "en": "A manual of jurisprudential hadith for every believer"
+      },
+      "author": {
+        "ar": "الشيخ الصدوق",
+        "fa": "شیخ صدوق",
+        "ur": "شیخ صدوق",
+        "en": "Shaykh al-Saduq"
+      },
+      "pages": 0,
+      "href": ""
+    },
+    {
+      "slug": "tahdhib",
+      "category": "hadith",
+      "placeholder": true,
+      "volumes": 10,
+      "title": {
+        "ar": "تهذيب الأحكام",
+        "fa": "تهذیب الأحکام",
+        "ur": "تہذیب الأحکام",
+        "en": "Tahdhib al-Ahkam"
+      },
+      "subtitle": {
+        "en": "A commentary and hadith basis for Islamic law"
+      },
+      "author": {
+        "ar": "الشيخ الطوسي",
+        "fa": "شیخ طوسی",
+        "ur": "شیخ طوسی",
+        "en": "Shaykh al-Tusi"
+      },
+      "pages": 0,
+      "href": ""
+    },
+    {
+      "slug": "istibsar",
+      "category": "hadith",
+      "placeholder": true,
+      "volumes": 4,
+      "title": {
+        "ar": "الاستبصار",
+        "fa": "الاستبصار",
+        "ur": "الاستبصار",
+        "en": "Al-Istibsar"
+      },
+      "subtitle": {
+        "en": "Resolving apparent conflicts among legal hadith"
+      },
+      "author": {
+        "ar": "الشيخ الطوسي",
+        "fa": "شیخ طوسی",
+        "ur": "شیخ طوسی",
+        "en": "Shaykh al-Tusi"
+      },
+      "pages": 0,
+      "href": ""
+    },
+    {
+      "slug": "quran",
+      "category": "quran",
+      "placeholder": true,
+      "volumes": 1,
+      "title": {
+        "ar": "القرآن الكريم",
+        "fa": "قرآن کریم",
+        "ur": "قرآنِ کریم",
+        "en": "The Holy Qur'an"
+      },
+      "subtitle": {
+        "en": "The Qur'anic text with translation"
+      },
+      "author": {
+        "ar": "كلام الله تعالى",
+        "fa": "کلام الله تعالی",
+        "ur": "کلامِ اللہ تعالیٰ",
+        "en": "The Word of God"
+      },
+      "pages": 0,
+      "href": ""
+    },
+    {
+      "slug": "burhan",
+      "category": "tafsir",
+      "placeholder": true,
+      "volumes": 5,
+      "title": {
+        "ar": "تفسير البرهان",
+        "fa": "تفسیر البرهان",
+        "ur": "تفسیر البرہان",
+        "en": "Tafsir al-Burhan"
+      },
+      "subtitle": {
+        "en": "Qur'anic exegesis by way of narration"
+      },
+      "author": {
+        "ar": "السيد هاشم البحراني",
+        "fa": "سید هاشم بحرانی",
+        "ur": "سید ہاشم بحرانی",
+        "en": "Sayyid Hashim al-Bahrani"
+      },
+      "pages": 0,
+      "href": ""
+    },
+    {
+      "slug": "bihar",
+      "category": "hadith",
+      "title": {
+        "ar": "بحار الأنوار الجامعة لدرر أخبار الأئمة الأطهار",
+        "fa": "بحار الأنوار الجامعة لدرر أخبار الأئمة الأطهار",
+        "ur": "بحار الأنوار الجامعة لدرر أخبار الأئمة الأطهار",
+        "en": "Bihar al-Anwar"
+      },
+      "subtitle": {
+        "ar": "الجامعة لدرر أخبار الأئمة الأطهار",
+        "fa": "دریاهای نور",
+        "ur": "انوار کے سمندر",
+        "en": "Oceans of Light"
+      },
+      "author": {
+        "ar": "العلامة محمد باقر المجلسي",
+        "fa": "علامه محمدباقر مجلسی",
+        "ur": "علامہ محمد باقر مجلسی",
+        "en": "Allama Muhammad Baqir al-Majlisi"
+      },
+      "volumes": 110,
+      "volume": 1,
+      "pages": 231,
+      "translated": [
+        "en",
+        "fa",
+        "ur"
+      ],
+      "href": "bihar/",
+      "volumesPublished": [
+        1
+      ]
+    }
+  ]
 }
