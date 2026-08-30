@@ -1,42 +1,84 @@
 #!/usr/bin/env python3
-"""Assemble an en/ page for the Misbah Library from extracted + translated content.
+"""Assemble a translated page (en / fa / ur) for the Misbah Library.
 
 Input JSON per page:
   {"page": 50, "total": 231,
-   "nodes": [{"i":0,"tag":"p","ar":"...","en":"..."}, ...],
-   "notes": [{"id":"fn-0-0-1","n":"١","ar":"...","en":"..."}, ...]}
+   "nodes": [{"i":0,"tag":"p","ar":"...","<lang>":"..."}, ...],
+   "notes": [{"id":"fn-0-0-1","n":"١","ar":"...","<lang>":"..."}, ...]}
 
-The shell is reproduced exactly as the existing en/ pages have it, so generated
-pages are indistinguishable in structure from pages 1-48 and 81-84.
+Usage:
+  build.py <batch.json> <outdir> --lang ur [--volume 1] [--total 231]
+                                [--alts ar,en,fa,ur] [--no-draft]
+
+The shell is reproduced exactly as the live pages have it, so generated pages
+are indistinguishable in structure from the hand-made ones.
+
+Two rules this file exists to enforce, because getting them wrong is invisible
+until search engines quietly ignore the whole site:
+
+  * canonical and hreflang URLs are ABSOLUTE. Google requires fully-qualified
+    URLs for hreflang; relative ones are discarded.
+  * the hreflang set is RECIPROCAL and SELF-REFERENTIAL. Every page in a
+    language cluster lists every version including itself, and every one of
+    those pages must point back. A one-directional cluster is ignored wholesale.
+
+--alts declares which language versions actually exist for this volume. Never
+list a language whose pages have not been published: an hreflang pointing at a
+404 invalidates the cluster.
 """
-import html, json, re, sys, pathlib
+import argparse, html, json, re, sys, pathlib
 
-R = "../../../.."  # depth of en/bihar/1/<page>/ below the Library root
+SITE = "https://library.misbah-inc.com"
+R = "../../../.."          # depth of <lang>/bihar/<vol>/<page>/ below the Library root
+
+LANGS = {
+    "en": {"dir": "ltr",
+           "title": "Bihar al-Anwar",
+           "label": "Allama Muhammad Baqir al-Majlisi"},
+    "fa": {"dir": "rtl",
+           "title": "بحار الأنوار الجامعة لدرر أخبار الأئمة الأطهار",
+           "label": "علامه محمدباقر مجلسی"},
+    "ur": {"dir": "rtl",
+           "title": "بحار الأنوار الجامعة لدرر أخبار الأئمة الأطهار",
+           "label": "علامہ محمد باقر مجلسی"},
+}
+
+# the part-label carries every language's name as data-* so the switcher can
+# swap it in place; only the visible text differs per page language
+LABELS = ('data-ar="العلامة محمد باقر المجلسي" data-fa="علامه محمدباقر مجلسی" '
+          'data-ur="علامہ محمد باقر مجلسی" data-en="Allama Muhammad Baqir al-Majlisi"')
 
 
 def esc_attr(s):
     return html.escape(s, quote=True)
 
 
-def description(nodes):
-    """First 150 chars of the first English line, matching existing pages."""
+def abs_url(lang, vol, n):
+    """Fully-qualified URL of a page. Arabic is the site root; others nest."""
+    prefix = "" if lang == "ar" else f"/{lang}"
+    return f"{SITE}{prefix}/bihar/{vol}/{n}/"
+
+
+def description(nodes, lang):
+    """First 150 chars of the first translated line, matching existing pages."""
     for n in nodes:
-        en = re.sub(r"<[^>]+>", "", n.get("en", "")).strip()
-        en = html.unescape(en)
-        if en:
-            return esc_attr(en[:150])
+        t = re.sub(r"<[^>]+>", "", n.get(lang, "")).strip()
+        t = html.unescape(t)
+        if t:
+            return esc_attr(t[:150])
     return ""
 
 
-def build(page):
-    n_, total = page["page"], page.get("total", 231)
+def build(page, lang, vol, total, alts):
+    n_ = page["page"]
     nodes, notes = page["nodes"], page.get("notes", [])
+    L = LANGS[lang]
 
     body = []
     for nd in nodes:
         tag = nd["tag"]
         body.append(f'<{tag} lang="ar" data-i="{nd["i"]}">{nd["ar"]}</{tag}>')
-        body.append(f'<{tag} class="tr-line" lang="en">{nd["en"]}</{tag}>')
+        body.append(f'<{tag} class="tr-line" lang="{lang}">{nd[lang]}</{tag}>')
     body = "".join(body)
 
     if notes:
@@ -46,31 +88,45 @@ def build(page):
                 f'<div class="note" lang="ar" id="{nt["id"]}">'
                 f'<span class="note-n">({nt["n"]})</span>'
                 f'<span>{nt["ar"]}'
-                f'<span class="tr-note-line" lang="en">{nt["en"]}</span>'
+                f'<span class="tr-note-line" lang="{lang}">{nt[lang]}</span>'
                 f'</span></div>')
         notes_html = '<div class="notes">' + "".join(parts) + "</div>"
     else:
         notes_html = ""
 
-    prev_n, next_n = n_ - 1, n_ + 1
-    link_prev = f'<link rel="prev" href="{R}/en/bihar/1/{prev_n}/">' if prev_n >= 1 else ""
-    link_next = f'<link rel="next" href="{R}/en/bihar/1/{next_n}/">' if next_n <= total else ""
+    # ---- absolute canonical + full reciprocal hreflang set -------------------
+    canonical = f'<link rel="canonical" href="{abs_url(lang, vol, n_)}">'
+    alt_links = "".join(
+        f'<link rel="alternate" hreflang="{a}" href="{abs_url(a, vol, n_)}">'
+        for a in alts)
+    if "ar" in alts:   # Arabic is the source of record, so it is the default
+        alt_links += (f'<link rel="alternate" hreflang="x-default" '
+                      f'href="{abs_url("ar", vol, n_)}">')
 
-    pager_prev = (f'<a class="btn prev" href="{R}/en/bihar/1/{prev_n}/" rel="prev">'
+    prev_n, next_n = n_ - 1, n_ + 1
+    link_prev = f'<link rel="prev" href="{R}/{lang}/bihar/{vol}/{prev_n}/">' if prev_n >= 1 else ""
+    link_next = f'<link rel="next" href="{R}/{lang}/bihar/{vol}/{next_n}/">' if next_n <= total else ""
+
+    pager_prev = (f'<a class="btn prev" href="{R}/{lang}/bihar/{vol}/{prev_n}/" rel="prev">'
                   f'<span data-i18n="prev"></span></a>') if prev_n >= 1 else \
                  '<span class="btn" aria-disabled="true"><span data-i18n="prev"></span></span>'
-    pager_next = (f'<a class="btn next" href="{R}/en/bihar/1/{next_n}/" rel="next">'
+    pager_next = (f'<a class="btn next" href="{R}/{lang}/bihar/{vol}/{next_n}/" rel="next">'
                   f'<span data-i18n="next"></span></a>') if next_n <= total else \
                  '<span class="btn" aria-disabled="true"><span data-i18n="next"></span></span>'
 
+    # #page-meta drives the language switcher: data-alt-<lang> makes the button
+    # navigate to the real translated URL instead of re-rendering in place
+    alt_attrs = " ".join(f'data-alt-{a}="{R}{"" if a == "ar" else "/" + a}/bihar/{vol}/{n_}/"'
+                         for a in alts if a != lang)
+
     return f'''<!DOCTYPE html>
-<html lang="en" dir="ltr" data-root="{R}" data-book="../../.." data-sitelang="en">
+<html lang="{lang}" dir="{L["dir"]}" data-root="{R}" data-book="../../.." data-sitelang="{lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bihar al-Anwar — p. {n_}</title>
-<meta name="description" content="{description(nodes)}">
-<link rel="alternate" hreflang="ar" href="{R}/bihar/1/{n_}/"><link rel="canonical" href="https://misbah-inc.github.io/Library/en/bihar/1/{n_}/"><link rel="alternate" hreflang="fa" href="{R}/fa/bihar/1/{n_}/"><link rel="alternate" hreflang="ur" href="{R}/ur/bihar/1/{n_}/">{link_prev}{link_next}
+<title>{L["title"]} — p. {n_}</title>
+<meta name="description" content="{description(nodes, lang)}">
+{canonical}{alt_links}{link_prev}{link_next}
 <link rel="stylesheet" href="{R}/assets/reader.css">
 </head>
 <body>
@@ -93,8 +149,8 @@ def build(page):
 <main class="wrap">
   <article>
     <div class="leaf" id="text">
-      <div class="part-label"><span data-ar="العلامة محمد باقر المجلسي" data-fa="علامه محمدباقر مجلسی" data-ur="علامہ محمد باقر مجلسی" data-en="Allama Muhammad Baqir al-Majlisi">Allama Muhammad Baqir al-Majlisi</span>
-        <span><span data-i18n="volume"></span> <span data-num="1">1</span>
+      <div class="part-label"><span {LABELS}>{L["label"]}</span>
+        <span><span data-i18n="volume"></span> <span data-num="{vol}">{vol}</span>
         <span class="folio"><span data-i18n="page"></span>
         <span data-num="{n_}">{n_}</span></span></span></div>
       <div class="tr-bar" id="tr-bar">
@@ -112,17 +168,17 @@ def build(page):
       {notes_html}
     </div>
     <nav class="pager">
-      <a class="btn " href="{R}/en/bihar/1/1/" rel="related"><span data-i18n="first"></span></a>{pager_prev}
-      <form id="jump" data-tpl="bihar/1/{{p}}/" action="{R}/" method="get">
+      <a class="btn " href="{R}/{lang}/bihar/{vol}/1/" rel="related"><span data-i18n="first"></span></a>{pager_prev}
+      <form id="jump" data-tpl="bihar/{vol}/{{p}}/" action="{R}/" method="get">
         <input id="jump-num" name="p" inputmode="numeric" data-i18n-label="page"
                data-num-val="{n_}" value="{n_}">
       </form>
-      {pager_next}<a class="btn " href="{R}/en/bihar/1/{total}/" rel="related"><span data-i18n="last"></span></a>
+      {pager_next}<a class="btn " href="{R}/{lang}/bihar/{vol}/{total}/" rel="related"><span data-i18n="last"></span></a>
     </nav>
   </article>
 </main>
-<div id="page-meta" hidden data-alt-ar="{R}/bihar/1/{n_}/" data-alt-fa="{R}/fa/bihar/1/{n_}/" data-alt-ur="{R}/ur/bihar/1/{n_}/" data-slug="bihar" data-pagenum="{n_}"
-     data-volume="1" data-pos="{n_ - 1}" data-total="{total}"></div>
+<div id="page-meta" hidden {alt_attrs} data-slug="bihar" data-pagenum="{n_}"
+     data-volume="{vol}" data-pos="{n_ - 1}" data-total="{total}"></div>
 <div class="scrim" id="scrim"></div>
 <nav class="nav" id="nav" aria-hidden="true">
   <div class="nav-head"><b data-i18n="menu"></b>
@@ -155,12 +211,44 @@ def build(page):
 '''
 
 
-if __name__ == "__main__":
-    data = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
-    outdir = pathlib.Path(sys.argv[2])
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("batch")
+    ap.add_argument("outdir")
+    ap.add_argument("--lang", required=True, choices=sorted(LANGS))
+    ap.add_argument("--volume", type=int, default=1)
+    ap.add_argument("--total", type=int, default=None,
+                    help="pages in the volume; defaults to each page's own 'total'")
+    ap.add_argument("--alts", default="ar,en,fa,ur",
+                    help="language versions that EXIST for this volume. Listing one "
+                         "that is not published yet points hreflang at a 404 and "
+                         "invalidates the whole cluster.")
+    ap.add_argument("--no-draft", action="store_true",
+                    help="write <n>/ instead of <n>-draft/")
+    a = ap.parse_args()
+
+    alts = [x.strip() for x in a.alts.split(",") if x.strip()]
+    for x in alts:
+        if x not in ("ar", "en", "fa", "ur"):
+            sys.exit(f"unknown language in --alts: {x}")
+    if a.lang not in alts:
+        sys.exit(f"--alts must include the page's own language ({a.lang}); "
+                 "hreflang sets are self-referential")
+
+    data = json.loads(pathlib.Path(a.batch).read_text(encoding="utf-8"))
+    outdir = pathlib.Path(a.outdir)
     pages = data if isinstance(data, list) else [data]
+
     for p in pages:
-        d = outdir / f'{p["page"]}-draft'
+        total = a.total if a.total is not None else p.get("total", 231)
+        name = f'{p["page"]}' if a.no_draft else f'{p["page"]}-draft'
+        d = outdir / name
         d.mkdir(parents=True, exist_ok=True)
-        (d / "index.html").write_text(build(p), encoding="utf-8")
-        print(f'{d}/index.html  ({len(p["nodes"])} nodes, {len(p.get("notes", []))} notes)')
+        (d / "index.html").write_text(
+            build(p, a.lang, a.volume, total, alts), encoding="utf-8")
+        print(f'{d}/index.html  ({len(p["nodes"])} nodes, '
+              f'{len(p.get("notes", []))} notes)')
+
+
+if __name__ == "__main__":
+    main()
