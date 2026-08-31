@@ -27,6 +27,7 @@ import argparse, html, os, pathlib, re, sys
 import xml.etree.ElementTree as ET
 
 SITE = "https://library.misbah-inc.com"
+ASSETS_V = "3"   # bump when reader.css/js change, to break browser caches
 SRC = pathlib.Path(__file__).parent / "quran-source"
 
 # translations available per language; a language may carry more than one
@@ -235,7 +236,7 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
 <title>{esc(title)}</title>
 <meta name="description" content="{desc}">
 {canonical}{alt_links}{link_prev}{link_next}
-{FONT_LINKS}\n<link rel="stylesheet" href="{R}/assets/reader.css">
+{FONT_LINKS}\n<link rel="stylesheet" href="{R}/assets/reader.css?v={ASSETS_V}">
 </head>
 <body>
 <a class="skip" href="#text">&rarr;</a>
@@ -301,7 +302,7 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
     <li><a href="{R}/contact/" data-i18n="contact"></a></li>
   </ul></div>
 </div></footer>
-<script src="{R}/assets/reader.js" defer></script>
+<script src="{R}/assets/reader.js?v={ASSETS_V}" defer></script>
 </body>
 </html>
 '''
@@ -331,7 +332,7 @@ def build_index(meta, published, total=114):
 <title>القرآن الكريم</title>
 <meta name="description" content="القرآن الكريم — {ar_num(total)} سورة، مع الترجمة.">
 <link rel="canonical" href="{SITE}/quran/">
-<link rel="stylesheet" href="../assets/reader.css">
+<link rel="stylesheet" href="../assets/reader.css?v={ASSETS_V}">
 </head>
 <body>
 <a class="skip" href="#text">&rarr;</a>
@@ -376,7 +377,7 @@ def build_index(meta, published, total=114):
 <footer class="foot"><div class="foot-in">
   <div><h3 data-i18n="libName"></h3></div>
 </div></footer>
-<script src="../assets/reader.js" defer></script>
+<script src="../assets/reader.js?v={ASSETS_V}" defer></script>
 </body>
 </html>
 '''
