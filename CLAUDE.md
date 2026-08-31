@@ -138,6 +138,18 @@ Drive rules: `create_file` always creates (no replace). To overwrite: `search_fi
 
 ---
 
+## Page addition checklist
+
+Every time a new HTML page is added to the site (new language book index, new reading page, new section):
+
+1. Run `gen_sitemap.py` to regenerate `sitemap.xml`
+2. Update `CHANGELOG.md` with what was added
+3. Owner commits and pushes both files along with the new pages
+
+Google picks up the updated sitemap automatically — no need to resubmit to Search Console.
+
+---
+
 ## Standing constraints
 
 - **Never touch GitHub.** No clone, commit, push, or Actions. Writing into the library folder is the limit; committing and pushing is the owner's job alone.

@@ -4,7 +4,17 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
-## 2026-08-31
+## 2026-08-31 (session 2)
+
+### SEO / infrastructure
+- Set up Google Search Console for `library.misbah-inc.com`
+- Regenerated `sitemap.xml` — now 943 URLs (was 931, added en/fa/ur book index pages)
+- Added "Page addition checklist" to `CLAUDE.md` as a standing rule
+- Added `CHANGELOG.md` as a permanent session log
+
+---
+
+## 2026-08-31 (session 1)
 
 ### Bug fix — language routing on book cards
 - `assets/reader.js` `bookCard()`: non-Arabic language selection was always generating Arabic URLs. Fixed by adding language-aware href: `lang + '/' + b.href` when `b.translated` includes the active language.
