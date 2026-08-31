@@ -31,12 +31,15 @@ SRC = pathlib.Path(__file__).parent / "quran-source"
 
 # translations available per language; a language may carry more than one
 TRANSLATIONS = {
-    "en": [{"id": "shakir", "file": "en.shakir.xml",
-            "name": "Shakir", "translator": "Mohammad Habib Shakir"}],
-    "fa": [{"id": "fooladvand", "file": "fa.fooladvand.xml",
-            "name": "فولادوند", "translator": "Mohammad Mahdi Fooladvand"}],
-    "ur": [{"id": "jawadi", "file": "ur.jawadi.xml",
-            "name": "علامہ جوادی", "translator": "Syed Zeeshan Haider Jawadi"}],
+    "en": [{"id": "shakir", "file": "en.shakir.xml", "name": "Shakir",
+            "translator": "Mohammad Habib Shakir",
+            "display": "Mohammad Habib Shakir"}],
+    "fa": [{"id": "fooladvand", "file": "fa.fooladvand.xml", "name": "فولادوند",
+            "translator": "Mohammad Mahdi Fooladvand",
+            "display": "محمد مهدی فولادوند"}],
+    "ur": [{"id": "jawadi", "file": "ur.jawadi.xml", "name": "علامہ جوادی",
+            "translator": "Syed Zeeshan Haider Jawadi",
+            "display": "علامہ سید ذیشان حیدر جوادی"}],
 }
 
 LANGS = {
@@ -116,6 +119,21 @@ def abs_url(lang, n):
     return f"{SITE}{pre}/quran/{n}/"
 
 
+# Uthmani script stacks marks that a general-purpose naskh face was never cut
+# for, so the marks collide. Amiri Quran is drawn for exactly this; Noto Naskh
+# is the plainer alternative for easier sustained reading.
+FONT_PICKER = ('<span class="fontpick"><span class="lbl" data-i18n="script"></span>'
+               '<button data-font="uthmani" aria-pressed="true" '
+               'data-i18n="scriptUthmani"></button>'
+               '<button data-font="simple" aria-pressed="false" '
+               'data-i18n="scriptSimple"></button></span>')
+
+FONT_LINKS = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
+              '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+              '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?'
+              'family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;500&display=swap">')
+
+
 def build(n, lang, meta, ar_text, translations, alts, total=114):
     L = LANGS[lang]
     R = L["depth"]
@@ -135,7 +153,14 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
             rows.append(
                 f'<p class="tr-line" lang="{lang}" data-tr="{t["id"]}">'
                 f'<span class="aya-b">{a}</span>{t["text"][n][a]}</p>')
-        parts.append(f'<div class="aya" id="a{a}">' + "".join(rows) + "</div>")
+        parts.append(f'<div class="aya" id="a{a}" data-ref="{n}:{a}">'
+                     + "".join(rows)
+                     + f'<button class="aya-copy" data-copy="{a}" '
+                       f'data-i18n-label="copyVerse">'
+                       f'<svg class="ic" viewBox="0 0 24 24">'
+                       f'<rect x="9" y="9" width="11" height="11" rx="2"/>'
+                       f'<path d="M5 15V5h10"/></svg></button>'
+                     + "</div>")
     body = "".join(parts)
 
     # ---- head -------------------------------------------------------------
@@ -167,8 +192,8 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
                   '<button data-mode="both" data-i18n="viewBoth" aria-pressed="false"></button>'
                   '<button data-mode="side" data-i18n="viewSide" aria-pressed="false"></button>'
                   '<button data-mode="ar" data-i18n="viewAr" aria-pressed="false"></button>'
-                  '</div><span class="tr-who">'
-                  + " · ".join(esc(t["translator"]) for t in translations)
+                  '</div>' + FONT_PICKER + '<span class="tr-who">'
+                  + " · ".join(esc(t.get("display", t["translator"])) for t in translations)
                   + '</span></div>')
     else:
         tr_bar = ""
@@ -210,7 +235,7 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
 <title>{esc(title)}</title>
 <meta name="description" content="{desc}">
 {canonical}{alt_links}{link_prev}{link_next}
-<link rel="stylesheet" href="{R}/assets/reader.css">
+{FONT_LINKS}\n<link rel="stylesheet" href="{R}/assets/reader.css">
 </head>
 <body>
 <a class="skip" href="#text">&rarr;</a>
@@ -235,7 +260,8 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
       <div class="part-label"><span class="sura-name">{m["name"]}</span>
         <span class="sura-meta">{sura_meta}</span></div>
       {tr_bar}
-      <div class="body" data-tr-static="1" data-unit="aya">{body}</div>
+      <nav class="vnav">{vpick}</nav>
+      <div class="body" data-tr-static="1" data-unit="aya" data-font="uthmani">{body}</div>
       {credit}
     </div>
     <nav class="pager">
@@ -246,7 +272,6 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
       </form>
       {pager_next}<a class="btn " href="{R}/{seg}quran/{total}/" rel="related"><span data-i18n="last"></span></a>
     </nav>
-    <nav class="vnav">{vpick}</nav>
   </article>
 </main>
 <div id="page-meta" hidden {alt_attrs} data-slug="quran" data-pagenum="{n}"

@@ -464,3 +464,46 @@ a.sura-cell:hover{border-color:var(--gold);background:var(--tint)}
        min-width:1.9rem;font-variant-numeric:tabular-nums}
 .sura-cell .snm{font-family:var(--ar);font-size:1.05rem;line-height:1.5;flex:1}
 .sura-cell .sct{font-size:.64rem;color:var(--ink-3);white-space:nowrap}
+
+/* --- Qur'an: the Arabic always reads right-to-left, even on an LTR page --- */
+.body[data-unit="aya"] .aya > p[lang="ar"]{direction:rtl;text-align:right;
+       unicode-bidi:isolate;line-height:2.25}
+.body[data-unit="aya"] .aya > .tr-line{unicode-bidi:isolate}
+
+/* Uthmani stacks marks a general naskh face was not cut for; these two are.
+   Amiri Quran is the traditional cut, Noto Naskh the plainer reading face. */
+.body[data-unit="aya"][data-font="uthmani"] .aya > p[lang="ar"],
+.body[data-unit="aya"][data-font="uthmani"] .bismillah{
+       font-family:'Amiri Quran','Amiri','Traditional Arabic',serif}
+.body[data-unit="aya"][data-font="simple"] .aya > p[lang="ar"],
+.body[data-unit="aya"][data-font="simple"] .bismillah{
+       font-family:'Noto Naskh Arabic','Amiri',serif;line-height:2.05}
+
+.fontpick{display:flex;align-items:center;gap:.3rem}
+.fontpick .lbl{font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;
+       color:var(--ink-3)}
+.fontpick button{font:inherit;font-size:.72rem;border:1px solid var(--line);
+       background:var(--surface);color:var(--ink-2);border-radius:999px;
+       padding:.22rem .62rem;cursor:pointer}
+.fontpick button[aria-pressed="true"]{background:var(--green);color:var(--on-green);
+       border-color:var(--green)}
+.tr-bar{flex-wrap:wrap;gap:.5rem}
+
+/* per-verse copy */
+.aya{position:relative;padding-inline-end:1.7rem}
+.aya-copy{position:absolute;top:.4rem;inset-inline-end:0;background:transparent;
+       border:0;color:var(--ink-3);cursor:pointer;padding:.22rem;border-radius:6px;
+       opacity:.28}
+.aya:hover .aya-copy{opacity:1}
+.aya-copy:focus-visible{opacity:1}
+.aya-copy:hover{color:var(--gold-2);background:var(--tint)}
+.aya-copy.done{opacity:1;color:var(--gold-2)}
+.copy-pop{position:absolute;top:2rem;inset-inline-end:0;z-index:20;
+       background:var(--surface);border:1px solid var(--line);border-radius:10px;
+       box-shadow:var(--shadow);padding:.7rem .8rem;min-width:12rem;text-align:start}
+.copy-pop label{display:flex;align-items:center;gap:.45rem;font-size:.78rem;
+       color:var(--ink-2);padding:.18rem 0;cursor:pointer}
+.copy-pop .go{margin-top:.5rem;width:100%;background:var(--green);
+       color:var(--on-green);border:0;border-radius:999px;padding:.36rem;
+       font:inherit;font-size:.78rem;cursor:pointer}
+.copy-pop .go:hover{background:var(--gold);color:var(--green)}
