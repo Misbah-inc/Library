@@ -282,6 +282,81 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
 '''
 
 
+def build_index(meta, published, total=114):
+    """The book cover at /quran/. Like /bihar/, there is ONE cover for every
+    language: the strings carry data-ar/fa/ur/en and the reader swaps them,
+    so this page must never hardcode a single language."""
+    cells = []
+    for n in range(1, total + 1):
+        m = meta[n]
+        inner = (f'<b class="sn" data-num="{n}">{ar_num(n)}</b>'
+                 f'<span class="snm">{m["name"]}</span>'
+                 f'<span class="sct"><span data-num="{m["ayas"]}">{ar_num(m["ayas"])}</span> '
+                 f'<span data-i18n="ayat"></span></span>')
+        if n in published:
+            cells.append(f'<a class="sura-cell" href="{n}/" data-n="{n}">{inner}</a>')
+        else:
+            cells.append(f'<span class="sura-cell off" data-n="{n}">{inner}</span>')
+
+    return f'''<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-root=".." data-book=".">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>القرآن الكريم</title>
+<meta name="description" content="القرآن الكريم — {ar_num(total)} سورة، مع الترجمة.">
+<link rel="canonical" href="{SITE}/quran/">
+<link rel="stylesheet" href="../assets/reader.css">
+</head>
+<body>
+<a class="skip" href="#text">&rarr;</a>
+<header class="bar"><div class="bar-in">
+  <a class="brand" href="../"><b data-i18n="libName"></b><small>Misbah Library</small></a>
+  <div class="spacer"></div>
+  <a class="tbtn" href="../"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span class="lbl" data-i18n="home"></span></a>
+  <button class="tbtn icon-only" id="btn-menu" data-i18n-label="menu">
+    <svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  <div class="langs" role="group">
+    <button data-lang="ar">ع</button><button data-lang="fa">فا</button>
+    <button data-lang="ur">اردو</button><button data-lang="en">EN</button>
+  </div>
+  <button class="tbtn" id="btn-theme" aria-pressed="false"></button>
+</div></header>
+<main class="cover" id="text">
+  <h1 data-ar="القرآن الكريم" data-fa="قرآن کریم" data-ur="قرآنِ کریم"
+      data-en="The Holy Qur&#x27;an">القرآن الكريم</h1>
+  <p class="by" data-ar="كلام الله تعالى" data-fa="کلام الله تعالی"
+     data-ur="کلامِ اللہ تعالیٰ" data-en="The Word of God">كلام الله تعالى</p>
+  <div class="rule"></div>
+  <dl>
+    <dt data-i18n="surahs"></dt><dd data-num="{total}">{ar_num(total)}</dd>
+    <dt data-i18n="published"></dt><dd data-num="{len(published)}">{ar_num(len(published))}</dd>
+    <dt data-i18n="edition"></dt><dd data-ar="مشروع تنزيل" data-fa="پروژهٔ تنزیل"
+        data-ur="تنزیل پروجیکٹ" data-en="Tanzil Project"></dd>
+  </dl>
+  <h2 data-i18n="pickSurah"></h2>
+  <div class="suras" data-langpath="quran">{"".join(cells)}</div>
+  <p class="note-msg" data-i18n="volsNote"></p>
+</main>
+<div class="scrim" id="scrim"></div>
+<nav class="nav" id="nav" aria-hidden="true">
+  <div class="nav-head"><b data-i18n="menu"></b>
+    <button id="nav-close" data-i18n-label="close">✕</button></div>
+  <ul>
+    <li><a href="../"><span data-i18n="home"></span></a></li>
+    <li><a href="../search/"><span data-i18n="search"></span></a></li>
+    <li><a href="../books/"><span data-i18n="allBooks"></span></a></li>
+  </ul>
+</nav>
+<footer class="foot"><div class="foot-in">
+  <div><h3 data-i18n="libName"></h3></div>
+</div></footer>
+<script src="../assets/reader.js" defer></script>
+</body>
+</html>
+'''
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--lang", required=True, choices=sorted(LANGS))
@@ -289,6 +364,11 @@ def main():
     ap.add_argument("--surah", nargs="*", type=int)
     ap.add_argument("--alts", default="ar,en,fa,ur")
     ap.add_argument("--src", default=str(SRC))
+    ap.add_argument("--index", action="store_true",
+                    help="build the book cover at /quran/index.html instead of surah pages")
+    ap.add_argument("--published", default="",
+                    help="comma-separated surahs that are live; the rest render "
+                         "as placeholders on the cover, as unpublished Bihar volumes do")
     a = ap.parse_args()
 
     src = pathlib.Path(a.src)
@@ -301,6 +381,14 @@ def main():
 
     global BASMALA
     BASMALA = ar_text[1][1]        # canonical basmala, from the same source
+
+    if a.index:
+        published = {int(x) for x in a.published.split(",") if x.strip()}
+        out = pathlib.Path(a.out)
+        out.mkdir(parents=True, exist_ok=True)
+        (out / "index.html").write_text(build_index(meta, published), encoding="utf-8")
+        print(f"cover -> {out}/index.html  ({len(published)} of 114 published)")
+        return
 
     translations = []
     for t in TRANSLATIONS.get(a.lang, []):

@@ -223,8 +223,7 @@
     {
       "slug": "quran",
       "category": "quran",
-      "placeholder": true,
-      "volumes": 1,
+      "volumes": 114,
       "title": {
         "ar": "القرآن الكريم",
         "fa": "قرآن کریم",
@@ -232,6 +231,9 @@
         "en": "The Holy Qur'an"
       },
       "subtitle": {
+        "ar": "النص القرآني مع الترجمة",
+        "fa": "متن قرآن همراه با ترجمه",
+        "ur": "قرآنی متن بمع ترجمہ",
         "en": "The Qur'anic text with translation"
       },
       "author": {
@@ -240,8 +242,18 @@
         "ur": "کلامِ اللہ تعالیٰ",
         "en": "The Word of God"
       },
-      "pages": 0,
-      "href": ""
+      "pages": 2,
+      "href": "quran/",
+      "unit": "surahs",
+      "translated": [
+        "en",
+        "fa",
+        "ur"
+      ],
+      "surahsPublished": [
+        1,
+        2
+      ]
     },
     {
       "slug": "burhan",

@@ -14,7 +14,7 @@
   };
 
   var T = {
-    ar: { first:'الأولى', prev:'السابقة', next:'التالية', last:'الأخيرة', volumes:'المجلدات', published:'المنشور', pickVolume:'اختر المجلد', otherVolumes:'مجلدات أخرى', volsNote:'المجلدات غير المفعّلة لم تُنشر بعد.', soon:'قريباً', citeAr:'للإحالة استعمل الصفحة العربية:', machineTr:'ترجمة آلية بالذكاء الاصطناعي، غير مراجَعة وقد تحتوي أخطاء. للإحالة يُعتمد الأصل العربي.', viewAr:'العربية', viewTr:'الترجمة', viewBoth:'كلاهما', viewSide:'مقابل', verse:'الآية', surah:'السورة', ayat:'آية', meccan:'مكية', medinan:'مدنية', textFrom:'النص من', transFrom:'الترجمات عبر', noTr:'لم تُترجم هذه الصفحة بعد؛ النص معروض بالعربية.', draft:'ترجمة أولية غير مراجَعة.', trBy:'الترجمة', home:'الرئيسية', mylib:'مكتبتي', search:'بحث', allBooks:'كل الكتب',
+    ar: { first:'الأولى', prev:'السابقة', next:'التالية', last:'الأخيرة', volumes:'المجلدات', published:'المنشور', pickVolume:'اختر المجلد', otherVolumes:'مجلدات أخرى', volsNote:'المجلدات غير المفعّلة لم تُنشر بعد.', soon:'قريباً', citeAr:'للإحالة استعمل الصفحة العربية:', machineTr:'ترجمة آلية بالذكاء الاصطناعي، غير مراجَعة وقد تحتوي أخطاء. للإحالة يُعتمد الأصل العربي.', viewAr:'العربية', viewTr:'الترجمة', viewBoth:'كلاهما', viewSide:'مقابل', verse:'الآية', surah:'السورة', surahs:'السور', pickSurah:'اختر السورة', ayat:'آية', meccan:'مكية', medinan:'مدنية', textFrom:'النص من', transFrom:'الترجمات عبر', noTr:'لم تُترجم هذه الصفحة بعد؛ النص معروض بالعربية.', draft:'ترجمة أولية غير مراجَعة.', trBy:'الترجمة', home:'الرئيسية', mylib:'مكتبتي', search:'بحث', allBooks:'كل الكتب',
           contact:'اتصل بنا', about:'من نحن', menu:'القائمة', close:'إغلاق',
           contents:'الفهرس', cite:'نسخ الإحالة', copied:'تم النسخ ✓',
           night:'ليلي', day:'نهاري', bigger:'تكبير الخط', smaller:'تصغير الخط',
@@ -38,7 +38,7 @@
                  + 'قابلة للإحالة الدقيقة: كل صفحة تحمل رقمها في الطبعة المطبوعة وعنواناً ثابتاً '
                  + 'لا يتغير، ليستطيع الباحث أن يحيل إليها ويثق ببقاء الرابط.',
           contactBody:'للاقتراحات وتصحيح الأخطاء والمساهمة في المكتبة، يرجى التواصل معنا.' },
-    fa: { first:'نخست', prev:'صفحه قبل', next:'صفحه بعد', last:'پایان', volumes:'مجلدات', published:'منتشرشده', pickVolume:'انتخاب جلد', otherVolumes:'جلدهای دیگر', volsNote:'جلدهای غیرفعال هنوز منتشر نشده‌اند.', soon:'به‌زودی', citeAr:'برای ارجاع از صفحهٔ عربی استفاده کنید:', machineTr:'ترجمهٔ ماشینی با هوش مصنوعی، بازبینی‌نشده و ممکن است خطا داشته باشد. برای ارجاع به متن عربی استناد کنید.', viewAr:'عربی', viewTr:'ترجمه', viewBoth:'هر دو', viewSide:'دوستونه', verse:'آیه', surah:'سوره', ayat:'آیه', meccan:'مکی', medinan:'مدنی', textFrom:'متن از', transFrom:'ترجمه‌ها از', noTr:'این صفحه هنوز ترجمه نشده است؛ متن عربی نمایش داده می‌شود.', draft:'ترجمهٔ اولیه و بازبینی‌نشده.', trBy:'ترجمه', home:'خانه', mylib:'کتابخانهٔ من', search:'جستجو', allBooks:'همهٔ کتاب‌ها',
+    fa: { first:'نخست', prev:'صفحه قبل', next:'صفحه بعد', last:'پایان', volumes:'مجلدات', published:'منتشرشده', pickVolume:'انتخاب جلد', otherVolumes:'جلدهای دیگر', volsNote:'جلدهای غیرفعال هنوز منتشر نشده‌اند.', soon:'به‌زودی', citeAr:'برای ارجاع از صفحهٔ عربی استفاده کنید:', machineTr:'ترجمهٔ ماشینی با هوش مصنوعی، بازبینی‌نشده و ممکن است خطا داشته باشد. برای ارجاع به متن عربی استناد کنید.', viewAr:'عربی', viewTr:'ترجمه', viewBoth:'هر دو', viewSide:'دوستونه', verse:'آیه', surah:'سوره', surahs:'سوره‌ها', pickSurah:'انتخاب سوره', ayat:'آیه', meccan:'مکی', medinan:'مدنی', textFrom:'متن از', transFrom:'ترجمه‌ها از', noTr:'این صفحه هنوز ترجمه نشده است؛ متن عربی نمایش داده می‌شود.', draft:'ترجمهٔ اولیه و بازبینی‌نشده.', trBy:'ترجمه', home:'خانه', mylib:'کتابخانهٔ من', search:'جستجو', allBooks:'همهٔ کتاب‌ها',
           contact:'تماس با ما', about:'دربارهٔ ما', menu:'فهرست', close:'بستن',
           contents:'فهرست', cite:'کپی ارجاع', copied:'کپی شد ✓',
           night:'شب', day:'روز', bigger:'بزرگ‌تر', smaller:'کوچک‌تر',
@@ -62,7 +62,7 @@
                  + 'بستر وب به شکلی که ارجاع دقیق ممکن باشد: هر صفحه شمارهٔ چاپی خود و نشانی '
                  + 'ثابتی دارد که تغییر نمی‌کند.',
           contactBody:'برای پیشنهاد، گزارش اشتباه یا همکاری با کتابخانه با ما در تماس باشید.' },
-    ur: { first:'پہلا', prev:'پچھلا', next:'اگلا', last:'آخری', volumes:'جلدیں', published:'شائع شدہ', pickVolume:'جلد منتخب کریں', otherVolumes:'دیگر جلدیں', volsNote:'غیر فعال جلدیں ابھی شائع نہیں ہوئیں۔', soon:'جلد آ رہا ہے', citeAr:'حوالے کے لیے عربی صفحہ استعمال کریں:', machineTr:'مصنوعی ذہانت سے تیار کردہ مشینی ترجمہ، غیر نظرثانی شدہ اور اس میں غلطیاں ممکن ہیں۔ حوالے کے لیے عربی اصل پر اعتماد کریں۔', viewAr:'عربی', viewTr:'ترجمہ', viewBoth:'دونوں', viewSide:'آمنے سامنے', verse:'آیت', surah:'سورہ', ayat:'آیات', meccan:'مکی', medinan:'مدنی', textFrom:'متن بشکریہ', transFrom:'تراجم بشکریہ', noTr:'اس صفحے کا ترجمہ ابھی نہیں ہوا؛ عربی متن دکھایا جا رہا ہے۔', draft:'ابتدائی، غیر نظرثانی شدہ ترجمہ۔', trBy:'ترجمہ', home:'صفحۂ اول', mylib:'میری لائبریری', search:'تلاش', allBooks:'تمام کتب',
+    ur: { first:'پہلا', prev:'پچھلا', next:'اگلا', last:'آخری', volumes:'جلدیں', published:'شائع شدہ', pickVolume:'جلد منتخب کریں', otherVolumes:'دیگر جلدیں', volsNote:'غیر فعال جلدیں ابھی شائع نہیں ہوئیں۔', soon:'جلد آ رہا ہے', citeAr:'حوالے کے لیے عربی صفحہ استعمال کریں:', machineTr:'مصنوعی ذہانت سے تیار کردہ مشینی ترجمہ، غیر نظرثانی شدہ اور اس میں غلطیاں ممکن ہیں۔ حوالے کے لیے عربی اصل پر اعتماد کریں۔', viewAr:'عربی', viewTr:'ترجمہ', viewBoth:'دونوں', viewSide:'آمنے سامنے', verse:'آیت', surah:'سورہ', surahs:'سورتیں', pickSurah:'سورہ منتخب کریں', ayat:'آیات', meccan:'مکی', medinan:'مدنی', textFrom:'متن بشکریہ', transFrom:'تراجم بشکریہ', noTr:'اس صفحے کا ترجمہ ابھی نہیں ہوا؛ عربی متن دکھایا جا رہا ہے۔', draft:'ابتدائی، غیر نظرثانی شدہ ترجمہ۔', trBy:'ترجمہ', home:'صفحۂ اول', mylib:'میری لائبریری', search:'تلاش', allBooks:'تمام کتب',
           contact:'رابطہ کریں', about:'ہمارے بارے میں', menu:'مینو', close:'بند کریں',
           contents:'فہرست', cite:'حوالہ نقل کریں', copied:'نقل ہو گیا ✓',
           night:'رات', day:'دن', bigger:'بڑا', smaller:'چھوٹا',
@@ -86,7 +86,7 @@
                  + 'شائع کرنا ہے کہ درست حوالہ ممکن ہو: ہر صفحہ اپنا مطبوعہ نمبر اور ایک '
                  + 'مستقل پتہ رکھتا ہے۔',
           contactBody:'تجاویز، اغلاط کی نشاندہی یا تعاون کے لیے ہم سے رابطہ کریں۔' },
-    en: { first:'First', prev:'Previous', next:'Next', last:'Last', volumes:'Volumes', published:'Published', pickVolume:'Choose a volume', otherVolumes:'Other volumes', volsNote:'Greyed volumes have not been published yet.', soon:'Coming soon', citeAr:'For citation use the Arabic page:', machineTr:'Machine translation by AI. Not reviewed and may contain errors — cite the Arabic original, not this translation.', viewAr:'Arabic', viewTr:'Translation', viewBoth:'Both', viewSide:'Side by side', verse:'Verse', surah:'Surah', ayat:'ayat', meccan:'Meccan', medinan:'Medinan', textFrom:'Text from', transFrom:'translations via', noTr:'This page has not been translated yet; the Arabic text is shown.', draft:'Draft translation, not yet reviewed.', trBy:'Translation', home:'Home', mylib:'My library', search:'Search', allBooks:'All books',
+    en: { first:'First', prev:'Previous', next:'Next', last:'Last', volumes:'Volumes', published:'Published', pickVolume:'Choose a volume', otherVolumes:'Other volumes', volsNote:'Greyed volumes have not been published yet.', soon:'Coming soon', citeAr:'For citation use the Arabic page:', machineTr:'Machine translation by AI. Not reviewed and may contain errors — cite the Arabic original, not this translation.', viewAr:'Arabic', viewTr:'Translation', viewBoth:'Both', viewSide:'Side by side', verse:'Verse', surah:'Surah', surahs:'Surahs', pickSurah:'Choose a surah', ayat:'ayat', meccan:'Meccan', medinan:'Medinan', textFrom:'Text from', transFrom:'translations via', noTr:'This page has not been translated yet; the Arabic text is shown.', draft:'Draft translation, not yet reviewed.', trBy:'Translation', home:'Home', mylib:'My library', search:'Search', allBooks:'All books',
           contact:'Contact us', about:'About us', menu:'Menu', close:'Close',
           contents:'Contents', cite:'Copy citation', copied:'Copied ✓',
           night:'Night', day:'Day', bigger:'Larger text', smaller:'Smaller text',
@@ -159,6 +159,10 @@
     each('[data-num]', function (el) { el.textContent = num(el.getAttribute('data-num')); });
     each('[data-num-val]', function (el) { el.value = num(el.getAttribute('data-num-val')); });
     each('#vsel option', function (o) { o.textContent = num(o.value); });
+    each('.suras a[data-n]', function (a) {
+      a.setAttribute('href', ROOT + '/' + (lang === 'ar' ? '' : lang + '/') +
+                             'quran/' + a.getAttribute('data-n') + '/');
+    });
     each('.langs button', function (b) {
       b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === lang));
     });
@@ -308,7 +312,7 @@
         '<span class="spine"><span>' + esc(spine) + '</span></span>' +
         '<span class="bmeta"><b>' + esc(pick(b.title)) + '</b>' +
         (sub ? '<i>' + esc(sub) + '</i>' : '') +
-        '<span class="badge">' + num(b.volumes) + ' ' + esc(t('volumes')) + '</span>' +
+        '<span class="badge">' + num(b.volumes) + ' ' + esc(t(b.unit || 'volumes')) + '</span>' +
         '<span class="who">' + esc(pick(b.author)) +
         '<em class="soon-tag">' + esc(t('soon')) + '</em></span></span></div>';
     }
@@ -316,7 +320,7 @@
       '<span class="spine"><span>' + esc(spine) + '</span></span>' +
       '<span class="bmeta"><b>' + esc(pick(b.title)) + '</b>' +
       (sub ? '<i>' + esc(sub) + '</i>' : '') +
-      (b.volumes > 1 ? '<span class="badge">' + num(b.volumes) + ' ' + esc(t('volumes')) +
+      (b.volumes > 1 ? '<span class="badge">' + num(b.volumes) + ' ' + esc(t(b.unit || 'volumes')) +
         '</span>' : '') +
       '<span class="who"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/>' +
       '<path d="M5 20c1.2-3.6 4-5.4 7-5.4s5.8 1.8 7 5.4"/></svg>' +

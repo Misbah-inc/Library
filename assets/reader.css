@@ -451,3 +451,16 @@ a.vol:hover{border-color:var(--gold);background:var(--tint);color:var(--gold-2)}
       padding:.4rem .8rem;cursor:pointer;font-variant-numeric:tabular-nums}
 .vpick select:focus-visible{outline:2px solid var(--gold-2);outline-offset:1px}
 .quran-credit{margin-top:1.4rem;padding-top:.9rem;border-top:1px solid var(--hair)}
+
+/* surah index on the Qur'an cover */
+.suras{display:grid;grid-template-columns:repeat(auto-fill,minmax(10.5rem,1fr));
+       gap:.5rem;margin-top:1rem}
+.sura-cell{display:flex;align-items:baseline;gap:.55rem;padding:.6rem .75rem;
+       border:1px solid var(--line);border-radius:8px;background:var(--surface);
+       color:var(--ink)}
+a.sura-cell:hover{border-color:var(--gold);background:var(--tint)}
+.sura-cell.off{opacity:.38;border-style:dashed;background:transparent}
+.sura-cell .sn{color:var(--gold-2);font-size:.76rem;font-weight:700;
+       min-width:1.9rem;font-variant-numeric:tabular-nums}
+.sura-cell .snm{font-family:var(--ar);font-size:1.05rem;line-height:1.5;flex:1}
+.sura-cell .sct{font-size:.64rem;color:var(--ink-3);white-space:nowrap}
