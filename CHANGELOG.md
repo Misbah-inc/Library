@@ -1,0 +1,18 @@
+# Changelog
+
+Changes to the Misbah Library website. One entry per session, most recent first.
+
+---
+
+## 2026-08-31
+
+### Bug fix — language routing on book cards
+- `assets/reader.js` `bookCard()`: non-Arabic language selection was always generating Arabic URLs. Fixed by adding language-aware href: `lang + '/' + b.href` when `b.translated` includes the active language.
+
+### Bug fix — volume selector bypassed for non-Arabic languages
+- `assets/reader.js` `bookCard()`: previous fix hardcoded `volumesPublished[0] + '/1/'`, skipping the volume selector entirely. Simplified to `lang + '/' + b.href` so it links to the language book index page instead.
+- `assets/reader.js` `applyLang()`: added `.vols a.vol` rewriting so volume links on book index pages resolve to the correct language URL (`ROOT/lang/slug/vol/1/`). Volume number cached in `data-vol` on first call.
+- Created `en/bihar/index.html` — English volume selector page for Bihar al-Anwar.
+- Created `fa/bihar/index.html` — Farsi volume selector page for Bihar al-Anwar.
+- Created `ur/bihar/index.html` — Urdu volume selector page for Bihar al-Anwar.
+- All three pages include full hreflang cluster + canonical, `data-sitelang`, and correct relative paths (`data-root="../.."`, `data-book="../../bihar"`).
