@@ -413,3 +413,41 @@ a.vol:hover{border-color:var(--gold);background:var(--tint);color:var(--gold-2)}
   .pager .btn:first-child,.pager .btn:last-child,
   .pager span.btn:first-child,.pager span.btn:last-child{display:none}
 }
+
+/* ================= Qur'an ================= */
+.sura-name{font-family:var(--ar);font-size:1.9rem;line-height:1.4;display:block;
+           color:var(--ink)}
+.sura-meta{font-size:.72rem;color:var(--ink-3);letter-spacing:.04em}
+.bismillah{font-family:var(--ar);font-size:1.45rem;text-align:center;
+           color:var(--gold-2);margin:1.5rem 0 1.7rem;line-height:2;direction:rtl}
+.aya{padding:.55rem 0;border-bottom:1px solid var(--hair)}
+.aya:last-child{border-bottom:0}
+.aya:target{background:var(--tint);border-radius:8px;
+            box-shadow:0 0 0 .6rem var(--tint)}
+.aya-n{color:var(--gold-2);font-size:1.15rem;margin-inline-start:.3rem;
+       white-space:nowrap}
+.aya-b{display:inline-block;min-width:1.35rem;font-size:.66rem;
+       font-variant-numeric:tabular-nums;color:var(--gold-2);font-weight:700;
+       letter-spacing:.02em}
+/* two-column reading; the Arabic takes the side the page's own script starts
+   from, so it sits right in Arabic/Farsi/Urdu and left in English */
+.body[data-unit="aya"] .aya.side{display:grid;grid-template-columns:1fr 1fr;
+       gap:.4rem 1.6rem;align-items:start}
+.aya.side > [data-i]{margin:0}
+.aya.side > .tr-line{margin:0;border-inline-start:1px solid var(--hair);
+       padding-inline-start:1.2rem}
+@media (max-width:640px){
+  .body[data-unit="aya"] .aya.side{grid-template-columns:1fr}
+  .aya.side > .tr-line{border-inline-start:0;padding-inline-start:0;
+       border-top:1px solid var(--hair);padding-top:.4rem}
+}
+.vnav{max-width:var(--leaf-w);margin:.7rem auto 0;display:flex;
+      justify-content:center}
+.vpick{display:flex;align-items:center;gap:.45rem}
+.vpick .lbl{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;
+      color:var(--ink-3)}
+.vpick select{font:inherit;font-size:.8rem;color:var(--ink);
+      background:var(--surface);border:1px solid var(--line);border-radius:999px;
+      padding:.4rem .8rem;cursor:pointer;font-variant-numeric:tabular-nums}
+.vpick select:focus-visible{outline:2px solid var(--gold-2);outline-offset:1px}
+.quran-credit{margin-top:1.4rem;padding-top:.9rem;border-top:1px solid var(--hair)}

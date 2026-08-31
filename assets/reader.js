@@ -14,7 +14,7 @@
   };
 
   var T = {
-    ar: { first:'الأولى', prev:'السابقة', next:'التالية', last:'الأخيرة', volumes:'المجلدات', published:'المنشور', pickVolume:'اختر المجلد', otherVolumes:'مجلدات أخرى', volsNote:'المجلدات غير المفعّلة لم تُنشر بعد.', soon:'قريباً', citeAr:'للإحالة استعمل الصفحة العربية:', machineTr:'ترجمة آلية بالذكاء الاصطناعي، غير مراجَعة وقد تحتوي أخطاء. للإحالة يُعتمد الأصل العربي.', viewAr:'العربية', viewTr:'الترجمة', viewBoth:'مقابل', noTr:'لم تُترجم هذه الصفحة بعد؛ النص معروض بالعربية.', draft:'ترجمة أولية غير مراجَعة.', trBy:'الترجمة', home:'الرئيسية', mylib:'مكتبتي', search:'بحث', allBooks:'كل الكتب',
+    ar: { first:'الأولى', prev:'السابقة', next:'التالية', last:'الأخيرة', volumes:'المجلدات', published:'المنشور', pickVolume:'اختر المجلد', otherVolumes:'مجلدات أخرى', volsNote:'المجلدات غير المفعّلة لم تُنشر بعد.', soon:'قريباً', citeAr:'للإحالة استعمل الصفحة العربية:', machineTr:'ترجمة آلية بالذكاء الاصطناعي، غير مراجَعة وقد تحتوي أخطاء. للإحالة يُعتمد الأصل العربي.', viewAr:'العربية', viewTr:'الترجمة', viewBoth:'كلاهما', viewSide:'مقابل', verse:'الآية', surah:'السورة', ayat:'آية', meccan:'مكية', medinan:'مدنية', textFrom:'النص من', transFrom:'الترجمات عبر', noTr:'لم تُترجم هذه الصفحة بعد؛ النص معروض بالعربية.', draft:'ترجمة أولية غير مراجَعة.', trBy:'الترجمة', home:'الرئيسية', mylib:'مكتبتي', search:'بحث', allBooks:'كل الكتب',
           contact:'اتصل بنا', about:'من نحن', menu:'القائمة', close:'إغلاق',
           contents:'الفهرس', cite:'نسخ الإحالة', copied:'تم النسخ ✓',
           night:'ليلي', day:'نهاري', bigger:'تكبير الخط', smaller:'تصغير الخط',
@@ -38,7 +38,7 @@
                  + 'قابلة للإحالة الدقيقة: كل صفحة تحمل رقمها في الطبعة المطبوعة وعنواناً ثابتاً '
                  + 'لا يتغير، ليستطيع الباحث أن يحيل إليها ويثق ببقاء الرابط.',
           contactBody:'للاقتراحات وتصحيح الأخطاء والمساهمة في المكتبة، يرجى التواصل معنا.' },
-    fa: { first:'نخست', prev:'صفحه قبل', next:'صفحه بعد', last:'پایان', volumes:'مجلدات', published:'منتشرشده', pickVolume:'انتخاب جلد', otherVolumes:'جلدهای دیگر', volsNote:'جلدهای غیرفعال هنوز منتشر نشده‌اند.', soon:'به‌زودی', citeAr:'برای ارجاع از صفحهٔ عربی استفاده کنید:', machineTr:'ترجمهٔ ماشینی با هوش مصنوعی، بازبینی‌نشده و ممکن است خطا داشته باشد. برای ارجاع به متن عربی استناد کنید.', viewAr:'عربی', viewTr:'ترجمه', viewBoth:'دوستونه', noTr:'این صفحه هنوز ترجمه نشده است؛ متن عربی نمایش داده می‌شود.', draft:'ترجمهٔ اولیه و بازبینی‌نشده.', trBy:'ترجمه', home:'خانه', mylib:'کتابخانهٔ من', search:'جستجو', allBooks:'همهٔ کتاب‌ها',
+    fa: { first:'نخست', prev:'صفحه قبل', next:'صفحه بعد', last:'پایان', volumes:'مجلدات', published:'منتشرشده', pickVolume:'انتخاب جلد', otherVolumes:'جلدهای دیگر', volsNote:'جلدهای غیرفعال هنوز منتشر نشده‌اند.', soon:'به‌زودی', citeAr:'برای ارجاع از صفحهٔ عربی استفاده کنید:', machineTr:'ترجمهٔ ماشینی با هوش مصنوعی، بازبینی‌نشده و ممکن است خطا داشته باشد. برای ارجاع به متن عربی استناد کنید.', viewAr:'عربی', viewTr:'ترجمه', viewBoth:'هر دو', viewSide:'دوستونه', verse:'آیه', surah:'سوره', ayat:'آیه', meccan:'مکی', medinan:'مدنی', textFrom:'متن از', transFrom:'ترجمه‌ها از', noTr:'این صفحه هنوز ترجمه نشده است؛ متن عربی نمایش داده می‌شود.', draft:'ترجمهٔ اولیه و بازبینی‌نشده.', trBy:'ترجمه', home:'خانه', mylib:'کتابخانهٔ من', search:'جستجو', allBooks:'همهٔ کتاب‌ها',
           contact:'تماس با ما', about:'دربارهٔ ما', menu:'فهرست', close:'بستن',
           contents:'فهرست', cite:'کپی ارجاع', copied:'کپی شد ✓',
           night:'شب', day:'روز', bigger:'بزرگ‌تر', smaller:'کوچک‌تر',
@@ -62,7 +62,7 @@
                  + 'بستر وب به شکلی که ارجاع دقیق ممکن باشد: هر صفحه شمارهٔ چاپی خود و نشانی '
                  + 'ثابتی دارد که تغییر نمی‌کند.',
           contactBody:'برای پیشنهاد، گزارش اشتباه یا همکاری با کتابخانه با ما در تماس باشید.' },
-    ur: { first:'پہلا', prev:'پچھلا', next:'اگلا', last:'آخری', volumes:'جلدیں', published:'شائع شدہ', pickVolume:'جلد منتخب کریں', otherVolumes:'دیگر جلدیں', volsNote:'غیر فعال جلدیں ابھی شائع نہیں ہوئیں۔', soon:'جلد آ رہا ہے', citeAr:'حوالے کے لیے عربی صفحہ استعمال کریں:', machineTr:'مصنوعی ذہانت سے تیار کردہ مشینی ترجمہ، غیر نظرثانی شدہ اور اس میں غلطیاں ممکن ہیں۔ حوالے کے لیے عربی اصل پر اعتماد کریں۔', viewAr:'عربی', viewTr:'ترجمہ', viewBoth:'آمنے سامنے', noTr:'اس صفحے کا ترجمہ ابھی نہیں ہوا؛ عربی متن دکھایا جا رہا ہے۔', draft:'ابتدائی، غیر نظرثانی شدہ ترجمہ۔', trBy:'ترجمہ', home:'صفحۂ اول', mylib:'میری لائبریری', search:'تلاش', allBooks:'تمام کتب',
+    ur: { first:'پہلا', prev:'پچھلا', next:'اگلا', last:'آخری', volumes:'جلدیں', published:'شائع شدہ', pickVolume:'جلد منتخب کریں', otherVolumes:'دیگر جلدیں', volsNote:'غیر فعال جلدیں ابھی شائع نہیں ہوئیں۔', soon:'جلد آ رہا ہے', citeAr:'حوالے کے لیے عربی صفحہ استعمال کریں:', machineTr:'مصنوعی ذہانت سے تیار کردہ مشینی ترجمہ، غیر نظرثانی شدہ اور اس میں غلطیاں ممکن ہیں۔ حوالے کے لیے عربی اصل پر اعتماد کریں۔', viewAr:'عربی', viewTr:'ترجمہ', viewBoth:'دونوں', viewSide:'آمنے سامنے', verse:'آیت', surah:'سورہ', ayat:'آیات', meccan:'مکی', medinan:'مدنی', textFrom:'متن بشکریہ', transFrom:'تراجم بشکریہ', noTr:'اس صفحے کا ترجمہ ابھی نہیں ہوا؛ عربی متن دکھایا جا رہا ہے۔', draft:'ابتدائی، غیر نظرثانی شدہ ترجمہ۔', trBy:'ترجمہ', home:'صفحۂ اول', mylib:'میری لائبریری', search:'تلاش', allBooks:'تمام کتب',
           contact:'رابطہ کریں', about:'ہمارے بارے میں', menu:'مینو', close:'بند کریں',
           contents:'فہرست', cite:'حوالہ نقل کریں', copied:'نقل ہو گیا ✓',
           night:'رات', day:'دن', bigger:'بڑا', smaller:'چھوٹا',
@@ -86,7 +86,7 @@
                  + 'شائع کرنا ہے کہ درست حوالہ ممکن ہو: ہر صفحہ اپنا مطبوعہ نمبر اور ایک '
                  + 'مستقل پتہ رکھتا ہے۔',
           contactBody:'تجاویز، اغلاط کی نشاندہی یا تعاون کے لیے ہم سے رابطہ کریں۔' },
-    en: { first:'First', prev:'Previous', next:'Next', last:'Last', volumes:'Volumes', published:'Published', pickVolume:'Choose a volume', otherVolumes:'Other volumes', volsNote:'Greyed volumes have not been published yet.', soon:'Coming soon', citeAr:'For citation use the Arabic page:', machineTr:'Machine translation by AI. Not reviewed and may contain errors — cite the Arabic original, not this translation.', viewAr:'Arabic', viewTr:'Translation', viewBoth:'Side by side', noTr:'This page has not been translated yet; the Arabic text is shown.', draft:'Draft translation, not yet reviewed.', trBy:'Translation', home:'Home', mylib:'My library', search:'Search', allBooks:'All books',
+    en: { first:'First', prev:'Previous', next:'Next', last:'Last', volumes:'Volumes', published:'Published', pickVolume:'Choose a volume', otherVolumes:'Other volumes', volsNote:'Greyed volumes have not been published yet.', soon:'Coming soon', citeAr:'For citation use the Arabic page:', machineTr:'Machine translation by AI. Not reviewed and may contain errors — cite the Arabic original, not this translation.', viewAr:'Arabic', viewTr:'Translation', viewBoth:'Both', viewSide:'Side by side', verse:'Verse', surah:'Surah', ayat:'ayat', meccan:'Meccan', medinan:'Medinan', textFrom:'Text from', transFrom:'translations via', noTr:'This page has not been translated yet; the Arabic text is shown.', draft:'Draft translation, not yet reviewed.', trBy:'Translation', home:'Home', mylib:'My library', search:'Search', allBooks:'All books',
           contact:'Contact us', about:'About us', menu:'Menu', close:'Close',
           contents:'Contents', cite:'Copy citation', copied:'Copied ✓',
           night:'Night', day:'Day', bigger:'Larger text', smaller:'Smaller text',
@@ -158,6 +158,7 @@
     });
     each('[data-num]', function (el) { el.textContent = num(el.getAttribute('data-num')); });
     each('[data-num-val]', function (el) { el.value = num(el.getAttribute('data-num-val')); });
+    each('#vsel option', function (o) { o.textContent = num(o.value); });
     each('.langs button', function (b) {
       b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === lang));
     });
@@ -644,11 +645,11 @@
      translation file for this book and swap in whatever exists, block by block.
      Nothing translated yet simply stays Arabic, and the page says so. */
   var TRVIEW = store.get('trview') || 'tr';   /* tr | both | ar */
-  function blocks() { return document.querySelectorAll('.body > [data-i]'); }
+  function blocks() { return document.querySelectorAll('.body [data-i]'); }
   function clearTr() {
     each('.tr-line', function (el) { el.parentNode.removeChild(el); });
     each('.tr-note-line', function (el) { el.parentNode.removeChild(el); });
-    each('.body > [data-i]', function (el) { el.hidden = false; });
+    each('.body [data-i]', function (el) { el.hidden = false; });
     var b = document.getElementById('tr-bar');
     if (b) b.parentNode.removeChild(b);
   }
@@ -657,9 +658,11 @@
     each('#tr-bar [data-mode]', function (b) {
       b.setAttribute('aria-pressed', String(b.getAttribute('data-mode') === m));
     });
-    each('.body > [data-i]', function (el) { el.hidden = (m === 'tr'); });
+    /* 'side' shows both texts, laid out in two columns */
+    each('.body [data-i]', function (el) { el.hidden = (m === 'tr'); });
     each('.tr-line', function (el) { el.hidden = (m === 'ar'); });
     each('.tr-note-line', function (el) { el.hidden = (m === 'ar'); });
+    each('.aya', function (el) { el.classList.toggle('side', m === 'side'); });
   }
   function wireModes() {
     var bar = document.getElementById('tr-bar');
@@ -741,6 +744,19 @@
       leaf.parentNode.insertBefore(head, leaf);
     });
   }
+  /* Qur'an: the verse picker scrolls to an ayah and lets :target mark it, so
+     browsing to a verse and arriving from a shared link look identical */
+  (function () {
+    var vs = document.getElementById('vsel');
+    if (!vs) return;
+    vs.addEventListener('change', function () {
+      var id = 'a' + vs.value;
+      location.hash = '#' + id;
+      var el = document.getElementById(id);
+      if (el) el.scrollIntoView({ block: 'center' });
+    });
+  })();
+
   var _applyLang = applyLang;
   applyLang = function () { _applyLang(); applyTranslation(); };
 
