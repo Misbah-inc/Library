@@ -163,6 +163,15 @@
       a.setAttribute('href', ROOT + '/' + (lang === 'ar' ? '' : lang + '/') +
                              'quran/' + a.getAttribute('data-n') + '/');
     });
+    each('.vols a.vol[href]', function (a) {
+      var v = a.getAttribute('data-vol');
+      if (!v) { v = a.getAttribute('href').replace(/\//g, ''); a.setAttribute('data-vol', v); }
+      var parts = location.pathname.replace(/\/$/, '').split('/');
+      var slug = parts[parts.length - 1];
+      a.setAttribute('href', lang !== 'ar'
+        ? ROOT + '/' + lang + '/' + slug + '/' + v + '/1/'
+        : v + '/');
+    });
     each('.langs button', function (b) {
       b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === lang));
     });
@@ -316,7 +325,11 @@
         '<span class="who">' + esc(pick(b.author)) +
         '<em class="soon-tag">' + esc(t('soon')) + '</em></span></span></div>';
     }
-    return '<a class="bcard" href="' + ROOT + '/' + esc(b.href) + '">' +
+    var href = (lang !== 'ar' && b.translated && b.translated.indexOf(lang) !== -1 &&
+                b.volumesPublished && b.volumesPublished.length)
+      ? lang + '/' + b.href + b.volumesPublished[0] + '/1/'
+      : b.href;
+    return '<a class="bcard" href="' + ROOT + '/' + esc(href) + '">' +
       '<span class="spine"><span>' + esc(spine) + '</span></span>' +
       '<span class="bmeta"><b>' + esc(pick(b.title)) + '</b>' +
       (sub ? '<i>' + esc(sub) + '</i>' : '') +
