@@ -4,6 +4,29 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-01 (session 4)
+
+### New book — Bayt al-Ahzan (بيت الأحزان), under عقائد
+- Added `_translation-kit/bayt_extract.py` — parses the Ghaemiyeh HTML export into the kit's batch JSON. Verified 100% text fidelity (292,830 chars in and out) with contiguous block indices.
+- Added `_translation-kit/bayt_build.py` — chapter page + cover generator.
+- Created `bayt-al-ahzan/index.html` (cover, 19 chapters) and `fa/bayt-al-ahzan/1…19/` — the complete Persian text.
+- `catalog.json`: new entry under `aqaid`, `unit: "chapters"`, `translated: ["fa"]`.
+- **The Persian sits in `/fa/`, not the root.** This book's source of record is Persian (Ishtihardi's rendering); Qummi's Arabic original is not yet sourced. Leaving `/bayt-al-ahzan/<n>/` empty means the Arabic can drop in later as source of record with no migration and no broken URLs.
+- **Do not machine-translate this into Arabic.** The original *is* Arabic; back-translating the Persian would read as Qummi's own words while being two translation layers from them. Source the real Arabic instead.
+- Credit line names author, translator (اشتهاردی), foreword (مکارم شیرازی) and قائمیه as source. Ghaemiyeh distributes freely; there is no explicit third-party redistribution licence, so attribution is what makes relying on that defensible.
+
+### `reader.js`
+- Added i18n keys in all four languages: `chapter`, `chapters`, `pickChapter`, `translator`, `foreword`, `author`, `viewSrc`.
+- `viewSrc` reads "Original" / متن اصلی rather than "Arabic" — the source-view button would otherwise lie on any non-Arabic-source book.
+
+### Sitemap
+- Regenerated: **963 URLs** (was 943), adding the cover and 19 Persian chapters.
+
+### Known gap
+- `bookCard()` gates language-prefixed hrefs on `volumesPublished`, using it as a proxy for "this book has per-language index pages". Those are different facts. A book with per-language indexes but no volume data (the Qur'an, once it gets them) would fail the test. An explicit field such as `langIndex: true` would be sturdier.
+
+---
+
 ## 2026-08-31 (session 3)
 
 ### Bug fix — Quran broken for non-Arabic languages
