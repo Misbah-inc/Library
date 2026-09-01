@@ -325,7 +325,8 @@
         '<span class="who">' + esc(pick(b.author)) +
         '<em class="soon-tag">' + esc(t('soon')) + '</em></span></span></div>';
     }
-    var href = (lang !== 'ar' && b.translated && b.translated.indexOf(lang) !== -1)
+    var href = (lang !== 'ar' && b.translated && b.translated.indexOf(lang) !== -1 &&
+                b.volumesPublished && b.volumesPublished.length)
       ? lang + '/' + b.href
       : b.href;
     return '<a class="bcard" href="' + ROOT + '/' + esc(href) + '">' +

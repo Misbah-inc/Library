@@ -4,6 +4,13 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-08-31 (session 3)
+
+### Bug fix — Quran broken for non-Arabic languages
+- `assets/reader.js` `bookCard()`: previous fix applied lang prefix to all translated books including Quran, sending users to `en/quran/` which has no index.html. Restored `volumesPublished` check as the gate — only books with volume-based index pages get the lang prefix. Quran continues linking to `quran/` for all languages (applyLang handles surah link rewriting there).
+
+---
+
 ## 2026-08-31 (session 2)
 
 ### SEO / infrastructure
