@@ -14,8 +14,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Arabic source of record** lives in `bihar/<vol>/<n>/index.html`. It is never altered — not even reformatted.
 
-**Not every book is Arabic-source.** Bayt al-Ahzan's source of record is Persian (Ishtihardi's rendering of Qummi's Arabic, which we do not yet hold), so its text sits in `fa/bayt-al-ahzan/<n>/` and `bayt-al-ahzan/<n>/` is deliberately left empty for the Arabic. Pages carry `data-srclang` so the reader's source-view button names the language actually shown instead of assuming Arabic.
-
 **Translations** live in `<lang>/bihar/<vol>/<n>/index.html` (lang = `en`, `fa`, `ur`). They are built from the Arabic source by the pipeline below.
 
 **In-page language switching** (without navigation) is powered by `bihar/assets/tr/<lang>.json` — plain-text strips with markup stripped. These carry both body entries (`{"i": 0, "text": "…"}`) and footnote entries (`{"n": 1, "text": "…"}`). They are separate from the built pages and cannot reconstruct them.
@@ -34,10 +32,6 @@ extract.py → [external translation] → merge_build.py → verify.py → commi
 | `verify.py` | checks built page against Arabic source — **must report 0 failures before commit** |
 | `reextract.py` | built page → JSON, losslessly (for re-templating without retranslating) |
 | `gen_sitemap.py` | rewrites `sitemap.xml` and `robots.txt` from what is on disk |
-| `quran_build.py` | Qur'an surah pages + cover, from `quran-source/` (Tanzil XML) |
-| `bayt_extract.py` | Ghaemiyeh HTML export → batch JSON |
-| `bayt_build.py` | Bayt al-Ahzan chapter pages + cover |
-| `Set-AssetVersion.ps1` | stamps `?v=N` on reader.css/js sitewide to break browser caches |
 
 All of `build.py`, `merge_build.py`, and `verify.py` accept `--lang` (`en`/`fa`/`ur`) and `--volume`.
 
@@ -101,8 +95,6 @@ Then open `http://localhost:8080`. This avoids CORS issues that block `catalog.j
 - **`applyLang()` must rewrite `.vols a.vol` links.** Book index pages have volume links. These are rewritten to `ROOT + '/' + lang + '/' + slug + '/' + v + '/1/'` when a non-Arabic language is active. The slug is inferred from `location.pathname`. The original volume number is cached in a `data-vol` attribute on first call.
 - **Book index pages have no `#page-meta` with `data-alt-*`.** The language switcher uses hreflang links to navigate between language book index pages when `FIXED` is set. Add `<link rel="alternate" hreflang="...">` for all languages in each language book index `<head>`.
 - **The Quran sura links already handle this correctly** (lines ~162–165) — use that pattern as the reference when extending for new book types.
-- **Bump `ASSETS_V` and run `Set-AssetVersion.ps1` whenever reader.css/js changes.** Browsers cache both files hard and GitHub Pages does nothing to stop it. A returning visitor keeps the old script against new markup: labels render as their raw i18n keys (`t()` falls back to returning the key) and new controls do nothing. It looks like a device-specific bug and is not.
-- **`viewSrc`, not `viewAr`, on non-Arabic-source books.** Generators emit `data-srclang`; the source-view button must name the real source language.
 
 ---
 
@@ -152,7 +144,7 @@ Drive rules: `create_file` always creates (no replace). To overwrite: `search_fi
 | Item | Status |
 |---|---|
 | `robots.txt` — allows all, points to sitemap | ✅ |
-| `sitemap.xml` — 963 URLs, submitted to Search Console | ✅ |
+| `sitemap.xml` — 943 URLs, submitted to Search Console | ✅ |
 | HTTPS (GitHub Pages) | ✅ |
 | Clean URL structure (`/en/bihar/1/26/`) | ✅ |
 | Canonical URL on every page (absolute) | ✅ |
@@ -210,9 +202,5 @@ Google picks up the updated sitemap automatically — no need to resubmit to Sea
 | `en/bihar/1/` | 231 | Complete, machine translation |
 | `fa/bihar/1/` | 231 | Complete, machine translation |
 | `ur/bihar/1/` | 231 | Complete, machine translation |
-| `quran/` + `en|fa|ur/quran/` | 2 of 114 surahs | al-Fatiha and al-Baqarah live; cover lists all 114 |
-| `fa/bayt-al-ahzan/` | 19 chapters | Complete Persian; no translations yet |
 
-Bihar volumes 2–110 not started. Qur'an surahs 3–114 not built. Bayt al-Ahzan has no
-English or Urdu yet, and no Arabic original sourced. Remaining `catalog.json` entries
-are placeholders.
+Volumes 2–110 not started. All other books in `catalog.json` are placeholders.

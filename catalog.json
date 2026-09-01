@@ -106,56 +106,6 @@
       "href": ""
     },
     {
-      "slug": "bayt-al-ahzan",
-      "category": "aqaid",
-      "title": {
-        "ar": "بيت الأحزان",
-        "fa": "رنج‌ها و فریادهای فاطمه سلام‌الله‌علیها",
-        "ur": "رنج ہا و فریادہای فاطمہ سلام اللہ علیہا",
-        "en": "The Sorrows of Fatima (Bayt al-Ahzan)"
-      },
-      "subtitle": {
-        "ar": "في مصائب سيدة النسوان",
-        "fa": "ترجمهٔ بیت‌الاحزان",
-        "ur": "بیت الاحزان کا ترجمہ",
-        "en": "On the afflictions of the Lady of Women"
-      },
-      "author": {
-        "ar": "الشيخ عباس القمي",
-        "fa": "شیخ عباس قمی",
-        "ur": "شیخ عباس قمی",
-        "en": "Shaykh Abbas al-Qummi"
-      },
-      "volumes": 19,
-      "unit": "chapters",
-      "pages": 19,
-      "href": "bayt-al-ahzan/",
-      "translated": [
-        "fa"
-      ],
-      "chaptersPublished": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17,
-        18,
-        19
-      ]
-    },
-    {
       "slug": "mafatih",
       "category": "dua",
       "placeholder": true,
