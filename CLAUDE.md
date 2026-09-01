@@ -138,6 +138,41 @@ Drive rules: `create_file` always creates (no replace). To overwrite: `search_fi
 
 ---
 
+## SEO checklist
+
+### Current status
+| Item | Status |
+|---|---|
+| `robots.txt` — allows all, points to sitemap | ✅ |
+| `sitemap.xml` — 943 URLs, submitted to Search Console | ✅ |
+| HTTPS (GitHub Pages) | ✅ |
+| Clean URL structure (`/en/bihar/1/26/`) | ✅ |
+| Canonical URL on every page (absolute) | ✅ |
+| hreflang cluster on every translated page (reciprocal, all 4 languages + x-default) | ✅ |
+| `lang` + `dir` attributes on `<html>` | ✅ |
+| Meta description on every reading page (from page content) | ✅ |
+| Mobile-friendly / responsive | ✅ |
+| Page titles include meaningful content | 🟡 Generic — deferred |
+| Schema.org structured data | 🟠 Not done — deferred |
+| Core Web Vitals (PageSpeed) | ✅ 95 Performance / 87 Accessibility / 100 Best Practices / 100 SEO (mobile, Aug 2026) |
+| Backlinks from other sites | 🔴 Future project |
+
+### SEO rules — apply on every change
+- Every new page must have `<link rel="canonical">` with absolute URL
+- Every translated page must have the full hreflang cluster (all 4 languages + x-default, reciprocal)
+- Never list a `-draft` page in sitemap or hreflang
+- Meta descriptions must come from page content, never generic
+- Run `gen_sitemap.py` after adding any page and commit the result
+- Update `CHANGELOG.md`
+
+### Google Search Console — check monthly
+- **Pages**: how many indexed vs. discovered
+- **Coverage**: any crawl errors or excluded pages
+- **Core Web Vitals**: any failing pages
+- **Performance**: which queries bring traffic, which pages rank
+
+---
+
 ## Page addition checklist
 
 Every time a new HTML page is added to the site (new language book index, new reading page, new section):
