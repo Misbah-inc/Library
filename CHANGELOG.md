@@ -4,6 +4,22 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-01 (session 6, part 3)
+
+### Bug — فهرست (TOC drawer) button did nothing on translated reading pages
+
+Root cause: two separate problems.
+
+**Missing drawer HTML.** The translated-page builder (`build.py`) emits `<button id="btn-toc">` in the header but never emits the `<aside class="drawer" id="drawer">` panel that `openDrawer()` writes into. `openDrawer()` called `null.setAttribute(...)` and crashed silently before the drawer appeared — identical to having no handler at all.
+- Fixed in `reader.js`: before registering `drawer-close` / `btn-toc` handlers, inject the full drawer panel (`aside#drawer`, `#drawer-title`, `#drawer-close`, `#drawer-body`) if it is absent. This covers all 693 existing translated reading pages without touching their HTML files.
+
+**Wrong link paths in the TOC drawer.** `toc.json` stores hrefs as `"bihar/1/6/"` (no language prefix). The drawer rendered links as `ROOT + '/' + x.href` → Arabic page. On a Farsi page at `/fa/bihar/1/1/`, a chapter link resolved to `/bihar/1/6/` instead of `/fa/bihar/1/6/`.
+- Fixed in `reader.js` `btn-toc` handler: links now use `ROOT + '/' + (FIXED ? FIXED + '/' : '') + x.href`, so the chapter list correctly navigates to the active language's reading pages.
+
+Only `assets/reader.js` was changed. No translated pages or Arabic pages were touched.
+
+---
+
 ## 2026-09-01 (session 6, part 2)
 
 ### Bug — فهرست (chapter index) missing for translated languages

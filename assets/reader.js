@@ -590,6 +590,15 @@
     document.getElementById('drawer-title').textContent = title;
     return document.getElementById('drawer-body');
   }
+  if (!document.getElementById('drawer')) {
+    var _dEl = document.createElement('aside');
+    _dEl.className = 'drawer'; _dEl.id = 'drawer';
+    _dEl.setAttribute('aria-hidden', 'true');
+    _dEl.innerHTML = '<div class="drawer-head"><h2 id="drawer-title"></h2>' +
+      '<button id="drawer-close" data-i18n-label="close">✕</button></div>' +
+      '<div class="drawer-body" id="drawer-body"></div>';
+    document.body.appendChild(_dEl);
+  }
   on('drawer-close', 'click', closeAll);
   on('btn-toc', 'click', function () {
     var body = openDrawer(t('contents'));
@@ -597,7 +606,7 @@
     load(BOOK + '/assets/toc.json').then(function (toc) {
       body.innerHTML = toc.map(function (x) {
         var label = (lang !== 'ar' && x[lang]) ? x[lang] : x.title;
-        return '<a class="toc-i" href="' + ROOT + '/' + x.href + '"><span>' +
+        return '<a class="toc-i" href="' + ROOT + '/' + (FIXED ? FIXED + '/' : '') + x.href + '"><span>' +
           (x.p == null ? '—' : num(x.p)) + '</span><span style="flex:1">' +
           esc(label) + '</span></a>';
       }).join('') || '<p class="note-msg">—</p>';
