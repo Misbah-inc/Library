@@ -130,7 +130,9 @@
       "unit": "chapters",
       "pages": 229,
       "href": "bayt-al-ahzan/",
-      "srclang": "fa"
+      "srclang": "ar",
+      "translated": ["fa"],
+      "volumesPublished": [1]
     },
     {
       "slug": "mafatih",
