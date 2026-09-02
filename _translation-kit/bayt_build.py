@@ -141,7 +141,7 @@ def build_page(page, order, idx, lang, alts):
     title = f'{SHORT.get(lang, SHORT[SRC])} — ص {loc_num(n, lang)}'
 
     return f'''<!DOCTYPE html>
-<html lang="{lang}" dir="{LANGS[lang]["dir"]}" data-root="{R}" data-book="{R}/{SLUG}"
+<html lang="{lang}" dir="{LANGS[lang]["dir"]}" data-root="{R}" data-book="{R}/{SRC}/{SLUG}"
       data-sitelang="{lang}" data-srclang="{SRC}">
 <head>
 <meta charset="utf-8">
@@ -308,14 +308,103 @@ def build_toc(data, starts):
              "href": f"{SLUG}/{starts[c['n']]}/"} for c in data["chapters"]]
 
 
+def build_fa_index(data, starts):
+    """Farsi-language cover at /fa/bayt-al-ahzan/ (depth 2 from site root).
+    data-book="." points at this folder's own assets/toc.json."""
+    cells = []
+    for c in data["chapters"]:
+        p = starts[c["n"]]
+        inner = (f'<b class="sn" data-num="{p}">{loc_num(p, "fa")}</b>'
+                 f'<span class="snm">{esc(c["title"])}</span>')
+        # Reading pages are siblings at this depth: href is just "<p>/"
+        cells.append(f'<a class="chap-cell" href="{p}/" data-n="{p}">{inner}</a>')
+
+    pages = data["pages"]
+    first = pages[0]["n"]
+
+    canonical = f'<link rel="canonical" href="{SITE}/{SRC}/{SLUG}/">'
+    alts = (f'<link rel="alternate" hreflang="fa" href="{SITE}/{SRC}/{SLUG}/">'
+            f'<link rel="alternate" hreflang="ar" href="{SITE}/{SLUG}/">'
+            f'<link rel="alternate" hreflang="x-default" href="{SITE}/{SLUG}/">')
+
+    return f'''<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-root="../.." data-book="." data-sitelang="fa" data-srclang="{SRC}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{esc(TITLES["fa"])}</title>
+<meta name="description" content="{esc(TITLES['fa'])} — ترجمهٔ بیت‌الاحزان اثر {esc(AUTHOR['fa'])}، به قلم {esc(TRANSLATOR_FA)}.">
+<meta property="og:title" content="{esc(TITLES['fa'])}">
+{canonical}{alts}
+<link rel="stylesheet" href="../../assets/reader.css">
+</head>
+<body>
+<a class="skip" href="#text">&rarr;</a>
+<header class="bar"><div class="bar-in">
+  <a class="brand" href="../../"><b data-i18n="libName"></b><small>Misbah Library</small></a>
+  <div class="spacer"></div>
+  <a class="tbtn" href="../../"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span class="lbl" data-i18n="home"></span></a>
+  <button class="tbtn icon-only" id="btn-menu" data-i18n-label="menu">
+    <svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  <div class="langs" role="group">
+    <button data-lang="ar">ع</button><button data-lang="fa">فا</button>
+    <button data-lang="ur">اردو</button><button data-lang="en">EN</button>
+  </div>
+  <button class="tbtn" id="btn-theme" aria-pressed="false"></button>
+</div></header>
+<main class="cover" id="text">
+  <h1 data-ar="بيت الأحزان" data-fa="{esc(TITLES["fa"])}"
+      data-ur="{esc(TITLES["ur"])}" data-en="{esc(TITLES["en"])}">{esc(TITLES["fa"])}</h1>
+  <p class="by" data-ar="{esc(AUTHOR["ar"])}" data-fa="{esc(AUTHOR["fa"])}"
+     data-ur="{esc(AUTHOR["ur"])}" data-en="{esc(AUTHOR["en"])}">{esc(AUTHOR["fa"])}</p>
+  <p class="book-sub" lang="fa">ترجمهٔ بیت‌الاحزان</p>
+  <div class="rule"></div>
+  <dl>
+    <dt data-i18n="pages"></dt><dd data-num="{len(pages)}">{loc_num(len(pages), "fa")}</dd>
+    <dt data-i18n="chapters"></dt><dd data-num="{len(data["chapters"])}">{loc_num(len(data["chapters"]), "fa")}</dd>
+    <dt data-i18n="translator"></dt><dd>{esc(TRANSLATOR_FA)}</dd>
+    <dt data-i18n="foreword"></dt><dd>{esc(FOREWORD)}</dd>
+  </dl>
+  <p class="cover-go"><a class="btn" href="{first}/"><span data-i18n="start"></span></a></p>
+  <h2 data-i18n="pickChapter"></h2>
+  <div class="chaps" data-langpath="{SLUG}" data-langs="{SRC}">{"".join(cells)}</div>
+</main>
+<nav class="nav" id="nav" aria-hidden="true">
+  <div class="nav-head"><b data-i18n="menu"></b>
+    <button id="nav-close" data-i18n-label="close">✕</button></div>
+  <ul>
+    <li><a href="../../"><span data-i18n="home"></span></a></li>
+    <li><a href="../../search/"><span data-i18n="search"></span></a></li>
+    <li><a href="../../books/"><span data-i18n="allBooks"></span></a></li>
+  </ul>
+</nav>
+<div class="scrim" id="scrim"></div>
+<footer class="foot"><div class="foot-in">
+  <div><h3 data-i18n="libName"></h3></div>
+  <div><h3 data-i18n="browse"></h3><ul>
+    <li><a href="../../" data-i18n="home"></a></li>
+    <li><a href="../../books/" data-i18n="allBooks"></a></li>
+    <li><a href="../../search/" data-i18n="search"></a></li>
+    <li><a href="../../about/" data-i18n="about"></a></li>
+    <li><a href="../../contact/" data-i18n="contact"></a></li>
+  </ul></div>
+</div></footer>
+<script src="../../assets/reader.js" defer></script>
+</body>
+</html>
+'''
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("pages")
     ap.add_argument("--out", required=True)
     ap.add_argument("--lang", choices=sorted(LANGS))
     ap.add_argument("--alts", default="fa")
-    ap.add_argument("--index", action="store_true")
-    ap.add_argument("--toc", action="store_true")
+    ap.add_argument("--index",    action="store_true")
+    ap.add_argument("--fa-index", action="store_true", dest="fa_index")
+    ap.add_argument("--toc",      action="store_true")
+    ap.add_argument("--fa-toc",   action="store_true", dest="fa_toc")
     a = ap.parse_args()
 
     data = json.loads(pathlib.Path(a.pages).read_text(encoding="utf-8"))
@@ -332,11 +421,24 @@ def main():
         print(f"cover -> {out}/index.html")
         return
 
+    if a.fa_index:
+        out.mkdir(parents=True, exist_ok=True)
+        (out / "index.html").write_text(build_fa_index(data, starts), encoding="utf-8")
+        print(f"fa cover -> {out}/index.html")
+        return
+
     if a.toc:
         (out / "assets").mkdir(parents=True, exist_ok=True)
         (out / "assets" / "toc.json").write_text(
             json.dumps(build_toc(data, starts), ensure_ascii=False), encoding="utf-8")
         print(f"toc -> {out}/assets/toc.json ({len(data['chapters'])} chapters)")
+        return
+
+    if a.fa_toc:
+        (out / "assets").mkdir(parents=True, exist_ok=True)
+        (out / "assets" / "toc.json").write_text(
+            json.dumps(build_toc(data, starts), ensure_ascii=False), encoding="utf-8")
+        print(f"fa toc -> {out}/assets/toc.json ({len(data['chapters'])} chapters)")
         return
 
     if not a.lang:

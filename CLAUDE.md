@@ -311,21 +311,23 @@ On top of the above, before the owner is asked to commit:
 | `bihar/`, `en|fa|ur/bihar/` | 4 | Volume selector pages |
 | `quran/` + `quran/1–2/` | 3 | Cover and surahs 1–2, Arabic |
 | `en|fa|ur/quran/1–2/` | 6 | Shakir · فولادوند · علامہ جوادی |
-| `bayt-al-ahzan/` | 1 | Cover: chapter grid + colophon, language-neutral |
-| `fa/bayt-al-ahzan/3–262/` | 229 | Complete Persian text (Ishtihardi), printed pages |
+| `bayt-al-ahzan/` | 1 | Arabic cover (5 chapters, دار الحكمة edition, Bihar-style) |
+| `bayt-al-ahzan/1–189/` | 189 | Arabic original (Qummi), pages 1–189 |
+| `fa/bayt-al-ahzan/` | 1 | Farsi cover (separate, at `/fa/bayt-al-ahzan/`) |
+| `fa/bayt-al-ahzan/1–262/` | ≈229 | Complete Persian text (Ishtihardi), printed pages |
 
-**Bayt al-Ahzan's page numbers are the printed ones and have 31 holes** (5, 13, 14,
-28–30, 55, …) — part-title and blank pages in the Naser edition, each checked in the
-scan. Do not "fix" them by renumbering: `/fa/bayt-al-ahzan/77/` is printed page 77, and
-that is the point. prev/next walk the ordered page list, so the holes are invisible to
-a reader.
+**Architecture change (2026-09-01):** Bayt al-Ahzan now follows the Bihar model.
+`/bayt-al-ahzan/` is the Arabic primary cover. Farsi cover is at `/fa/bayt-al-ahzan/`.
+Farsi reading pages have `data-book="../../../fa/bayt-al-ahzan"` (their own `assets/toc.json`).
+Arabic reading pages have `data-book="../../bayt-al-ahzan"` and `data-alt-fa` pointing
+to the Farsi cover. When EN/Urdu translations are built they go at `/en/bayt-al-ahzan/<n>/`
+and `/ur/bayt-al-ahzan/<n>/` — `bayt_ar_build.py` then adds them to `hreflang` and `data-alt-*`.
 
-Bihar volumes 2–110 not started. Qur'an surahs 3–114 not built. Bayt al-Ahzan's
-Arabic original (Qummi's own) is not sourced, so `/bayt-al-ahzan/<n>/` is
-deliberately empty — the slot is reserved, not broken. **Do not machine-translate
-that book into Arabic:** the original *is* Arabic, and back-translating Ishtihardi's
-Persian would read as Qummi's words while sitting two translation layers away from
-them. The remaining `catalog.json` entries are placeholders.
+**Farsi page-number holes:** the Naser edition has 31 holes (5, 13, 14, 28–30, 55, …).
+Do not renumber — prev/next walk the ordered list, so holes are invisible to readers.
+
+Bihar volumes 2–110 not started. Qur'an surahs 3–114 not built.
+The remaining `catalog.json` entries are placeholders.
 
 ---
 
@@ -340,14 +342,20 @@ In rough priority order. Nothing here is started.
    per-language index pages". Those are different facts, and the Qur'an already had to be
    special-cased around it once. An explicit `langIndex: true` in `catalog.json` would be
    sturdier. Touches the Bihar and Qur'an cards, which currently work — change carefully.
-3. **Bayt al-Ahzan in en / ur.** The Persian is the source of record. Machine translation
-   into English and Urdu is possible; Arabic is not (see above).
+3. **Bayt al-Ahzan in en / ur.** Arabic original is now live at `/bayt-al-ahzan/1–189/`.
+   Extract Arabic blocks with `bayt_ar_build.py`, send to translation, then `bayt_ar_build.py`
+   with `--lang en --tr en.json --out ../Library/en/bayt-al-ahzan` (pipeline TBD). The Farsi
+   is the source of record for the Persian translation — that too can go to en/ur via `bayt_build.py`.
 4. **Bihar volume 2.** The pipeline is proven on volume 1; this is throughput, not design.
 5. **A `.gitattributes`** to silence the CRLF warnings, if the noise ever matters.
 
 ### Known-good state
 
-Last verified end-to-end on 2026-09-01: 1,173 URLs in the sitemap, Bayt al-Ahzan's 229
-pages checked link-by-link and block-by-block against source with 0 failures, Qur'an and
-Bihar untouched by that work. `.suras` is the Qur'an's alone; `.chaps` is every other
-book's chapter grid.
+As of 2026-09-01 (pre-Arabic build): 1,173 URLs in sitemap, Farsi Bayt al-Ahzan's 229
+pages verified 0 failures, Qur'an and Bihar untouched. `.suras` is the Qur'an's alone;
+`.chaps` is every other book's chapter grid.
+
+**Pending commit (2026-09-01):** Arabic Bayt al-Ahzan build — 189 new reading pages +
+Arabic cover + Farsi cover at `/fa/bayt-al-ahzan/` + all Farsi reading pages rebuilt
+(data-book update) + `bayt_ar_build.py` + `bayt_ar.json`. Sitemap not yet regenerated
+for these 190 new URLs — run `gen_sitemap.py` before committing.
