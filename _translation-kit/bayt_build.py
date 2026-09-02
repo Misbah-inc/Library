@@ -280,6 +280,13 @@ def build_index(data, starts):
 <div class="scrim" id="scrim"></div>
 <footer class="foot"><div class="foot-in">
   <div><h3 data-i18n="libName"></h3></div>
+  <div><h3 data-i18n="browse"></h3><ul>
+    <li><a href="../" data-i18n="home"></a></li>
+    <li><a href="../books/" data-i18n="allBooks"></a></li>
+    <li><a href="../search/" data-i18n="search"></a></li>
+    <li><a href="../about/" data-i18n="about"></a></li>
+    <li><a href="../contact/" data-i18n="contact"></a></li>
+  </ul></div>
 </div></footer>
 <script src="../assets/reader.js" defer></script>
 </body>
