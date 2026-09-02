@@ -291,10 +291,10 @@ def build_index(data, starts):
 
 
 def build_toc(data, starts):
-    """reader.js renders ROOT + '/' + x.href, so href is root-relative and
-    carries the language folder the pages actually live in."""
+    """reader.js renders ROOT + '/' + LANG + '/' + x.href on translated pages,
+    so hrefs must NOT carry the language prefix — that would double it."""
     return [{"title": c["title"], "fa": c["title"], "p": starts[c["n"]],
-             "href": f"{SRC}/{SLUG}/{starts[c['n']]}/"} for c in data["chapters"]]
+             "href": f"{SLUG}/{starts[c['n']]}/"} for c in data["chapters"]]
 
 
 def main():
