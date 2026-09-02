@@ -33,11 +33,11 @@ Four things here are load-bearing and were each got wrong once:
 import argparse, html, json, pathlib, re, sys
 
 SITE = "https://library.misbah-inc.com"
-SLUG = "bayt-al-ahzan"
-SRC = "fa"
+SLUG = "bayt-al-ahzan-fa"   # standalone Farsi translation (no /fa/ URL prefix)
+SRC  = "fa"
 
 LANGS = {"fa": {"dir": "rtl"}, "en": {"dir": "ltr"}, "ur": {"dir": "rtl"}}
-DEPTH = "../../.."
+DEPTH = "../.."              # pages live at /<slug>/<n>/ (depth 2)
 
 TITLES = {
     "fa": "رنج‌ها و فریادهای فاطمه سلام‌الله‌علیها",
@@ -63,7 +63,8 @@ def esc(s):
 
 
 def abs_url(lang, n=None):
-    return f"{SITE}/{lang}/{SLUG}/{f'{n}/' if n else ''}"
+    # Standalone Farsi book: no language segment in the URL
+    return f"{SITE}/{SLUG}/{f'{n}/' if n else ''}"
 
 
 def credit_block():
@@ -122,26 +123,28 @@ def build_page(page, order, idx, lang, alts):
     next_n = order[idx + 1] if idx + 1 < len(order) else None
     total = len(order)
 
+    # Standalone book: canonical has no language segment in URL
     canonical = f'<link rel="canonical" href="{abs_url(lang, n)}">'
-    alt_links = "".join(f'<link rel="alternate" hreflang="{a}" href="{abs_url(a, n)}">'
-                        for a in alts)
-    alt_links += f'<link rel="alternate" hreflang="x-default" href="{abs_url(SRC, n)}">'
+    # Only self-referential hreflang; Arabic original is a separate book slug
+    alt_links = (f'<link rel="alternate" hreflang="fa" href="{abs_url(lang, n)}">'
+                 f'<link rel="alternate" hreflang="x-default" href="{abs_url(SRC, n)}">')
 
-    prev_l = f'<link rel="prev" href="{R}/{lang}/{SLUG}/{prev_n}/">' if prev_n else ""
-    next_l = f'<link rel="next" href="{R}/{lang}/{SLUG}/{next_n}/">' if next_n else ""
-    pager_prev = (f'<a class="btn prev" href="{R}/{lang}/{SLUG}/{prev_n}/" rel="prev">'
+    prev_l = f'<link rel="prev" href="{abs_url(lang, prev_n)}">' if prev_n else ""
+    next_l = f'<link rel="next" href="{abs_url(lang, next_n)}">' if next_n else ""
+    pager_prev = (f'<a class="btn prev" href="{abs_url(lang, prev_n)}" rel="prev">'
                   f'<span data-i18n="prev"></span></a>') if prev_n else \
                  '<span class="btn" aria-disabled="true"><span data-i18n="prev"></span></span>'
-    pager_next = (f'<a class="btn next" href="{R}/{lang}/{SLUG}/{next_n}/" rel="next">'
+    pager_next = (f'<a class="btn next" href="{abs_url(lang, next_n)}" rel="next">'
                   f'<span data-i18n="next"></span></a>') if next_n else \
                  '<span class="btn" aria-disabled="true"><span data-i18n="next"></span></span>'
 
-    alt_attrs = " ".join(f'data-alt-{a}="{R}/{a}/{SLUG}/{n}/"' for a in alts if a != lang)
+    # ع button links to Arabic original cover (different slug)
+    alt_attrs = f'data-alt-ar="{R}/bayt-al-ahzan/"'
     desc = esc(describe(page))
     title = f'{SHORT.get(lang, SHORT[SRC])} — ص {loc_num(n, lang)}'
 
     return f'''<!DOCTYPE html>
-<html lang="{lang}" dir="{LANGS[lang]["dir"]}" data-root="{R}" data-book="{R}/{SRC}/{SLUG}"
+<html lang="{lang}" dir="{LANGS[lang]["dir"]}" data-root="{R}" data-book=".."
       data-sitelang="{lang}" data-srclang="{SRC}">
 <head>
 <meta charset="utf-8">
@@ -180,12 +183,12 @@ def build_page(page, order, idx, lang, alts):
       {notes_html(page)}
     </div>
     <nav class="pager">
-      <a class="btn" href="{R}/{lang}/{SLUG}/{order[0]}/" rel="related"><span data-i18n="first"></span></a>{pager_prev}
-      <form id="jump" data-tpl="{lang}/{SLUG}/{{p}}/" action="{R}/{lang}/{SLUG}/" method="get">
+      <a class="btn" href="{abs_url(lang, order[0])}" rel="related"><span data-i18n="first"></span></a>{pager_prev}
+      <form id="jump" data-tpl="{SLUG}/{{p}}/" action="{R}/{SLUG}/" method="get">
         <input id="jump-num" name="p" inputmode="numeric" data-i18n-label="page"
                data-num-val="{n}" value="{loc_num(n, lang)}">
       </form>
-      {pager_next}<a class="btn" href="{R}/{lang}/{SLUG}/{order[-1]}/" rel="related"><span data-i18n="last"></span></a>
+      {pager_next}<a class="btn" href="{abs_url(lang, order[-1])}" rel="related"><span data-i18n="last"></span></a>
     </nav>
   </article>
 </main>
@@ -309,26 +312,25 @@ def build_toc(data, starts):
 
 
 def build_fa_index(data, starts):
-    """Farsi-language cover at /fa/bayt-al-ahzan/ (depth 2 from site root).
+    """Standalone Farsi cover at /bayt-al-ahzan-fa/ (depth 1 from site root).
     data-book="." points at this folder's own assets/toc.json."""
     cells = []
     for c in data["chapters"]:
         p = starts[c["n"]]
         inner = (f'<b class="sn" data-num="{p}">{loc_num(p, "fa")}</b>'
                  f'<span class="snm">{esc(c["title"])}</span>')
-        # Reading pages are siblings at this depth: href is just "<p>/"
         cells.append(f'<a class="chap-cell" href="{p}/" data-n="{p}">{inner}</a>')
 
     pages = data["pages"]
     first = pages[0]["n"]
 
-    canonical = f'<link rel="canonical" href="{SITE}/{SRC}/{SLUG}/">'
-    alts = (f'<link rel="alternate" hreflang="fa" href="{SITE}/{SRC}/{SLUG}/">'
-            f'<link rel="alternate" hreflang="ar" href="{SITE}/{SLUG}/">'
+    canonical = f'<link rel="canonical" href="{SITE}/{SLUG}/">'
+    alts = (f'<link rel="alternate" hreflang="fa" href="{SITE}/{SLUG}/">'
+            f'<link rel="alternate" hreflang="ar" href="{SITE}/bayt-al-ahzan/">'
             f'<link rel="alternate" hreflang="x-default" href="{SITE}/{SLUG}/">')
 
     return f'''<!DOCTYPE html>
-<html lang="fa" dir="rtl" data-root="../.." data-book="." data-sitelang="fa" data-srclang="{SRC}">
+<html lang="fa" dir="rtl" data-root=".." data-book="." data-sitelang="fa" data-srclang="{SRC}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -336,14 +338,14 @@ def build_fa_index(data, starts):
 <meta name="description" content="{esc(TITLES['fa'])} — ترجمهٔ بیت‌الاحزان اثر {esc(AUTHOR['fa'])}، به قلم {esc(TRANSLATOR_FA)}.">
 <meta property="og:title" content="{esc(TITLES['fa'])}">
 {canonical}{alts}
-<link rel="stylesheet" href="../../assets/reader.css">
+<link rel="stylesheet" href="../assets/reader.css">
 </head>
 <body>
 <a class="skip" href="#text">&rarr;</a>
 <header class="bar"><div class="bar-in">
-  <a class="brand" href="../../"><b data-i18n="libName"></b><small>Misbah Library</small></a>
+  <a class="brand" href="../"><b data-i18n="libName"></b><small>Misbah Library</small></a>
   <div class="spacer"></div>
-  <a class="tbtn" href="../../"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span class="lbl" data-i18n="home"></span></a>
+  <a class="tbtn" href="../"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span class="lbl" data-i18n="home"></span></a>
   <button class="tbtn icon-only" id="btn-menu" data-i18n-label="menu">
     <svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   <div class="langs" role="group">
@@ -373,23 +375,23 @@ def build_fa_index(data, starts):
   <div class="nav-head"><b data-i18n="menu"></b>
     <button id="nav-close" data-i18n-label="close">✕</button></div>
   <ul>
-    <li><a href="../../"><span data-i18n="home"></span></a></li>
-    <li><a href="../../search/"><span data-i18n="search"></span></a></li>
-    <li><a href="../../books/"><span data-i18n="allBooks"></span></a></li>
+    <li><a href="../"><span data-i18n="home"></span></a></li>
+    <li><a href="../search/"><span data-i18n="search"></span></a></li>
+    <li><a href="../books/"><span data-i18n="allBooks"></span></a></li>
   </ul>
 </nav>
 <div class="scrim" id="scrim"></div>
 <footer class="foot"><div class="foot-in">
   <div><h3 data-i18n="libName"></h3></div>
   <div><h3 data-i18n="browse"></h3><ul>
-    <li><a href="../../" data-i18n="home"></a></li>
-    <li><a href="../../books/" data-i18n="allBooks"></a></li>
-    <li><a href="../../search/" data-i18n="search"></a></li>
-    <li><a href="../../about/" data-i18n="about"></a></li>
-    <li><a href="../../contact/" data-i18n="contact"></a></li>
+    <li><a href="../" data-i18n="home"></a></li>
+    <li><a href="../books/" data-i18n="allBooks"></a></li>
+    <li><a href="../search/" data-i18n="search"></a></li>
+    <li><a href="../about/" data-i18n="about"></a></li>
+    <li><a href="../contact/" data-i18n="contact"></a></li>
   </ul></div>
 </div></footer>
-<script src="../../assets/reader.js" defer></script>
+<script src="../assets/reader.js" defer></script>
 </body>
 </html>
 '''

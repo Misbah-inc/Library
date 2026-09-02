@@ -110,15 +110,42 @@
       "category": "aqaid",
       "title": {
         "ar": "بيت الأحزان",
-        "fa": "رنج‌ها و فریادهای فاطمه سلام‌الله‌علیها",
+        "fa": "بیت الاحزان",
         "ur": "بیت الاحزان",
         "en": "Bayt al-Ahzan"
       },
       "subtitle": {
         "ar": "في مصائب سيدة النساء فاطمة الزهراء عليها السلام",
-        "fa": "ترجمهٔ بیت‌الاحزان",
+        "fa": "در مصائب حضرت فاطمه زهرا سلام‌الله‌علیها",
         "ur": "سیدہ فاطمہ زہرا سلام اللہ علیہا کے مصائب",
         "en": "The Sorrows of Fatima al-Zahra"
+      },
+      "author": {
+        "ar": "الشيخ عباس القمي",
+        "fa": "شیخ عباس قمی",
+        "ur": "شیخ عباس قمی",
+        "en": "Shaykh Abbas al-Qummi"
+      },
+      "volumes": 5,
+      "unit": "chapters",
+      "pages": 189,
+      "href": "bayt-al-ahzan/",
+      "srclang": "ar"
+    },
+    {
+      "slug": "bayt-al-ahzan-fa",
+      "category": "aqaid",
+      "title": {
+        "ar": "رنج‌ها و فریادهای فاطمه",
+        "fa": "رنج‌ها و فریادهای فاطمه سلام‌الله‌علیها",
+        "ur": "رنج ہا و فریادہای فاطمہ",
+        "en": "The Sorrows of Fatima — Farsi Translation"
+      },
+      "subtitle": {
+        "ar": "ترجمة فارسية لبيت الأحزان",
+        "fa": "ترجمهٔ فارسی بیت‌الاحزان",
+        "ur": "بیت الاحزان کا فارسی ترجمہ",
+        "en": "Farsi Translation of Bayt al-Ahzan"
       },
       "author": {
         "ar": "الشيخ عباس القمي",
@@ -129,10 +156,8 @@
       "volumes": 17,
       "unit": "chapters",
       "pages": 229,
-      "href": "bayt-al-ahzan/",
-      "srclang": "ar",
-      "translated": ["fa"],
-      "volumesPublished": [1]
+      "href": "bayt-al-ahzan-fa/",
+      "srclang": "fa"
     },
     {
       "slug": "mafatih",

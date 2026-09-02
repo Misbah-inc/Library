@@ -86,7 +86,7 @@ def build_reading_page(page, order, idx):
 
     canonical = f'<link rel="canonical" href="{abs_url(n)}">'
     alts = (f'<link rel="alternate" hreflang="ar" href="{abs_url(n)}">'
-            f'<link rel="alternate" hreflang="fa" href="{SITE}/fa/{SLUG}/">'
+            f'<link rel="alternate" hreflang="fa" href="{SITE}/bayt-al-ahzan-fa/">'
             f'<link rel="alternate" hreflang="x-default" href="{abs_url(n)}">')
     prev_l = f'<link rel="prev" href="{abs_url(prev_n)}">' if prev_n else ''
     next_l = f'<link rel="next" href="{abs_url(next_n)}">' if next_n else ''
@@ -155,7 +155,7 @@ def build_reading_page(page, order, idx):
   </article>
 </main>
 <div id="page-meta" hidden
-     data-alt-fa="../../fa/{SLUG}/"
+     data-alt-fa="../../bayt-al-ahzan-fa/"
      data-slug="{SLUG}" data-pagenum="{n}"
      data-pos="{idx}" data-total="{total}"
      data-title-ar="{esc(TITLE)}"
@@ -250,7 +250,7 @@ def build_arabic_cover(data, out_dir):
 
     canonical = f'<link rel="canonical" href="{abs_url()}">'
     alts = (f'<link rel="alternate" hreflang="ar" href="{abs_url()}">'
-            f'<link rel="alternate" hreflang="fa" href="{SITE}/fa/{SLUG}/">'
+            f'<link rel="alternate" hreflang="fa" href="{SITE}/bayt-al-ahzan-fa/">'
             f'<link rel="alternate" hreflang="x-default" href="{abs_url()}">')
 
     html_out = f"""<!DOCTYPE html>
