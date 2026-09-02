@@ -204,6 +204,13 @@ def build_page(page, order, idx, lang, alts):
 </nav>
 <footer class="foot"><div class="foot-in">
   <div><h3 data-i18n="libName"></h3></div>
+  <div><h3 data-i18n="browse"></h3><ul>
+    <li><a href="{R}/" data-i18n="home"></a></li>
+    <li><a href="{R}/books/" data-i18n="allBooks"></a></li>
+    <li><a href="{R}/search/" data-i18n="search"></a></li>
+    <li><a href="{R}/about/" data-i18n="about"></a></li>
+    <li><a href="{R}/contact/" data-i18n="contact"></a></li>
+  </ul></div>
 </div></footer>
 <script src="{R}/assets/reader.js" defer></script>
 </body>
