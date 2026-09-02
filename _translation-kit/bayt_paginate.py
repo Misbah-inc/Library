@@ -83,6 +83,51 @@ def paginate(data):
         "orphan_notes": sorted(set(notes) - seen),
     }
 
+def fill_gaps(result):
+    """Insert colophon pages 1-2 and blank pages for every hole in 1..last_page.
+
+    The Naser edition runs 1..262; bayt_paginate emits only the 229 pages that
+    had text in the Ghaemiyeh HTML. This inserts the missing 33 so navigation is
+    continuous and every printed page number has a URL.
+
+    * Pages 1-2: colophon (مشخصات کتاب) split across the two pages.
+    * All other gaps: empty pages whose 'chapter' label is the title of the
+      chapter they lead INTO (displayed above the blank area), and chapter_n=0
+      so the starts dict is never corrupted (ch0 is not in data["chapters"]).
+    """
+    colophon = result["colophon"]           # list of strings
+    pages    = result["pages"]              # already sorted ascending by n
+
+    # colophon split: slightly larger first half
+    mid = (len(colophon) + 1) // 2
+    colo_p1 = [{"tag": "p", "fa": x} for x in colophon[:mid]]
+    colo_p2 = [{"tag": "p", "fa": x} for x in colophon[mid:]]
+
+    # pre-compute: for each gap page n, which chapter comes next?
+    def next_chapter(n):
+        for p in pages:
+            if p["n"] > n:
+                return p["chapter"]
+        return pages[-1]["chapter"]
+
+    augmented = [
+        {"n": 1, "blocks": colo_p1, "chapter": "مشخصات کتاب", "chapter_n": 1, "notes": []},
+        {"n": 2, "blocks": colo_p2, "chapter": "مشخصات کتاب", "chapter_n": 1, "notes": []},
+    ]
+    prev_n = 2
+    for p in pages:
+        for gap_n in range(prev_n + 1, p["n"]):
+            augmented.append({"n": gap_n, "blocks": [],
+                              "chapter": next_chapter(gap_n),
+                              "chapter_n": 0, "notes": []})
+        augmented.append(p)
+        prev_n = p["n"]
+
+    result["pages"] = augmented
+    return result
+
+
 if __name__ == "__main__":
     d = paginate(json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")))
+    d = fill_gaps(d)
     print(json.dumps(d, ensure_ascii=False))

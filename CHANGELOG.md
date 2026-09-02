@@ -4,6 +4,47 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-01 (session 6, part 4)
+
+### Feature — Bayt al-Ahzan: 33 missing pages added (1–262 now complete)
+
+The original Ghaemiyeh HTML export had 229 of the 262 printed text pages. The
+remaining 33 were part-title pages, blank facing pages, or the bibliographic
+colophon (pages 1–2) — all verified against the scanned Naser edition in
+session 5. Those page numbers had no URLs, causing prev/next to jump over them.
+
+**What changed:**
+
+- `_translation-kit/bayt_paginate.py`: Added `fill_gaps(result)` function.
+  Called after `paginate()` in `__main__`. It:
+  - Inserts pages 1 and 2 as the colophon (مشخصات کتاب), splitting the 19
+    bibliographic blocks roughly in half across the two pages.
+  - Inserts a blank page (empty `.body`) for every hole between 3 and 262,
+    labelling each blank with the title of the chapter it leads into. Uses
+    `chapter_n=0` so the `starts` dict in `build_index`/`build_toc` is not
+    corrupted — the chapter grid still links to the first content page of each
+    chapter, not the preceding blank.
+  - `bayt_pages.json` regenerated: 262 pages (was 229).
+
+- All 262 `fa/bayt-al-ahzan/<n>/index.html` pages regenerated via
+  `bayt_build.py`:
+  - The 33 new pages were created from scratch.
+  - All 229 existing pages were updated: first-page link now `/1/` (was `/3/`),
+    prev/next corrected for pages adjacent to gaps, `data-pos`/`data-total`
+    updated throughout.
+
+- `bayt-al-ahzan/index.html` (cover) regenerated: "Start reading" button now
+  links to page 1 (was page 3); pages count shows 262 (was 229).
+
+- `bayt-al-ahzan/assets/toc.json` regenerated (chapter starts unchanged).
+
+- `bayt-al-ahzan/assets/pages.json` updated: all 262 page numbers (was 229),
+  so the edge bar tick marks cover the complete page range.
+
+- `sitemap.xml` regenerated: **1,209 URLs** (was 1,176; +33 new pages).
+
+---
+
 ## 2026-09-01 (session 6, part 3)
 
 ### Bug — فهرست (TOC drawer) button did nothing on translated reading pages
