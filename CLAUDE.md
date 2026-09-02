@@ -79,6 +79,18 @@ python3 _translation-kit/build.py batch.json <outdir> --lang ur --volume 1
 python3 _translation-kit/verify.py <pages…> --lang ur --out <outdir>
 ```
 
+**Rebuild Bayt al-Ahzan (source of record is `_translation-kit/bayt.json`):**
+```bash
+python3 _translation-kit/bayt_paginate.py _translation-kit/bayt.json > bayt_pages.json
+python3 _translation-kit/bayt_build.py bayt_pages.json --index --out bayt-al-ahzan
+python3 _translation-kit/bayt_build.py bayt_pages.json --toc   --out bayt-al-ahzan
+python3 _translation-kit/bayt_build.py bayt_pages.json --lang fa --alts fa --out fa/bayt-al-ahzan
+```
+`bayt.json` is the 100%-fidelity extraction of the Ghaemiyeh HTML export (that export
+is not in the repo). `bayt_pages.json` is derived and need not be committed. If the
+page set ever changes, **delete `fa/bayt-al-ahzan/` first** — the builder writes pages
+but never removes ones that no longer exist, and a stale directory is a live wrong page.
+
 **Regenerate sitemap after adding pages:**
 ```bash
 python3 _translation-kit/gen_sitemap.py --root "G:/My Drive/Misbah Library/Library"
@@ -151,6 +163,57 @@ Key folder IDs:
 | `_translation-kit/` | `1VitPwwF9fJ0hnAXphK0XvxHgeJLbMJR6` |
 
 Drive rules: `create_file` always creates (no replace). To overwrite: `search_files` → `trash_file` → `create_file`. Always pass `disableConversionToGoogleType: true` — without it HTML becomes a Google Doc and is destroyed. Page through large folders with `pageSize: 100` and `pageToken`.
+
+---
+
+## Committing from Google Drive — the failure mode to recognise
+
+The repo lives on a streamed Google Drive folder. That works for ordinary commits and
+has for months, but a large batch of new files can wedge it, and the symptom is
+misleading.
+
+**What it looks like.** GitHub Desktop fails with
+
+```
+error: unable to write file .git/objects/<xx>/<hash>: Permission denied
+error: <some/path>: failed to insert into database
+```
+
+**What it actually is.** Git writes each object to a temp file and then *renames* it
+into place. Drive still holds the temp file open while it uploads, so the rename fails.
+Run the same `git add -A` in a terminal and git shows what Desktop hides:
+
+```
+Rename from '.git/objects/0c/tmp_obj_XXXX' to '.git/objects/0c/<hash>' failed.
+Should I try again? (y/n)
+```
+
+Desktop runs git non-interactively, cannot answer, and reports the question as
+"Permission denied". **Desktop is not the problem and does not need to be abandoned.**
+
+**Do not** answer `y` repeatedly — if the same temp file and target repeat unchanged,
+the failure is permanent, not transient, and the loop is infinite.
+
+**Do not** create directories by hand inside `.git/objects` to "help" git. It does not
+help, and it risks leaving a directory entry Drive reports as both existing and not
+existing, which is worse than what you started with.
+
+**The fix, in order:**
+
+1. **Restart Google Drive** — tray icon → ⚙ → Quit, then reopen. This clears the stuck
+   handle and the phantom directory entries. *This is what worked.* Try it first and
+   expect it to be enough.
+2. `rmdir /s /q "<repo>\.git\objects\<xx>"` from **Command Prompt** for the specific
+   directory named in the error. Git recreates it cleanly.
+3. If the object store is genuinely damaged, clone the repo to a local disk to obtain a
+   healthy `.git`, copy that folder over the broken one on Drive, and carry on from
+   Drive as before. The working files never need to move.
+
+Prevention: let Drive finish syncing before committing a large batch, and prefer adding
+files in a few hundred at a time over several thousand at once.
+
+The `LF will be replaced by CRLF` warnings are unrelated noise. Git stores LF; Windows
+checkouts get CRLF; the published files are unaffected.
 
 ---
 
@@ -263,3 +326,28 @@ deliberately empty — the slot is reserved, not broken. **Do not machine-transl
 that book into Arabic:** the original *is* Arabic, and back-translating Ishtihardi's
 Persian would read as Qummi's words while sitting two translation layers away from
 them. The remaining `catalog.json` entries are placeholders.
+
+---
+
+## Open work
+
+In rough priority order. Nothing here is started.
+
+1. **Qur'an surahs 3–114.** Only 1–2 are built. `quran_build.py` takes the Tanzil XML in
+   `_translation-kit/quran-source/` and is parameterised; the work is running it in
+   batches and verifying, not new code.
+2. **`bookCard()` gates on `volumesPublished`**, using it as a proxy for "this book has
+   per-language index pages". Those are different facts, and the Qur'an already had to be
+   special-cased around it once. An explicit `langIndex: true` in `catalog.json` would be
+   sturdier. Touches the Bihar and Qur'an cards, which currently work — change carefully.
+3. **Bayt al-Ahzan in en / ur.** The Persian is the source of record. Machine translation
+   into English and Urdu is possible; Arabic is not (see above).
+4. **Bihar volume 2.** The pipeline is proven on volume 1; this is throughput, not design.
+5. **A `.gitattributes`** to silence the CRLF warnings, if the noise ever matters.
+
+### Known-good state
+
+Last verified end-to-end on 2026-09-01: 1,173 URLs in the sitemap, Bayt al-Ahzan's 229
+pages checked link-by-link and block-by-block against source with 0 failures, Qur'an and
+Bihar untouched by that work. `.suras` is the Qur'an's alone; `.chaps` is every other
+book's chapter grid.

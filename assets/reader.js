@@ -286,6 +286,11 @@
   var CATURL = ROOT + '/catalog.json';
 
   /* ---------- continue reading ---------- */
+  var SLUG_NAMES = {
+    'bihar':         { ar: 'بحار الأنوار', fa: 'بحار الأنوار', ur: 'بحار الأنوار', en: 'Bihar al-Anwar' },
+    'bayt-al-ahzan': { ar: 'بيت الأحزان', fa: 'رنج‌ها و فریادهای فاطمه س‌ع', ur: 'بیت الاحزان', en: 'Bayt al-Ahzan' },
+    'quran':         { ar: 'القرآن الكريم', fa: 'قرآن کریم', ur: 'قرآنِ کریم', en: 'The Holy Qur\'an' }
+  };
   function readList() { try { return JSON.parse(store.get('reading') || '[]'); } catch (e) { return []; } }
   function renderContinue() {
     var box = document.getElementById('continue');
@@ -297,7 +302,9 @@
     }
     box.innerHTML = '<div class="rail">' + list.map(function (x) {
       var pct = x.total ? Math.round(100 * (x.pos + 1) / x.total) : 0;
-      var title = (x.titles && (x.titles[lang] || x.titles.ar)) || x.title || '';
+      var sn = SLUG_NAMES[x.slug];
+      var title = (x.titles && (x.titles[lang] || x.titles.ar)) ||
+        (sn && (sn[lang] || sn.ar)) || x.title || x.slug || '';
       return '<a class="rcard" href="' + ROOT + '/' + esc(x.href) + '">' +
         '<b>' + esc(title) + '</b><span>' + esc(t('page')) + ' ' + num(x.pageNum) +
         ' · ' + esc(t('volume')) + ' ' + num(x.volume || 1) + '</span>' +
@@ -306,19 +313,30 @@
   }
 
   var meta = document.getElementById('page-meta');
+  /* fix BOOK so toc.json / search-index.json fetch from the Arabic book root,
+     not from an incorrect path derived from the translated page's depth */
+  if (FIXED && meta) {
+    var _ms = meta.getAttribute('data-slug');
+    if (_ms) BOOK = ROOT + '/' + _ms;
+  }
   if (meta) {
     var titles = {};
     ['ar','fa','ur','en'].forEach(function (L) {
       titles[L] = meta.getAttribute('data-title-' + L) || meta.getAttribute('data-title-ar');
     });
-    var entry = { slug: meta.getAttribute('data-slug'), titles: titles,
-      href: meta.getAttribute('data-href'), pageNum: meta.getAttribute('data-pagenum'),
+    var _href = meta.getAttribute('data-href') || location.pathname.replace(/^\//, '');
+    var _lang = FIXED || 'ar';
+    var entry = { slug: meta.getAttribute('data-slug'), lang: _lang, titles: titles,
+      href: _href, pageNum: meta.getAttribute('data-pagenum'),
       volume: meta.getAttribute('data-volume'),
       pos: parseInt(meta.getAttribute('data-pos'), 10) || 0,
       total: parseInt(meta.getAttribute('data-total'), 10) || 0, at: Date.now() };
-    var list = readList().filter(function (x) { return x.slug !== entry.slug; });
+    var _key = entry.slug + ':' + _lang;
+    var list = readList().filter(function (x) {
+      return (x.slug + ':' + (x.lang || 'ar')) !== _key;
+    });
     list.unshift(entry);
-    store.set('reading', JSON.stringify(list.slice(0, 8)));
+    store.set('reading', JSON.stringify(list.slice(0, 12)));
   }
 
   /* ---------- catalog rendering ---------- */
@@ -640,12 +658,23 @@
     else done(false);
   });
 
-  var jump = document.getElementById('jump');
-  if (jump) jump.addEventListener('submit', function (e) {
+  function doJump(e) {
+    if (e && e.type === 'submit') e.preventDefault();
+    var jf = document.getElementById('jump');
+    if (!jf) return;
     var n = toEn(document.getElementById('jump-num').value).replace(/\D/g, '');
-    var tpl = jump.getAttribute('data-tpl');
-    if (n && tpl) { e.preventDefault(); location.href = ROOT + '/' + tpl.replace('{p}', n); }
-  });
+    var tpl = jf.getAttribute('data-tpl');
+    if (!n || !tpl) return;
+    /* prepend lang prefix when the template doesn't already carry it */
+    if (FIXED && tpl.indexOf(FIXED + '/') !== 0) tpl = FIXED + '/' + tpl;
+    location.href = ROOT + '/' + tpl.replace('{p}', n);
+  }
+  var jump = document.getElementById('jump');
+  if (jump) {
+    jump.addEventListener('submit', doJump);
+    var jnum = document.getElementById('jump-num');
+    if (jnum) jnum.addEventListener('change', function () { doJump(null); });
+  }
   function rel(r) {
     var l = document.querySelector('link[rel="' + r + '"]');
     return l && l.getAttribute('href');
@@ -882,6 +911,34 @@
         });
       });
     });
+  })();
+
+  /* dynamic edge bar — inject on translated pages that lack the hardcoded bar */
+  (function () {
+    if (!FIXED) return;
+    if (document.querySelector('.edgewrap')) return;
+    var _em = document.getElementById('page-meta');
+    if (!_em) return;
+    var _slug = _em.getAttribute('data-slug');
+    var _vol  = _em.getAttribute('data-volume');
+    var _pnum = parseInt(_em.getAttribute('data-pagenum'), 10);
+    if (!_slug) return;
+    var _jsonUrl = ROOT + '/' + _slug + '/assets/pages' + (_vol ? '-' + _vol : '') + '.json';
+    var _langBase = FIXED + '/' + _slug + (_vol ? '/' + _vol : '');
+    fetch(_jsonUrl).then(function (r) { return r.ok ? r.json() : null; }).then(function (pages) {
+      if (!pages || !pages.length) return;
+      var bar = document.querySelector('.bar');
+      if (!bar) return;
+      var html = '<div class="edgewrap"><div class="edge" role="navigation">';
+      pages.forEach(function (p) {
+        var isCur = (p === _pnum);
+        var href = ROOT + '/' + _langBase + '/' + p + '/';
+        html += '<a href="' + href + '"' + (isCur ? ' class="cur"' : '') +
+                ' aria-label="' + p + '"' + (isCur ? ' aria-current="page"' : '') + '></a>';
+      });
+      html += '</div></div>';
+      bar.insertAdjacentHTML('afterend', html);
+    }).catch(function () {});
   })();
 
   var _applyLang = applyLang;

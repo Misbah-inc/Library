@@ -178,7 +178,6 @@ def build_page(page, order, idx, lang, alts):
         <span data-num="{n}">{loc_num(n, lang)}</span></span></div>
       <div class="body" data-tr-static="1">{body_html(page, lang)}</div>
       {notes_html(page)}
-      {credit_block()}
     </div>
     <nav class="pager">
       <a class="btn" href="{R}/{lang}/{SLUG}/{order[0]}/" rel="related"><span data-i18n="first"></span></a>{pager_prev}

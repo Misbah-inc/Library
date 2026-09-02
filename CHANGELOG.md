@@ -4,6 +4,75 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-01 (session 6)
+
+Six reader bugs fixed. Only `assets/reader.css`, `assets/reader.js`,
+`_translation-kit/bayt_build.py`, and the 229 Bayt al-Ahzan reading pages were
+touched. Two new JSON data files were created.
+
+### Bug 1 — نخست/پایان (First/Last) pager buttons hidden on mobile (CSS)
+- Removed a four-line `@media (max-width:560px)` block in `reader.css` that set
+  `display:none` on `.pager .btn:first-child` and `.pager .btn:last-child`.
+  First/Last buttons are now visible at all viewport widths, matching desktop.
+
+### Bug 2 — page-jump form broken on mobile + navigates to wrong language (JS)
+- Replaced the submit-only listener with a `doJump()` helper called on both
+  `submit` and `change` events on `#jump-num`. The `change` event fires when the
+  mobile keyboard's Done/Return key closes without submitting the form.
+- Added a lang-prefix guard: when `FIXED` is set (translated page) and the
+  template (`data-tpl`) doesn't already start with `FIXED + '/'`, the prefix is
+  prepended before navigating. This fixes translated pages (en/fa/ur) navigating
+  to the Arabic slot instead of the correct language slot.
+
+### Bug 3 — edge bar (chapter tick marks) missing on translated pages (JS + new data files)
+- Arabic source pages have the `.edgewrap`/`.edge` bar hardcoded. Translated
+  pages had no equivalent at all.
+- Created `bihar/assets/pages-1.json` — ordered array of all 231 Bihar vol 1
+  page numbers.
+- Created `bayt-al-ahzan/assets/pages.json` — ordered array of all 229 Bayt
+  al-Ahzan printed page numbers (with their natural gaps preserved).
+- Added a self-contained IIFE in `reader.js` (runs after page load) that: checks
+  `FIXED` is set and `.edgewrap` is absent; reads `data-slug` and `data-volume`
+  from `#page-meta`; fetches the appropriate `pages-{vol}.json` or `pages.json`;
+  and injects a `.edgewrap`/`.edge` bar after `.bar`, with the current page
+  highlighted via `class="cur"` and `aria-current="page"`. Works on both Bihar
+  translated pages (all three languages) and Bayt al-Ahzan.
+
+### Bug 4 — فهرست/Contents (TOC) button silent on translated pages (JS)
+- Root cause: `data-book` on translated Bihar pages resolved to `en/` (or `fa/`,
+  `ur/`) instead of `bihar/`, so `btn-toc` fetched from `en/assets/toc.json`
+  which does not exist.
+- Fixed in `reader.js` by overriding `BOOK` at runtime: when `FIXED` is set and
+  `#page-meta` has a `data-slug`, `BOOK` is set to `ROOT + '/' + slug`. This
+  ensures `BOOK + '/assets/toc.json'` always resolves to the Arabic book root
+  regardless of page depth.
+
+### Bug 5 — "Continue reading" unreliable; position/title loss on translated pages (JS)
+- **href fallback**: translated pages carry no `data-href` on `#page-meta`, so
+  stored entries had `href: null` and "Continue reading" links navigated to
+  `/null`. Fixed by falling back to `location.pathname.replace(/^\//, '')`.
+- **lang field**: each reading-list entry now stores a `lang` field (`FIXED || 'ar'`).
+- **per-language deduplication**: previously deduplicated by `slug` only, so reading
+  an English Bihar page overwrote the Arabic reading position and vice versa. Now
+  deduplicates by `slug + ':' + lang`, keeping one position per book per language.
+- **list capacity**: increased from 8 to 12 entries.
+- **title fallback**: added `SLUG_NAMES` lookup table in `reader.js` for bihar,
+  bayt-al-ahzan, and quran. `renderContinue()` now uses it when `data-title-*`
+  attributes are absent (as on all translated pages), so the book name always shows.
+
+### Bug 6 — credit line on every Bayt al-Ahzan page (229 pages + builder)
+- The `<p class="book-credit">` attribution line (author, translator, foreword,
+  قائمیه) appeared at the bottom of all 229 reading pages — already present on the
+  cover, so redundant.
+- Removed from all 229 `fa/bayt-al-ahzan/*/index.html` via PowerShell
+  (`[System.IO.File]::ReadAllText/WriteAllText` with `UTF8Encoding($false)` to
+  preserve Arabic/Farsi text).
+- Removed the `{credit_block()}` call from the per-page template in
+  `_translation-kit/bayt_build.py`. The call on the cover-page template was kept —
+  attribution is correct there.
+
+---
+
 ## 2026-09-01 (session 5)
 
 The session-4 commit `70d5b7f` was reverted by `1631306` — it shipped a broken book
@@ -88,6 +157,21 @@ clean redo. Nothing outside the files listed here was touched.
 - Recorded that `Set-AssetVersion.ps1` is not routine: try a hard refresh first, and a
   sitewide stamp needs the owner's agreement.
 - Added an "Adding a whole new book" checklist.
+
+### Source data now in the repo
+- `_translation-kit/bayt.json` — the 100%-fidelity extraction of the Ghaemiyeh HTML
+  export, committed so the book can be rebuilt without the original export, which is not
+  in the repo. `bayt_pages.json` is derived from it in one command and is not committed.
+
+### Operational — committing this batch from Google Drive
+- The 231-file batch wedged git: `unable to write .git/objects/0c/<hash>: Permission
+  denied` in GitHub Desktop. The real cause is Drive holding git's temp object file open
+  so the *rename* into place fails; Desktop runs git non-interactively and reports the
+  resulting y/n prompt as a permission error. **Quitting and restarting Google Drive
+  cleared it**; Desktop then committed normally.
+- Recorded in `CLAUDE.md` under "Committing from Google Drive" with the full symptom,
+  the cause, and what not to do — notably: do not answer `y` in a loop when the same
+  temp file and target repeat, and never hand-create directories inside `.git/objects`.
 
 ### Still open
 - `bookCard()` gates language-prefixed hrefs on `volumesPublished`, using it as a proxy
