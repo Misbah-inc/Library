@@ -452,18 +452,19 @@ a.vol:hover{border-color:var(--gold);background:var(--tint);color:var(--gold-2)}
 .vpick select:focus-visible{outline:2px solid var(--gold-2);outline-offset:1px}
 .quran-credit{margin-top:1.4rem;padding-top:.9rem;border-top:1px solid var(--hair)}
 
-/* surah index on the Qur'an cover */
-.suras{display:grid;grid-template-columns:repeat(auto-fill,minmax(10.5rem,1fr));
+/* surah index on the Qur'an cover; .chaps is the same grid for a
+   chapter-based book, so the two never share a JS selector */
+.suras,.chaps{display:grid;grid-template-columns:repeat(auto-fill,minmax(10.5rem,1fr));
        gap:.5rem;margin-top:1rem}
-.sura-cell{display:flex;align-items:baseline;gap:.55rem;padding:.6rem .75rem;
+.sura-cell,.chap-cell{display:flex;align-items:baseline;gap:.55rem;padding:.6rem .75rem;
        border:1px solid var(--line);border-radius:8px;background:var(--surface);
        color:var(--ink)}
-a.sura-cell:hover{border-color:var(--gold);background:var(--tint)}
-.sura-cell.off{opacity:.38;border-style:dashed;background:transparent}
-.sura-cell .sn{color:var(--gold-2);font-size:.76rem;font-weight:700;
+a.sura-cell:hover,a.chap-cell:hover{border-color:var(--gold);background:var(--tint)}
+.sura-cell.off,.chap-cell.off{opacity:.38;border-style:dashed;background:transparent}
+.sura-cell .sn,.chap-cell .sn{color:var(--gold-2);font-size:.76rem;font-weight:700;
        min-width:1.9rem;font-variant-numeric:tabular-nums}
-.sura-cell .snm{font-family:var(--ar);font-size:1.05rem;line-height:1.5;flex:1}
-.sura-cell .sct{font-size:.64rem;color:var(--ink-3);white-space:nowrap}
+.sura-cell .snm,.chap-cell .snm{font-family:var(--ar);font-size:1.05rem;line-height:1.5;flex:1}
+.sura-cell .sct,.chap-cell .sct{font-size:.64rem;color:var(--ink-3);white-space:nowrap}
 
 /* --- Qur'an: the Arabic always reads right-to-left, even on an LTR page --- */
 .body[data-unit="aya"] .aya > p[lang="ar"]{direction:rtl;text-align:right;
@@ -507,3 +508,18 @@ a.sura-cell:hover{border-color:var(--gold);background:var(--tint)}
        color:var(--on-green);border:0;border-radius:999px;padding:.36rem;
        font:inherit;font-size:.78rem;cursor:pointer}
 .copy-pop .go:hover{background:var(--gold);color:var(--green)}
+
+/* credit line on a book page — always visible, unlike .cite */
+.book-credit{max-width:var(--leaf-w);margin:1.4rem auto 0;padding-top:.9rem;
+      border-top:1px solid var(--hair);font-size:.72rem;color:var(--ink-3);
+      line-height:1.95;text-align:center}
+.book-credit a{color:var(--gold-2)}
+/* chapter titles are Persian prose, not Arabic surah names */
+.chap-cell .snm{font-family:var(--ui);font-size:.92rem;line-height:1.7}
+
+/* book cover: colophon block and the start-reading button */
+.cover-go{margin:1.4rem 0 .4rem;text-align:center}
+.colophon{max-width:var(--leaf-w);margin:2.2rem auto 0;padding-top:1rem;
+      border-top:1px solid var(--hair);font-family:var(--ui);font-size:.74rem;
+      color:var(--ink-3);line-height:1.95;text-align:start}
+.colophon p{margin:0 0 .3rem}

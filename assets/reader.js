@@ -16,6 +16,7 @@
   var T = {
     ar: { first:'الأولى', prev:'السابقة', next:'التالية', last:'الأخيرة', volumes:'المجلدات', published:'المنشور', pickVolume:'اختر المجلد', otherVolumes:'مجلدات أخرى', volsNote:'المجلدات غير المفعّلة لم تُنشر بعد.', soon:'قريباً', citeAr:'للإحالة استعمل الصفحة العربية:', machineTr:'ترجمة آلية بالذكاء الاصطناعي، غير مراجَعة وقد تحتوي أخطاء. للإحالة يُعتمد الأصل العربي.', viewAr:'العربية', viewTr:'الترجمة', viewBoth:'كلاهما', viewSide:'مقابل', verse:'الآية', surah:'السورة', surahs:'السور', pickSurah:'اختر السورة', script:'الخط', scriptUthmani:'أميري', scriptSimple:'بسيط', copyVerse:'نسخ الآية', copyRef:'الإحالة', copyLink:'الرابط', copyDo:'نسخ', ayat:'آية', meccan:'مكية', medinan:'مدنية', textFrom:'النص من', transFrom:'الترجمات عبر', noTr:'لم تُترجم هذه الصفحة بعد؛ النص معروض بالعربية.', draft:'ترجمة أولية غير مراجَعة.', trBy:'الترجمة', home:'الرئيسية', mylib:'مكتبتي', search:'بحث', allBooks:'كل الكتب',
           contact:'اتصل بنا', about:'من نحن', menu:'القائمة', close:'إغلاق',
+          chapter:'الفصل', chapters:'الفصول', pickChapter:'اختر الفصل', translator:'الترجمة', foreword:'تقديم', author:'المؤلف', viewSrc:'الأصل',
           contents:'الفهرس', cite:'نسخ الإحالة', copied:'تم النسخ ✓',
           night:'ليلي', day:'نهاري', bigger:'تكبير الخط', smaller:'تصغير الخط',
           libName:'مكتبة مصباح', tagline:'نصوص كاملة قابلة للإحالة، صفحةً بصفحة',
@@ -40,6 +41,7 @@
           contactBody:'للاقتراحات وتصحيح الأخطاء والمساهمة في المكتبة، يرجى التواصل معنا.' },
     fa: { first:'نخست', prev:'صفحه قبل', next:'صفحه بعد', last:'پایان', volumes:'مجلدات', published:'منتشرشده', pickVolume:'انتخاب جلد', otherVolumes:'جلدهای دیگر', volsNote:'جلدهای غیرفعال هنوز منتشر نشده‌اند.', soon:'به‌زودی', citeAr:'برای ارجاع از صفحهٔ عربی استفاده کنید:', machineTr:'ترجمهٔ ماشینی با هوش مصنوعی، بازبینی‌نشده و ممکن است خطا داشته باشد. برای ارجاع به متن عربی استناد کنید.', viewAr:'عربی', viewTr:'ترجمه', viewBoth:'هر دو', viewSide:'دوستونه', verse:'آیه', surah:'سوره', surahs:'سوره‌ها', pickSurah:'انتخاب سوره', script:'خط', scriptUthmani:'امیری', scriptSimple:'ساده', copyVerse:'کپی آیه', copyRef:'ارجاع', copyLink:'پیوند', copyDo:'کپی', ayat:'آیه', meccan:'مکی', medinan:'مدنی', textFrom:'متن از', transFrom:'ترجمه‌ها از', noTr:'این صفحه هنوز ترجمه نشده است؛ متن عربی نمایش داده می‌شود.', draft:'ترجمهٔ اولیه و بازبینی‌نشده.', trBy:'ترجمه', home:'خانه', mylib:'کتابخانهٔ من', search:'جستجو', allBooks:'همهٔ کتاب‌ها',
           contact:'تماس با ما', about:'دربارهٔ ما', menu:'فهرست', close:'بستن',
+          chapter:'فصل', chapters:'فصل‌ها', pickChapter:'فصل را انتخاب کنید', translator:'ترجمه', foreword:'مقدمه', author:'نویسنده', viewSrc:'متن اصلی',
           contents:'فهرست', cite:'کپی ارجاع', copied:'کپی شد ✓',
           night:'شب', day:'روز', bigger:'بزرگ‌تر', smaller:'کوچک‌تر',
           libName:'کتابخانهٔ مصباح', tagline:'متن‌های کامل و قابل ارجاع، صفحه به صفحه',
@@ -64,6 +66,7 @@
           contactBody:'برای پیشنهاد، گزارش اشتباه یا همکاری با کتابخانه با ما در تماس باشید.' },
     ur: { first:'پہلا', prev:'پچھلا', next:'اگلا', last:'آخری', volumes:'جلدیں', published:'شائع شدہ', pickVolume:'جلد منتخب کریں', otherVolumes:'دیگر جلدیں', volsNote:'غیر فعال جلدیں ابھی شائع نہیں ہوئیں۔', soon:'جلد آ رہا ہے', citeAr:'حوالے کے لیے عربی صفحہ استعمال کریں:', machineTr:'مصنوعی ذہانت سے تیار کردہ مشینی ترجمہ، غیر نظرثانی شدہ اور اس میں غلطیاں ممکن ہیں۔ حوالے کے لیے عربی اصل پر اعتماد کریں۔', viewAr:'عربی', viewTr:'ترجمہ', viewBoth:'دونوں', viewSide:'آمنے سامنے', verse:'آیت', surah:'سورہ', surahs:'سورتیں', pickSurah:'سورہ منتخب کریں', script:'خط', scriptUthmani:'امیری', scriptSimple:'سادہ', copyVerse:'آیت نقل کریں', copyRef:'حوالہ', copyLink:'لنک', copyDo:'نقل', ayat:'آیات', meccan:'مکی', medinan:'مدنی', textFrom:'متن بشکریہ', transFrom:'تراجم بشکریہ', noTr:'اس صفحے کا ترجمہ ابھی نہیں ہوا؛ عربی متن دکھایا جا رہا ہے۔', draft:'ابتدائی، غیر نظرثانی شدہ ترجمہ۔', trBy:'ترجمہ', home:'صفحۂ اول', mylib:'میری لائبریری', search:'تلاش', allBooks:'تمام کتب',
           contact:'رابطہ کریں', about:'ہمارے بارے میں', menu:'مینو', close:'بند کریں',
+          chapter:'باب', chapters:'ابواب', pickChapter:'باب منتخب کریں', translator:'ترجمہ', foreword:'مقدمہ', author:'مصنف', viewSrc:'اصل متن',
           contents:'فہرست', cite:'حوالہ نقل کریں', copied:'نقل ہو گیا ✓',
           night:'رات', day:'دن', bigger:'بڑا', smaller:'چھوٹا',
           libName:'مصباح لائبریری', tagline:'مکمل متون، صفحہ بہ صفحہ قابلِ حوالہ',
@@ -88,6 +91,7 @@
           contactBody:'تجاویز، اغلاط کی نشاندہی یا تعاون کے لیے ہم سے رابطہ کریں۔' },
     en: { first:'First', prev:'Previous', next:'Next', last:'Last', volumes:'Volumes', published:'Published', pickVolume:'Choose a volume', otherVolumes:'Other volumes', volsNote:'Greyed volumes have not been published yet.', soon:'Coming soon', citeAr:'For citation use the Arabic page:', machineTr:'Machine translation by AI. Not reviewed and may contain errors — cite the Arabic original, not this translation.', viewAr:'Arabic', viewTr:'Translation', viewBoth:'Both', viewSide:'Side by side', verse:'Verse', surah:'Surah', surahs:'Surahs', pickSurah:'Choose a surah', script:'Script', scriptUthmani:'Amiri', scriptSimple:'Simple', copyVerse:'Copy verse', copyRef:'Reference', copyLink:'Link', copyDo:'Copy', ayat:'ayat', meccan:'Meccan', medinan:'Medinan', textFrom:'Text from', transFrom:'translations via', noTr:'This page has not been translated yet; the Arabic text is shown.', draft:'Draft translation, not yet reviewed.', trBy:'Translation', home:'Home', mylib:'My library', search:'Search', allBooks:'All books',
           contact:'Contact us', about:'About us', menu:'Menu', close:'Close',
+          chapter:'Chapter', chapters:'Chapters', pickChapter:'Choose a chapter', translator:'Translation', foreword:'Foreword', author:'Author', viewSrc:'Original',
           contents:'Contents', cite:'Copy citation', copied:'Copied ✓',
           night:'Night', day:'Day', bigger:'Larger text', smaller:'Smaller text',
           libName:'Misbah Library', tagline:'Complete texts, citable page by page',
@@ -162,6 +166,15 @@
     each('.suras a[data-n]', function (a) {
       a.setAttribute('href', ROOT + '/' + (lang === 'ar' ? '' : lang + '/') +
                              'quran/' + a.getAttribute('data-n') + '/');
+    });
+    each('.chaps[data-langpath]', function (box) {
+      var slug = box.getAttribute('data-langpath');
+      var pub = (box.getAttribute('data-langs') || 'ar').split(',');
+      var use = pub.indexOf(lang) !== -1 ? lang : pub[0];
+      var pre = use === 'ar' ? '' : use + '/';
+      Array.prototype.forEach.call(box.querySelectorAll('a[data-n]'), function (a) {
+        a.setAttribute('href', ROOT + '/' + pre + slug + '/' + a.getAttribute('data-n') + '/');
+      });
     });
     each('.vols a.vol[href]', function (a) {
       var v = a.getAttribute('data-vol');

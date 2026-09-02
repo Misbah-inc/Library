@@ -32,8 +32,22 @@ extract.py → [external translation] → merge_build.py → verify.py → commi
 | `verify.py` | checks built page against Arabic source — **must report 0 failures before commit** |
 | `reextract.py` | built page → JSON, losslessly (for re-templating without retranslating) |
 | `gen_sitemap.py` | rewrites `sitemap.xml` and `robots.txt` from what is on disk |
+| `quran_build.py` | Tanzil XML → surah pages in all four languages |
+| `bayt_extract.py` | Ghaemiyeh HTML export → batch JSON (Bayt al-Ahzan) |
+| `bayt_paginate.py` | splits Bayt al-Ahzan at its `[ صفحه ۷۷ ]` markers into printed pages |
+| `bayt_build.py` | Bayt al-Ahzan page builder, cover, and `toc.json` |
+| `Fix-LibrarySeo.ps1` | one-off bulk `<head>` repair across the tree (PowerShell) |
+| `Set-AssetVersion.ps1` | stamps `?v=N` on `reader.css`/`reader.js` sitewide |
 
 All of `build.py`, `merge_build.py`, and `verify.py` accept `--lang` (`en`/`fa`/`ur`) and `--volume`.
+
+**`Set-AssetVersion.ps1` is not routine.** It rewrites every page in the repo, which
+makes a ~950-file diff out of a one-file change and buries any real edit in the same
+commit. The site currently carries no version query and does not need one: GitHub
+Pages serves `assets/` with a short max-age, so a hard refresh (Ctrl-Shift-R, or
+pull-to-refresh twice on mobile) is the first thing to try when a JS change looks
+like it did not land. Reach for the stamp only after a hard refresh has been tried
+and failed, and get the owner's agreement first — a bulk rewrite is their call.
 
 ### Shared assets
 
@@ -94,7 +108,22 @@ Then open `http://localhost:8080`. This avoids CORS issues that block `catalog.j
 - **Each translated book needs a language book index page** at `<lang>/<book>/index.html` (e.g. `en/bihar/index.html`). These are copies of `<book>/index.html` with `data-root="../.."`, `data-book="../../<book>"`, `data-sitelang="<lang>"`, and `href="../../"` for all Library root links. The active vol link must include `data-vol="<n>"` and a fallback `href="<n>/1/"`. The hreflang cluster (all languages + ar + x-default) must be present in `<head>` so the language switcher can navigate between them.
 - **`applyLang()` must rewrite `.vols a.vol` links.** Book index pages have volume links. These are rewritten to `ROOT + '/' + lang + '/' + slug + '/' + v + '/1/'` when a non-Arabic language is active. The slug is inferred from `location.pathname`. The original volume number is cached in a `data-vol` attribute on first call.
 - **Book index pages have no `#page-meta` with `data-alt-*`.** The language switcher uses hreflang links to navigate between language book index pages when `FIXED` is set. Add `<link rel="alternate" hreflang="...">` for all languages in each language book index `<head>`.
-- **The Quran sura links already handle this correctly** (lines ~162–165) — use that pattern as the reference when extending for new book types.
+- **`.suras` belongs to the Qur'an alone.** `applyLang()` rewrites `.suras a[data-n]`
+  to `/<lang>/quran/<n>/` with the path hardcoded. Reusing the class on any other
+  book's cover silently redirects its chapters into the Qur'an — chapters 1–2 land on
+  real surahs, the rest 404. A chapter grid on any other book uses `.chaps` with
+  `data-langpath="<slug>"` and `data-langs="<langs that actually have pages>"`; the
+  `.chaps` handler reads both and never guesses. `.chap-cell` shares `.sura-cell`'s
+  styling, so nothing new is needed in CSS.
+- **`data-book` must point at a folder that has `assets/`.** `btn-toc` loads
+  `BOOK + '/assets/toc.json'`. If `data-book` points at the language folder rather
+  than the book's root, Contents fails with "Could not load" and nothing else says why.
+- **The jump form's `data-tpl` is resolved against the site root**, not the page. It
+  must carry the language segment (`fa/bayt-al-ahzan/{p}/`), or the box sends readers
+  to the Arabic slot.
+- **`.cite` is `display:none` on `en`, `fa` and `ur`** by the owner's request. A book's
+  credit or attribution line must use `.book-credit`, or it disappears in three of the
+  four languages.
 
 ---
 
@@ -144,7 +173,7 @@ Drive rules: `create_file` always creates (no replace). To overwrite: `search_fi
 | Item | Status |
 |---|---|
 | `robots.txt` — allows all, points to sitemap | ✅ |
-| `sitemap.xml` — 943 URLs, submitted to Search Console | ✅ |
+| `sitemap.xml` — 1,173 URLs, submitted to Search Console | ✅ |
 | HTTPS (GitHub Pages) | ✅ |
 | Clean URL structure (`/en/bihar/1/26/`) | ✅ |
 | Canonical URL on every page (absolute) | ✅ |
@@ -183,6 +212,20 @@ Every time a new HTML page is added to the site (new language book index, new re
 
 Google picks up the updated sitemap automatically — no need to resubmit to Search Console.
 
+### Adding a whole new book
+
+On top of the above, before the owner is asked to commit:
+
+1. **Resolve every generated link against the tree that will exist**, in all four
+   languages, including what `applyLang()` rewrites them to. Every bug this project
+   has shipped was a link that pointed at a folder nobody created.
+2. **Check every `data-i18n` key against all four language tables** in `reader.js`.
+   `t()` returns the key itself when it is missing, so a forgotten key shows up as the
+   literal word `pickChapter` on the page rather than as an error.
+3. **Diff the emitted text against the source JSON block for block.** Escaping and
+   heading-tag bugs are invisible in a rendered page.
+4. Confirm no page carries `?v=`, and that nothing outside the new book was touched.
+
 ---
 
 ## Standing constraints
@@ -202,5 +245,21 @@ Google picks up the updated sitemap automatically — no need to resubmit to Sea
 | `en/bihar/1/` | 231 | Complete, machine translation |
 | `fa/bihar/1/` | 231 | Complete, machine translation |
 | `ur/bihar/1/` | 231 | Complete, machine translation |
+| `bihar/`, `en|fa|ur/bihar/` | 4 | Volume selector pages |
+| `quran/` + `quran/1–2/` | 3 | Cover and surahs 1–2, Arabic |
+| `en|fa|ur/quran/1–2/` | 6 | Shakir · فولادوند · علامہ جوادی |
+| `bayt-al-ahzan/` | 1 | Cover: chapter grid + colophon, language-neutral |
+| `fa/bayt-al-ahzan/3–262/` | 229 | Complete Persian text (Ishtihardi), printed pages |
 
-Volumes 2–110 not started. All other books in `catalog.json` are placeholders.
+**Bayt al-Ahzan's page numbers are the printed ones and have 31 holes** (5, 13, 14,
+28–30, 55, …) — part-title and blank pages in the Naser edition, each checked in the
+scan. Do not "fix" them by renumbering: `/fa/bayt-al-ahzan/77/` is printed page 77, and
+that is the point. prev/next walk the ordered page list, so the holes are invisible to
+a reader.
+
+Bihar volumes 2–110 not started. Qur'an surahs 3–114 not built. Bayt al-Ahzan's
+Arabic original (Qummi's own) is not sourced, so `/bayt-al-ahzan/<n>/` is
+deliberately empty — the slot is reserved, not broken. **Do not machine-translate
+that book into Arabic:** the original *is* Arabic, and back-translating Ishtihardi's
+Persian would read as Qummi's words while sitting two translation layers away from
+them. The remaining `catalog.json` entries are placeholders.
