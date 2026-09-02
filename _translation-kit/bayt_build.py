@@ -145,7 +145,7 @@ def build_page(page, order, idx, lang, alts):
 
     return f'''<!DOCTYPE html>
 <html lang="{lang}" dir="{LANGS[lang]["dir"]}" data-root="{R}" data-book=".."
-      data-sitelang="{lang}" data-srclang="{SRC}">
+      data-sitelang="{lang}" data-standalone="1" data-srclang="{SRC}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -330,7 +330,7 @@ def build_fa_index(data, starts):
             f'<link rel="alternate" hreflang="x-default" href="{SITE}/{SLUG}/">')
 
     return f'''<!DOCTYPE html>
-<html lang="fa" dir="rtl" data-root=".." data-book="." data-sitelang="fa" data-srclang="{SRC}">
+<html lang="fa" dir="rtl" data-root=".." data-book="." data-sitelang="fa" data-standalone="1" data-srclang="{SRC}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

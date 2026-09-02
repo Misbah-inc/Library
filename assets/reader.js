@@ -122,6 +122,7 @@
   var RTL = { ar: 1, fa: 1, ur: 1 };
   var DIGITS = { ar: '٠١٢٣٤٥٦٧٨٩', fa: '۰۱۲۳۴۵۶۷۸۹', ur: '۰۱۲۳۴۵۶۷۸۹', en: '0123456789' };
   var FIXED = H.getAttribute('data-sitelang') || '';
+  var STANDALONE = !!H.getAttribute('data-standalone');
   var lang = FIXED || store.get('lang') || 'ar';
   if (!T[lang]) lang = 'ar';
   function t(k) { return (T[lang] && T[lang][k]) || T.ar[k] || k; }
@@ -171,7 +172,7 @@
       var slug = box.getAttribute('data-langpath');
       var pub = (box.getAttribute('data-langs') || 'ar').split(',');
       var use = pub.indexOf(lang) !== -1 ? lang : pub[0];
-      var pre = use === 'ar' ? '' : use + '/';
+      var pre = (use === 'ar' || STANDALONE) ? '' : use + '/';
       Array.prototype.forEach.call(box.querySelectorAll('a[data-n]'), function (a) {
         a.setAttribute('href', ROOT + '/' + pre + slug + '/' + a.getAttribute('data-n') + '/');
       });
@@ -606,7 +607,7 @@
     load(BOOK + '/assets/toc.json').then(function (toc) {
       body.innerHTML = toc.map(function (x) {
         var label = (lang !== 'ar' && x[lang]) ? x[lang] : x.title;
-        return '<a class="toc-i" href="' + ROOT + '/' + (FIXED ? FIXED + '/' : '') + x.href + '"><span>' +
+        return '<a class="toc-i" href="' + ROOT + '/' + (FIXED && !STANDALONE ? FIXED + '/' : '') + x.href + '"><span>' +
           (x.p == null ? '—' : num(x.p)) + '</span><span style="flex:1">' +
           esc(label) + '</span></a>';
       }).join('') || '<p class="note-msg">—</p>';
@@ -675,7 +676,7 @@
     var tpl = jf.getAttribute('data-tpl');
     if (!n || !tpl) return;
     /* prepend lang prefix when the template doesn't already carry it */
-    if (FIXED && tpl.indexOf(FIXED + '/') !== 0) tpl = FIXED + '/' + tpl;
+    if (FIXED && !STANDALONE && tpl.indexOf(FIXED + '/') !== 0) tpl = FIXED + '/' + tpl;
     location.href = ROOT + '/' + tpl.replace('{p}', n);
   }
   var jump = document.getElementById('jump');
