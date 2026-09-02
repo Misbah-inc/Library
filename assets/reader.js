@@ -182,7 +182,7 @@
       var parts = location.pathname.replace(/\/$/, '').split('/');
       var slug = parts[parts.length - 1];
       a.setAttribute('href', lang !== 'ar'
-        ? ROOT + '/' + lang + '/' + slug + '/' + v + '/1/'
+        ? ROOT + '/' + lang + '/' + slug + '/' + v + '/'
         : v + '/');
     });
     each('.langs button', function (b) {

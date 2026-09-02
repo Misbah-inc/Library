@@ -4,6 +4,33 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-01 (session 6, part 2)
+
+### Bug — فهرست (chapter index) missing for translated languages
+
+Root cause: `en/bihar/1/index.html`, `fa/bihar/1/index.html`, and
+`ur/bihar/1/index.html` did not exist. When a non-Arabic language was active,
+`applyLang()` rewrote `.vols a.vol` links to point directly to page 1
+(`lang/slug/vol/1/`) — bypassing the volume index entirely. Arabic worked because
+its `bihar/1/index.html` has always existed.
+
+- Created `en/bihar/1/index.html` — English volume index for Bihar vol. 1, with
+  full hreflang cluster (canonical for `en/bihar/1/`, reciprocal for all 4
+  languages + x-default), `data-root="../../.."`, `data-book="../../../bihar"`,
+  `data-sitelang="en"`. All chapter toc-i links use the same relative hrefs as
+  the Arabic page; `applyLang()` handles language display at runtime.
+- Created `fa/bihar/1/index.html` — Farsi version, RTL, `lang="fa" dir="rtl"`.
+- Created `ur/bihar/1/index.html` — Urdu version, RTL, `lang="ur" dir="rtl"`.
+- Updated `applyLang()` in `reader.js`: changed
+  `ROOT + '/' + lang + '/' + slug + '/' + v + '/1/'`
+  to `ROOT + '/' + lang + '/' + slug + '/' + v + '/'`
+  so vol links land on the volume index page, not page 1.
+- Updated no-JS fallback href on vol 1 in `en/bihar/index.html`,
+  `fa/bihar/index.html`, `ur/bihar/index.html` from `href="1/1/"` to `href="1/"`.
+- Sitemap regenerated: **1,176 URLs** (was 1,173).
+
+---
+
 ## 2026-09-01 (session 6)
 
 Six reader bugs fixed. Only `assets/reader.css`, `assets/reader.js`,
