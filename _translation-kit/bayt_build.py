@@ -256,20 +256,17 @@ def build_index(data, starts):
       data-ur="{esc(TITLES["ur"])}" data-en="{esc(TITLES["en"])}">{esc(TITLES["fa"])}</h1>
   <p class="by" data-ar="{esc(AUTHOR["ar"])}" data-fa="{esc(AUTHOR["fa"])}"
      data-ur="{esc(AUTHOR["ur"])}" data-en="{esc(AUTHOR["en"])}">{esc(AUTHOR["fa"])}</p>
+  <p class="book-sub" lang="fa">ترجمهٔ بیت‌الاحزان</p>
   <div class="rule"></div>
   <dl>
     <dt data-i18n="pages"></dt><dd data-num="{len(pages)}">{loc_num(len(pages), "fa")}</dd>
     <dt data-i18n="chapters"></dt><dd data-num="{len(data["chapters"])}">{loc_num(len(data["chapters"]), "fa")}</dd>
     <dt data-i18n="translator"></dt><dd>{esc(TRANSLATOR_FA)}</dd>
     <dt data-i18n="foreword"></dt><dd>{esc(FOREWORD)}</dd>
-    <dt data-i18n="edition"></dt><dd data-ar="قائمیه" data-fa="قائمیه"
-        data-ur="قائمیہ" data-en="Ghaemiyeh">قائمیه</dd>
   </dl>
   <p class="cover-go"><a class="btn" href="../{SRC}/{SLUG}/{pages[0]["n"]}/"><span data-i18n="start"></span></a></p>
   <h2 data-i18n="pickChapter"></h2>
   <div class="chaps" data-langpath="{SLUG}" data-langs="{SRC}">{"".join(cells)}</div>
-  <div class="colophon" lang="fa">{colo}</div>
-  {credit_block()}
 </main>
 <nav class="nav" id="nav" aria-hidden="true">
   <div class="nav-head"><b data-i18n="menu"></b>

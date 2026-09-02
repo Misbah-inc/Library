@@ -922,31 +922,64 @@
     });
   })();
 
-  /* dynamic edge bar — inject on translated pages that lack the hardcoded bar */
+  /* page navigation dropdown — replaces the tick-mark edge bar sitewide */
   (function () {
-    if (!FIXED) return;
-    if (document.querySelector('.edgewrap')) return;
     var _em = document.getElementById('page-meta');
     if (!_em) return;
     var _slug = _em.getAttribute('data-slug');
     var _vol  = _em.getAttribute('data-volume');
     var _pnum = parseInt(_em.getAttribute('data-pagenum'), 10);
-    if (!_slug) return;
+
+    function makeSelect(pages, hrefFn) {
+      var sel = document.createElement('select');
+      sel.className = 'page-jump-sel';
+      sel.setAttribute('aria-label', t('page'));
+      pages.forEach(function (p) {
+        var opt = document.createElement('option');
+        opt.value = hrefFn(p);
+        opt.textContent = num(p);
+        if (p === _pnum) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      sel.addEventListener('change', function () { if (sel.value) location.href = sel.value; });
+      return sel;
+    }
+
+    function install(sel) {
+      var bar = document.querySelector('.bar');
+      if (!bar) return;
+      var ew = document.querySelector('.edgewrap');
+      if (!ew) {
+        ew = document.createElement('div');
+        ew.className = 'edgewrap';
+        bar.parentNode.insertBefore(ew, bar.nextSibling);
+      }
+      ew.innerHTML = '';
+      ew.appendChild(sel);
+    }
+
+    /* Arabic pages ship a hardcoded .edgewrap with tick links — read them */
+    var existing = document.querySelector('.edgewrap');
+    if (existing) {
+      var links = existing.querySelectorAll('a');
+      if (links.length) {
+        var pages = [], hrefs = {};
+        links.forEach(function (a) {
+          var p = parseInt(a.getAttribute('aria-label'), 10);
+          if (!isNaN(p)) { pages.push(p); hrefs[p] = a.getAttribute('href'); }
+        });
+        install(makeSelect(pages, function (p) { return hrefs[p] || ''; }));
+        return;
+      }
+    }
+
+    /* Translated pages: fetch pages.json */
+    if (!FIXED || !_slug) return;
     var _jsonUrl = ROOT + '/' + _slug + '/assets/pages' + (_vol ? '-' + _vol : '') + '.json';
     var _langBase = FIXED + '/' + _slug + (_vol ? '/' + _vol : '');
     fetch(_jsonUrl).then(function (r) { return r.ok ? r.json() : null; }).then(function (pages) {
       if (!pages || !pages.length) return;
-      var bar = document.querySelector('.bar');
-      if (!bar) return;
-      var html = '<div class="edgewrap"><div class="edge" role="navigation">';
-      pages.forEach(function (p) {
-        var isCur = (p === _pnum);
-        var href = ROOT + '/' + _langBase + '/' + p + '/';
-        html += '<a href="' + href + '"' + (isCur ? ' class="cur"' : '') +
-                ' aria-label="' + p + '"' + (isCur ? ' aria-current="page"' : '') + '></a>';
-      });
-      html += '</div></div>';
-      bar.insertAdjacentHTML('afterend', html);
+      install(makeSelect(pages, function (p) { return ROOT + '/' + _langBase + '/' + p + '/'; }));
     }).catch(function () {});
   })();
 

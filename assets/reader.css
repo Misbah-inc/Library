@@ -220,14 +220,11 @@ html[data-lang="en"] .bmeta b{font-weight:700;font-family:var(--ui);font-weight:
 mark{background:var(--mark);color:inherit;padding:0 .12em;border-radius:3px}
 
 /* ================= reading page ================= */
-.edgewrap{background:var(--green)}
-.edge{max-width:82rem;margin:0 auto;padding:.3rem 1rem .4rem;display:flex;gap:1px;
-      align-items:flex-end;height:1.5rem}
-.edge a{flex:1 1 auto;min-width:2px;height:.4rem;background:rgba(233,233,215,.2);
-        transition:height .12s,background .12s}
-.edge a[data-numbered="1"]{background:rgba(233,233,215,.45)}
-.edge a:hover{height:1rem;background:var(--gold)}
-.edge a[aria-current="page"]{height:1.35rem;background:var(--gold)}
+.edgewrap{background:var(--green);display:flex;align-items:center;justify-content:center;
+          padding:.35rem 1rem}
+.page-jump-sel{font-family:inherit;font-size:.85rem;padding:.22rem .55rem;border-radius:4px;
+               border:1px solid rgba(233,233,215,.35);background:rgba(0,0,0,.28);
+               color:var(--leaf);cursor:pointer;max-width:16rem;width:auto}
 .wrap{max-width:var(--page-w);margin:0 auto;padding:1.5rem 1rem 4.5rem;display:flex;
       justify-content:center}
 .leaf{position:relative;width:100%;max-width:var(--leaf-w);background:var(--leaf);
@@ -303,7 +300,8 @@ html[dir="ltr"] .drawer{transform:translateX(100%)}
 .cover{max-width:48rem;margin:0 auto;padding:2.4rem 1rem 5rem}
 .cover h1{font-weight:700;font-family:var(--display);font-size:clamp(1.6rem,4.6vw,2.3rem);line-height:1.5;
           margin:0 0 .5rem}
-.cover .by{font-family:var(--ar);font-size:1.05rem;color:var(--ink-2);margin:0 0 1.4rem}
+.cover .by{font-family:var(--ar);font-size:1.05rem;color:var(--ink-2);margin:0 0 .6rem}
+.cover .book-sub{font-size:.86rem;color:var(--ink-3);margin:0 0 1.4rem;font-family:var(--ui)}
 .cover .rule{height:2px;background:var(--gold);width:4rem;margin:0 0 1.8rem}
 .cover dl{display:grid;grid-template-columns:auto 1fr;gap:.5rem 1.2rem;margin:0 0 2rem;
           font-size:.86rem}
