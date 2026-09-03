@@ -732,6 +732,10 @@
     each('.tr-line', function (el) { el.hidden = (m === 'ar'); });
     each('.tr-note-line', function (el) { el.hidden = (m === 'ar'); });
     each('.aya', function (el) { el.classList.toggle('side', m === 'side'); });
+    /* A Mushaf page runs its verses together, which only works when the Arabic
+       stands alone; once a translation is shown the verse break has to return. */
+    var qb = document.querySelector('.body[data-unit="aya"]');
+    if (qb) qb.classList.toggle('m-withtr', qb.classList.contains('m-mushaf') && m !== 'ar');
   }
   function wireModes() {
     var bar = document.getElementById('tr-bar');
@@ -853,9 +857,8 @@
         savedFont !== 'amiri' && savedFont !== 'simple') savedFont = 'uthmani';
     setFont(savedFont);
 
-    /* --- layout: verse-by-verse, or continuous Mushaf page --- */
+    /* --- layout: verse-by-verse blocks, or a Mushaf page --- */
     var hasTr = !!document.querySelector('.tr-line');
-    var prevTextMode = null;
     function setLayout(l) {
       var mushaf = (l === 'mushaf');
       store.set('qlayout', l);
@@ -863,18 +866,17 @@
       each('.laypick button', function (b) {
         b.setAttribute('aria-pressed', String(b.getAttribute('data-layout') === l));
       });
-      /* A Mushaf page is Arabic only, so the text-mode control does not apply.
-         Hide it and force Arabic; restore the reader's choice on the way back. */
-      var modes = document.querySelector('#tr-bar .tr-modes');
-      var wrap = modes && modes.closest('.tr-group');
+      /* The text-mode control still applies on a Mushaf page — the reader may want
+         the translation alongside it — but two columns do not, so that one option
+         steps aside and anyone already in it lands on 'both'. */
+      var side = document.querySelector('#tr-bar .tr-modes button[data-mode="side"]');
+      if (side) side.hidden = mushaf;
       if (hasTr) {
-        if (mushaf) {
-          if (prevTextMode === null) prevTextMode = TRVIEW;
-          setMode('ar');
-        } else if (prevTextMode !== null) {
-          setMode(prevTextMode); prevTextMode = null;
-        }
-        if (wrap) wrap.hidden = mushaf;
+        setMode(mushaf && TRVIEW === 'side' ? 'both' : TRVIEW);
+      } else {
+        /* No translation on this page: never call setMode, which would act on a
+           stored 'tr' and hide the only text there is. */
+        qbody.classList.remove('m-withtr');
       }
     }
     each('.laypick button', function (b) {

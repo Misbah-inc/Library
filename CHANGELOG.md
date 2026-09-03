@@ -4,9 +4,69 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-03 (session 8, part 4)
+
+### Not a bug — Bayt al-Ahzan was never deleted
+
+Reported as a 404 on the Arabic book. Nothing was lost; both editions are live:
+
+| URL | status |
+|---|---|
+| `/bayt-al-ahzan/` and `/bayt-al-ahzan/30/` | **200** |
+| `/bayt-al-ahzan-fa/` and `/bayt-al-ahzan-fa/30/` | **200** |
+| `/fa/bayt-al-ahzan/` and `/fa/bayt-al-ahzan/30/` | **404** — the orphan path, never published |
+
+All 189 Arabic pages are on disk, last written **2026-09-02**, i.e. before this session
+touched anything. The two attempted deletions of the orphan both failed against Google
+Drive, and nothing was pushed from here. Checked live, the book cards resolve correctly
+in Farsi (`../bayt-al-ahzan/` and `../bayt-al-ahzan-fa/`) and the Arabic page's
+`data-alt-fa` / `hreflang="fa"` both point at `/bayt-al-ahzan-fa/`. The 404 URL is not
+reachable from any current link — it is a stale history entry or bookmark.
+
+### Fix — ا+ / ا− did not resize the Arabic, only the translation
+
+`.aya > p[lang="ar"]` carried `font-size:clamp(1.3rem,4vw,1.6rem)` — a fixed clamp that
+`--body-size` could not reach, so the text-size buttons moved the translation and left the
+verse alone. Now `clamp(1.25rem, calc(var(--body-size) * 1.35), 3rem)`; the basmala and both
+Mushaf variants scale the same way. On a 375px phone the Arabic starts at **26.8px**
+(was 20.8px) and the buttons move it (30.7px after ا+ ×3, 22.9px after ا− ×3).
+
+### Fix — gaps inside words on phones
+
+Not a font-loading fault. The Uthmani source flanks every pause mark with a real space on
+both sides — `نَ` + `U+20` + `ۗ` + `U+20` + `إِ`. At the old 20.8px the mark is tiny while
+those two spaces keep full width, so they read as a hole mid-word; at desktop's 25.6px the
+same gap goes unnoticed, which is why it looked mobile-only. **The text is not altered** —
+the verse keeps every mark and space. The larger default above plus `word-spacing:-.07em`
+on the Qur'anic Arabic closes the gap visually. Scoped to `[data-unit="aya"]`, so Bihar's
+prose keeps `word-spacing:0` and its justification.
+
+### Change — صفحهٔ مصحف can now show a translation
+
+Mushaf layout was Arabic-only and hid the text control entirely. It now keeps it:
+
+- **عربی** — verses run on continuously inside the gold frame, as a printed page reads
+- **ترجمه** / **هر دو** — the frame and Mushaf typography stay, the verse break returns so
+  each rendering sits with its own verse
+- **دوستونه** steps aside while in Mushaf layout (two columns have no meaning on a page),
+  and anyone already in it lands on **هر دو**
+
+Driven by an `m-withtr` class that `setMode()` maintains, so it follows the reader's choice
+rather than being latched at layout-switch time. The per-verse Arabic is right-aligned, not
+justified — justifying one short verse across a narrow column reopens exactly the word-gaps
+the run-on page avoids by having a whole page to spread across.
+
+**Verified** (mobile 375px and desktop): text-size buttons move the Arabic; all three Mushaf
+text modes; Mushaf + page-by-page + translation together, incl. stepping 249→250 and keeping
+the page when switching to Arabic; the Arabic-only surah page keeps all 286 verses visible
+through every layout toggle (`setLayout` never calls `setMode` where there is no translation);
+Bihar unchanged — `word-spacing:0`, justified, ا+/ا− still working, no Qur'an classes present.
+
+---
+
 ## 2026-09-03 (session 8, part 3)
 
-### Cleanup — orphaned `fa/bayt-al-ahzan/` removed; CLAUDE.md corrected
+### Cleanup — orphaned `fa/bayt-al-ahzan/` identified (deletion still pending); CLAUDE.md corrected
 
 `fa/bayt-al-ahzan/` held 2 stray page folders (149, 254), no cover, no `assets/`.
 Confirmed orphaned before touching it:

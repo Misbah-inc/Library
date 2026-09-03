@@ -412,7 +412,8 @@ a.vol:hover{border-color:var(--gold);background:var(--tint);color:var(--gold-2)}
 .sura-name{font-family:var(--ar);font-size:1.9rem;line-height:1.4;display:block;
            color:var(--ink)}
 .sura-meta{font-size:.72rem;color:var(--ink-3);letter-spacing:.04em}
-.body .bismillah{font-family:var(--ar);font-size:1.45rem;text-align:center;
+.body .bismillah{font-family:var(--ar);text-align:center;
+           font-size:clamp(1.15rem,calc(var(--body-size) * 1.2),2.4rem);
            color:var(--gold-2);margin:1.8rem 0 1.8rem;line-height:1.9;direction:rtl}
 .aya{padding:.55rem 0;border-bottom:1px solid var(--hair)}
 .aya:last-child{border-bottom:0}
@@ -540,9 +541,16 @@ a.sura-cell:hover,a.chap-cell:hover{border-color:var(--gold);background:var(--ti
 .sura-cell .snm,.chap-cell .snm{font-family:var(--ar);font-size:1.05rem;line-height:1.5;flex:1}
 .sura-cell .sct,.chap-cell .sct{font-size:.64rem;color:var(--ink-3);white-space:nowrap}
 
-/* --- Qur'an: the Arabic always reads right-to-left, even on an LTR page --- */
+/* --- Qur'an: the Arabic always reads right-to-left, even on an LTR page ---
+   The size tracks --body-size so the ا+ / ا− buttons move the Arabic, not just
+   the translation. It was a fixed clamp, which those buttons could not touch.
+   word-spacing is pulled in slightly because the Uthmani source flanks every
+   pause mark (ۗ ۖ ۘ) with a real space on both sides; at reading size on a phone
+   those two spaces dwarf the mark and read as a hole in the middle of a word. */
 .body[data-unit="aya"] .aya > p[lang="ar"]{direction:rtl;text-align:right;
-       unicode-bidi:isolate;line-height:2.2;font-size:clamp(1.3rem,4vw,1.6rem)}
+       unicode-bidi:isolate;line-height:2.2;
+       font-size:clamp(1.25rem,calc(var(--body-size) * 1.35),3rem);
+       word-spacing:-.07em}
 .body[data-unit="aya"] .aya > .tr-line{unicode-bidi:isolate}
 
 /* Uthmani stacks marks a general naskh face was not cut for; these two are.
@@ -613,7 +621,8 @@ a.sura-cell:hover,a.chap-cell:hover{border-color:var(--gold);background:var(--ti
 /* [hidden] guards. Every block below sets `display`, which beats the UA's
    [hidden]{display:none} — without these the element stays on screen. */
 .aya[hidden],.page-mrk[hidden],.pgview-nav[hidden],.bismillah[hidden],
-.tr-group[hidden],.qjump[hidden],.qjump-pane[hidden]{display:none!important}
+.tr-group[hidden],.qjump[hidden],.qjump-pane[hidden],
+.segbtns button[hidden]{display:none!important}
 
 /* Mushaf page break. Deliberately gold and double-ruled so it never reads as
    the plain grey hairline that divides one verse from the next. */
@@ -702,15 +711,26 @@ a.sura-cell:hover,a.chap-cell:hover{border-color:var(--gold);background:var(--ti
    Verse blocks become inline so the text flows and justifies; the ۝ marker
    that already ends each verse does the work the block break used to. */
 .body.m-mushaf{max-width:var(--leaf-w);margin-inline:auto;direction:rtl;
-       text-align:justify;text-align-last:center;
        border:1px solid var(--gold-2);border-radius:6px;
        padding:1.7rem 1.5rem;background:var(--leaf)}
-.body.m-mushaf .aya{display:inline;border:0;padding:0}
-.body.m-mushaf .aya:target{background:var(--tint);box-shadow:none;border-radius:4px}
-.body.m-mushaf .aya > p[lang="ar"]{display:inline;line-height:2.5;
-       font-size:clamp(1.35rem,4.2vw,1.7rem)}
-.body.m-mushaf .aya > .tr-line{display:none}
-.body.m-mushaf .aya-copy{display:none}
 .body.m-mushaf .bismillah{display:block;margin:0 0 1.3rem}
 .body.m-mushaf .page-mrk{margin:1.5rem 0}
 @media (max-width:640px){.body.m-mushaf{padding:1.1rem .9rem}}
+
+/* Arabic alone: the verses run on continuously, as a printed page reads. The
+   ۝ marker that already ends each verse does the work the block break used to. */
+.body.m-mushaf:not(.m-withtr){text-align:justify;text-align-last:center}
+.body.m-mushaf:not(.m-withtr) .aya{display:inline;border:0;padding:0}
+.body.m-mushaf:not(.m-withtr) .aya:target{background:var(--tint);box-shadow:none;border-radius:4px}
+.body.m-mushaf:not(.m-withtr) .aya > p[lang="ar"]{display:inline;line-height:2.5;
+       font-size:clamp(1.3rem,calc(var(--body-size) * 1.45),3.2rem)}
+.body.m-mushaf:not(.m-withtr) .aya > .tr-line{display:none}
+.body.m-mushaf:not(.m-withtr) .aya-copy{display:none}
+
+/* With a translation the verses cannot run together — a reader has to be able to
+   tell which rendering belongs to which verse. The page keeps its frame and its
+   Mushaf typography; only the verse break comes back. These stay right-aligned
+   rather than justified: justifying one short verse across a narrow column opens
+   the same word-gaps the run-on page avoids by having a whole page to spread. */
+.body.m-mushaf.m-withtr .aya > p[lang="ar"]{text-align:right;
+       line-height:2.45;font-size:clamp(1.3rem,calc(var(--body-size) * 1.4),3.1rem)}
