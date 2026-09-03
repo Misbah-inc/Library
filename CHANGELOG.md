@@ -4,6 +4,28 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-02 (session 7, part 2)
+
+### Feature — All 114 Quran surahs built in all 4 languages
+
+Built all 114 surahs (was: 1–2 only) in Arabic, English (Shakir), Farsi (فولادوند),
+and Urdu (علامہ جوادی). 456 surah reading pages total. The language switcher on each
+page navigates between the four language versions via hreflang links.
+
+Removed the "نسخه پروژهٔ تنزیل / Tanzil Project" edition row from the Quran index cover.
+
+Sitemap regenerated: **1,847 URLs** (was 1,209; +638 new pages).
+
+**What changed:**
+- `_translation-kit/quran_build.py` — removed edition `<dl>` row from index template
+- `quran/index.html` — rebuilt, now shows 114/114 published
+- `quran/verses.json` — regenerated
+- `quran/1–114/` — all 114 Arabic surah pages (was 1–2)
+- `en/quran/1–114/`, `fa/quran/1–114/`, `ur/quran/1–114/` — all 114 × 3 language pages
+- `sitemap.xml`, `robots.txt` — regenerated
+
+---
+
 ## 2026-09-02 (session 7)
 
 ### Feature — Quran reader redesign + verse search

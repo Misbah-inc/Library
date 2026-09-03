@@ -369,12 +369,6 @@ def build_index(meta, published, total=114, ar_text=None):
   <p class="by" data-ar="كلام الله تعالى" data-fa="کلام الله تعالی"
      data-ur="کلامِ اللہ تعالیٰ" data-en="The Word of God">كلام الله تعالى</p>
   <div class="rule"></div>
-  <dl>
-    <dt data-i18n="surahs"></dt><dd data-num="{total}">{ar_num(total)}</dd>
-    <dt data-i18n="published"></dt><dd data-num="{len(published)}">{ar_num(len(published))}</dd>
-    <dt data-i18n="edition"></dt><dd data-ar="مشروع تنزيل" data-fa="پروژهٔ تنزیل"
-        data-ur="تنزیل پروجیکٹ" data-en="Tanzil Project"></dd>
-  </dl>
   <div class="qsearch-wrap">
     <div class="qsearch" id="qsearch" role="search">
       <input type="search" id="qsearch-q" autocomplete="off"
