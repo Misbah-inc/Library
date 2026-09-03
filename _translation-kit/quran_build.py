@@ -23,7 +23,7 @@ Attribution is mandatory, not decorative: the Arabic text is Tanzil's under
 CC BY 3.0, and Tanzil's translation terms require a link back when more than
 three translations are used. Both are emitted on every page.
 """
-import argparse, html, os, pathlib, re, sys
+import argparse, html, json, os, pathlib, re, sys
 import xml.etree.ElementTree as ET
 
 SITE = "https://library.misbah-inc.com"
@@ -145,11 +145,10 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
     is_ar = (lang == "ar")
 
     # ---- body -------------------------------------------------------------
-    bismillah_html = ''
-    if n != 1 and n != 9:
-        bismillah_html = f'<p class="bismillah" lang="ar">{BASMALA}</p>'
-
     parts = []
+    if n != 1 and n != 9:
+        parts.append(f'<p class="bismillah" lang="ar">{BASMALA}</p>')
+
     vl = VERSE_LABEL.get(lang, 'Verse')
     for a in range(1, ayas + 1):
         rows = [f'<p lang="ar" data-i="{a-1}">{ar_text[n][a]}'
@@ -221,13 +220,7 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
     vpick = (f'<span class="vpick"><span class="lbl" data-i18n="verse"></span>'
              f'<select id="vsel" data-i18n-label="verse">{opts}</select></span>')
 
-    credit = (f'<p class="cite quran-credit">'
-              f'<span data-i18n="textFrom"></span> '
-              f'<a href="https://tanzil.net" rel="noopener">Tanzil Project</a>'
-              + (f' · <span data-i18n="transFrom"></span> '
-                 f'<a href="https://tanzil.net/trans/" rel="noopener">tanzil.net/trans</a>'
-                 if translations else "")
-              + '</p>')
+    credit = ""
 
     return f'''<!DOCTYPE html>
 <html lang="{lang}" dir="{L["dir"]}" data-root="{R}" data-book=".." data-sitelang="{lang}">
@@ -260,12 +253,13 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
   <article>
     <div class="leaf" id="text">
       <header class="sura-header">
+        <span class="sh-c sh-tl" aria-hidden="true"></span><span class="sh-c sh-tr" aria-hidden="true"></span><span class="sh-c sh-bl" aria-hidden="true"></span><span class="sh-c sh-br" aria-hidden="true"></span>
+        <div class="sura-header-info"><span data-i18n="surah"></span> {loc_num(n, lang)}</div>
         <p class="sura-name" lang="ar">{esc(m["name"])}</p>
         <div class="sura-badges">{sura_badges}</div>
       </header>
-      {bismillah_html}
       {tr_bar}
-      <div class="vsearch" id="vsearch" role="search"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg><input type="search" id="vsearch-q" autocomplete="off"><span class="vsearch-count" id="vsearch-count" aria-live="polite" aria-atomic="true"></span></div>
+      <div class="vsearch" id="vsearch" role="search"><input type="search" id="vsearch-q" autocomplete="off"><span class="vsearch-count" id="vsearch-count" aria-live="polite" aria-atomic="true"></span><button class="vsearch-clear" id="vsearch-clear" hidden aria-label="clear">✕</button><button class="vsearch-btn" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg><span data-i18n="search">جستجو</span></button></div>
       <nav class="vnav">{vpick}</nav>
       <div class="body" data-tr-static="1" data-unit="aya" data-font="uthmani">{body}</div>
       {credit}
@@ -313,7 +307,20 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
 '''
 
 
-def build_index(meta, published, total=114):
+def build_verse_index(ar_text, meta, total=114):
+    """Return JSON string [[surah, ayah, text], ...] for all verses."""
+    verses = []
+    for s in range(1, total + 1):
+        ayas = meta[s]["ayas"]
+        for a in range(1, ayas + 1):
+            try:
+                verses.append([s, a, ar_text[s][a]])
+            except KeyError:
+                pass
+    return json.dumps(verses, ensure_ascii=False, separators=(",", ":"))
+
+
+def build_index(meta, published, total=114, ar_text=None):
     """The book cover at /quran/. Like /bihar/, there is ONE cover for every
     language: the strings carry data-ar/fa/ur/en and the reader swaps them,
     so this page must never hardcode a single language."""
@@ -328,6 +335,9 @@ def build_index(meta, published, total=114):
             cells.append(f'<a class="sura-cell" href="{n}/" data-n="{n}">{inner}</a>')
         else:
             cells.append(f'<span class="sura-cell off" data-n="{n}">{inner}</span>')
+
+    snames_json = json.dumps({str(n): meta[n]["name"] for n in range(1, total+1)},
+                             ensure_ascii=False, separators=(',', ':'))
 
     return f'''<!DOCTYPE html>
 <html lang="ar" dir="rtl" data-root=".." data-book=".">
@@ -365,6 +375,15 @@ def build_index(meta, published, total=114):
     <dt data-i18n="edition"></dt><dd data-ar="مشروع تنزيل" data-fa="پروژهٔ تنزیل"
         data-ur="تنزیل پروجیکٹ" data-en="Tanzil Project"></dd>
   </dl>
+  <div class="qsearch-wrap">
+    <div class="qsearch" id="qsearch" role="search">
+      <input type="search" id="qsearch-q" autocomplete="off"
+             placeholder="ابحث في آيات القرآن…" aria-label="بحث في آيات القرآن">
+      <button class="qsearch-clear" id="qsearch-clear" hidden aria-label="clear">✕</button>
+      <button class="qsearch-btn" id="qsearch-btn" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg> <span data-i18n="search">بحث</span></button>
+    </div>
+    <ul class="qsearch-res" id="qsearch-res" hidden></ul>
+  </div>
   <h2 data-i18n="pickSurah"></h2>
   <div class="suras" data-langpath="quran">{"".join(cells)}</div>
   <p class="note-msg" data-i18n="volsNote"></p>
@@ -383,6 +402,41 @@ def build_index(meta, published, total=114):
   <div><h3 data-i18n="libName"></h3></div>
 </div></footer>
 <script src="../assets/reader.js?v={ASSETS_V}" defer></script>
+<script>(function(){{
+  var SN={snames_json};
+  var qi=document.getElementById('qsearch-q');
+  var res=document.getElementById('qsearch-res');
+  if(!qi)return;
+  var data=null,busy=false;
+  function lang(){{var b=document.querySelector('.langs button[aria-pressed="true"]');return b?b.dataset.lang:'ar';}}
+  function href(s,v){{var l=lang();return(l==='ar'?'':('../'+l+'/quran/'))+s+'/#a'+v;}}
+  function strip(s){{return s.replace(/[\\u064B-\\u065F\\u0670]/g,'');}}
+  function render(ms){{
+    if(!ms.length){{res.innerHTML='<li class="qsr-none">—</li>';}}
+    else{{res.innerHTML=ms.slice(0,20).map(function(m){{
+      return'<li><a href="'+href(m[0],m[1])+'" data-n="'+m[0]+'">'
+        +'<span class="qsr-ref">'+(SN[m[0]]||'')+'  '+m[0]+':'+m[1]+'</span>'
+        +'<span class="qsr-txt" lang="ar">'+m[2].slice(0,90)+'</span>'
+        +'</a></li>';
+    }}).join('');}}
+    res.hidden=false;
+  }}
+  var qbtn=document.getElementById('qsearch-btn');
+  var qclear=document.getElementById('qsearch-clear');
+  function search(q){{var nq=strip(q.trim());if(!nq){{res.hidden=true;return;}}render(data.filter(function(v){{return strip(v[2]).indexOf(nq)>=0;}}));}}
+  function doSearch(){{
+    var q=qi.value;
+    if(qclear)qclear.hidden=!q;
+    if(!q){{res.hidden=true;return;}}
+    if(data){{search(q);return;}}if(busy)return;busy=true;
+    fetch('verses.json').then(function(r){{return r.json();}}).then(function(d){{data=d;busy=false;search(qi.value);}}).catch(function(){{busy=false;}});
+  }}
+  if(qbtn)qbtn.addEventListener('click',doSearch);
+  qi.addEventListener('keydown',function(e){{if(e.key==='Enter'){{e.preventDefault();doSearch();}}}});
+  qi.addEventListener('input',function(){{if(qclear)qclear.hidden=!qi.value;}});
+  if(qclear)qclear.addEventListener('click',function(){{qi.value='';qclear.hidden=true;res.hidden=true;qi.focus();}});
+  document.addEventListener('click',function(e){{var w=document.getElementById('qsearch-res');if(w&&!w.parentElement.contains(e.target))w.hidden=true;}});
+}})();</script>
 </body>
 </html>
 '''
@@ -417,8 +471,11 @@ def main():
         published = {int(x) for x in a.published.split(",") if x.strip()}
         out = pathlib.Path(a.out)
         out.mkdir(parents=True, exist_ok=True)
-        (out / "index.html").write_text(build_index(meta, published), encoding="utf-8")
+        (out / "index.html").write_text(build_index(meta, published, ar_text=ar_text), encoding="utf-8")
+        idx_json = build_verse_index(ar_text, meta)
+        (out / "verses.json").write_text(idx_json, encoding="utf-8")
         print(f"cover -> {out}/index.html  ({len(published)} of 114 published)")
+        print(f"search index -> {out}/verses.json")
         return
 
     translations = []

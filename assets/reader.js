@@ -989,12 +989,15 @@
     var qi = document.getElementById('vsearch-q');
     if (!qi) return;
     var cnt = document.getElementById('vsearch-count');
-    function stripDiac(s) { return s.replace(/[ؐ-ًؚ-ٰٟ]/g, ''); }
+    function stripDiac(s) { return s.replace(/[\u064B-\u065F\u0670]/g, ''); }
     function norm(s) { return stripDiac(s).toLowerCase(); }
     qi.setAttribute('placeholder', t('searchVerse'));
     qi.setAttribute('aria-label', t('searchVerse'));
-    qi.addEventListener('input', function () {
+    var vbtn = document.querySelector('.vsearch-btn');
+    var vclear = document.getElementById('vsearch-clear');
+    function doVerseSearch() {
       var q = norm(qi.value.trim());
+      if (vclear) vclear.hidden = !qi.value;
       var ayas = document.querySelectorAll('.body[data-unit="aya"] .aya');
       if (!q) {
         Array.prototype.forEach.call(ayas, function (a) {
@@ -1011,6 +1014,20 @@
         if (match) found++;
       });
       if (cnt) cnt.textContent = found > 0 ? String(found) : t('vsNone');
+    }
+    if (vbtn) vbtn.addEventListener('click', doVerseSearch);
+    qi.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); doVerseSearch(); }
+    });
+    qi.addEventListener('input', function () { if (vclear) vclear.hidden = !qi.value; });
+    if (vclear) vclear.addEventListener('click', function () {
+      qi.value = ''; vclear.hidden = true;
+      if (cnt) cnt.textContent = '';
+      Array.prototype.forEach.call(
+        document.querySelectorAll('.body[data-unit="aya"] .aya'),
+        function (a) { a.classList.remove('v-hidden', 'v-match'); }
+      );
+      qi.focus();
     });
   })();
 
