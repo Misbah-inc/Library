@@ -84,11 +84,11 @@ python3 _translation-kit/verify.py <pages…> --lang ur --out <outdir>
 python3 _translation-kit/bayt_paginate.py _translation-kit/bayt.json > bayt_pages.json
 python3 _translation-kit/bayt_build.py bayt_pages.json --index --out bayt-al-ahzan
 python3 _translation-kit/bayt_build.py bayt_pages.json --toc   --out bayt-al-ahzan
-python3 _translation-kit/bayt_build.py bayt_pages.json --lang fa --alts fa --out fa/bayt-al-ahzan
+python3 _translation-kit/bayt_build.py bayt_pages.json --lang fa --alts fa --out bayt-al-ahzan-fa
 ```
 `bayt.json` is the 100%-fidelity extraction of the Ghaemiyeh HTML export (that export
 is not in the repo). `bayt_pages.json` is derived and need not be committed. If the
-page set ever changes, **delete `fa/bayt-al-ahzan/` first** — the builder writes pages
+page set ever changes, **delete `bayt-al-ahzan-fa/` first** — the builder writes pages
 but never removes ones that no longer exist, and a stale directory is a live wrong page.
 
 **Regenerate sitemap after adding pages:**
@@ -131,7 +131,7 @@ Then open `http://localhost:8080`. This avoids CORS issues that block `catalog.j
   `BOOK + '/assets/toc.json'`. If `data-book` points at the language folder rather
   than the book's root, Contents fails with "Could not load" and nothing else says why.
 - **The jump form's `data-tpl` is resolved against the site root**, not the page. It
-  must carry the language segment (`fa/bayt-al-ahzan/{p}/`), or the box sends readers
+  must carry the book's own slug (`bayt-al-ahzan-fa/{p}/`), or the box sends readers
   to the Arabic slot.
 - **`.cite` is `display:none` on `en`, `fa` and `ur`** by the owner's request. A book's
   credit or attribution line must use `.book-credit`, or it disappears in three of the
@@ -309,24 +309,32 @@ On top of the above, before the owner is asked to commit:
 | `fa/bihar/1/` | 231 | Complete, machine translation |
 | `ur/bihar/1/` | 231 | Complete, machine translation |
 | `bihar/`, `en|fa|ur/bihar/` | 4 | Volume selector pages |
-| `quran/` + `quran/1–2/` | 3 | Cover and surahs 1–2, Arabic |
-| `en|fa|ur/quran/1–2/` | 6 | Shakir · فولادوند · علامہ جوادی |
+| `quran/` + `quran/1–114/` | 115 | Cover and all 114 surahs, Arabic |
+| `en|fa|ur/quran/1–114/` | 342 | Shakir · فولادوند · علامہ جوادی |
+| `quran/assets/` | — | `toc.json`, `qnav.json`, `qnav.js` (Contents, quick access, paging) |
 | `bayt-al-ahzan/` | 1 | Arabic cover (5 chapters, دار الحكمة edition, Bihar-style) |
 | `bayt-al-ahzan/1–189/` | 189 | Arabic original (Qummi), pages 1–189 |
-| `fa/bayt-al-ahzan/` | 1 | Farsi cover (separate, at `/fa/bayt-al-ahzan/`) |
-| `fa/bayt-al-ahzan/1–262/` | ≈229 | Complete Persian text (Ishtihardi), printed pages |
+| `bayt-al-ahzan-fa/` | 1 | Farsi cover |
+| `bayt-al-ahzan-fa/1–262/` | 262 | Complete Persian text (Ishtihardi), printed pages |
 
 **Architecture change (2026-09-01):** Bayt al-Ahzan now follows the Bihar model.
-`/bayt-al-ahzan/` is the Arabic primary cover. Farsi cover is at `/fa/bayt-al-ahzan/`.
-Farsi reading pages have `data-book="../../../fa/bayt-al-ahzan"` (their own `assets/toc.json`).
-Arabic reading pages have `data-book="../../bayt-al-ahzan"` and `data-alt-fa` pointing
-to the Farsi cover. When EN/Urdu translations are built they go at `/en/bayt-al-ahzan/<n>/`
+`/bayt-al-ahzan/` is the Arabic primary cover. **The Farsi edition is a top-level sibling
+book at `/bayt-al-ahzan-fa/`, not under `/fa/`** — it is a different edition (Ishtihardi,
+262 printed pages) rather than a translation of the Arabic, so it carries its own slug in
+`catalog.json`, its own cover and its own `assets/toc.json`. Its reading pages have
+`data-root="../.."`, `data-book=".."` and `data-sitelang="fa"`.
+Arabic reading pages have `data-book="../../bayt-al-ahzan"` and `data-alt-fa="../../bayt-al-ahzan-fa/"`.
+When EN/Urdu translations of the Arabic are built they go at `/en/bayt-al-ahzan/<n>/`
 and `/ur/bayt-al-ahzan/<n>/` — `bayt_ar_build.py` then adds them to `hreflang` and `data-alt-*`.
+
+> An empty `fa/bayt-al-ahzan/` existed until 2026-09-03 as a leftover of an earlier plan.
+> Nothing referenced it — 0 sitemap URLs, absent from `catalog.json`, and no page linked to
+> it. Do not recreate it; the Farsi edition belongs at `bayt-al-ahzan-fa/`.
 
 **Farsi page-number holes:** the Naser edition has 31 holes (5, 13, 14, 28–30, 55, …).
 Do not renumber — prev/next walk the ordered list, so holes are invisible to readers.
 
-Bihar volumes 2–110 not started. Qur'an surahs 3–114 not built.
+Bihar volumes 2–110 not started. The Qur'an is complete in all four languages.
 The remaining `catalog.json` entries are placeholders.
 
 ---
@@ -335,19 +343,16 @@ The remaining `catalog.json` entries are placeholders.
 
 In rough priority order. Nothing here is started.
 
-1. **Qur'an surahs 3–114.** Only 1–2 are built. `quran_build.py` takes the Tanzil XML in
-   `_translation-kit/quran-source/` and is parameterised; the work is running it in
-   batches and verifying, not new code.
-2. **`bookCard()` gates on `volumesPublished`**, using it as a proxy for "this book has
+1. **`bookCard()` gates on `volumesPublished`**, using it as a proxy for "this book has
    per-language index pages". Those are different facts, and the Qur'an already had to be
    special-cased around it once. An explicit `langIndex: true` in `catalog.json` would be
    sturdier. Touches the Bihar and Qur'an cards, which currently work — change carefully.
-3. **Bayt al-Ahzan in en / ur.** Arabic original is now live at `/bayt-al-ahzan/1–189/`.
+2. **Bayt al-Ahzan in en / ur.** Arabic original is now live at `/bayt-al-ahzan/1–189/`.
    Extract Arabic blocks with `bayt_ar_build.py`, send to translation, then `bayt_ar_build.py`
    with `--lang en --tr en.json --out ../Library/en/bayt-al-ahzan` (pipeline TBD). The Farsi
    is the source of record for the Persian translation — that too can go to en/ur via `bayt_build.py`.
-4. **Bihar volume 2.** The pipeline is proven on volume 1; this is throughput, not design.
-5. **A `.gitattributes`** to silence the CRLF warnings, if the noise ever matters.
+3. **Bihar volume 2.** The pipeline is proven on volume 1; this is throughput, not design.
+4. **A `.gitattributes`** to silence the CRLF warnings, if the noise ever matters.
 
 ### Known-good state
 

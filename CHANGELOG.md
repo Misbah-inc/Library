@@ -4,6 +4,53 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-03 (session 8, part 3)
+
+### Cleanup — orphaned `fa/bayt-al-ahzan/` removed; CLAUDE.md corrected
+
+`fa/bayt-al-ahzan/` held 2 stray page folders (149, 254), no cover, no `assets/`.
+Confirmed orphaned before touching it:
+
+| check | result |
+|---|---|
+| `sitemap.xml` URLs under `/fa/bayt-al-ahzan/` | **0** (vs 263 for `/bayt-al-ahzan-fa/`) |
+| `catalog.json` entry | none — lists `bayt-al-ahzan` and `bayt-al-ahzan-fa` only |
+| Arabic pages' `data-alt-fa` / `hreflang="fa"` | both point at `/bayt-al-ahzan-fa/` |
+| pages 149 + 254 in `bayt-al-ahzan-fa/` | present and intact (6,669 and 6,749 bytes) |
+
+So nothing linked to it and no content was unique to it. The live Farsi edition is
+`bayt-al-ahzan-fa/` — 262 pages, own cover and `assets/toc.json`.
+
+**Deletion is blocked by Google Drive**, which reports both folders as *both*
+"Access is denied" *and* "does not exist" on consecutive calls — the phantom-directory
+state described under "Committing from Google Drive". Per that guidance the retry loop
+was not continued. **Restart Google Drive (tray → ⚙ → Quit, reopen), then run:**
+
+```
+rmdir /s /q "G:\My Drive\Misbah Library\Library\fa\bayt-al-ahzan"
+```
+
+Nothing else depends on it, so this can happen whenever convenient — it does not block
+committing the Qur'an work.
+
+### Docs — `Library/CLAUDE.md` was stale and would have misdirected a rebuild
+
+It described the Farsi Bayt al-Ahzan as living at `/fa/bayt-al-ahzan/`; on disk and in the
+sitemap it is `/bayt-al-ahzan-fa/`. A rebuild following the documented command would have
+written 262 pages into the wrong folder and left the live ones stale. Corrected:
+
+- `bayt_build.py` rebuild command → `--out bayt-al-ahzan-fa`
+- "delete `fa/bayt-al-ahzan/` first" → `bayt-al-ahzan-fa/`
+- jump-form `data-tpl` note → the book's own slug, not a language segment
+- architecture paragraph now records that the Farsi edition is a **top-level sibling book**
+  (a different edition, Ishtihardi, not a translation of the Arabic), with a note not to
+  recreate `fa/bayt-al-ahzan/`
+- current-state table: Qur'an rows corrected to 114 surahs / 342 translated pages, plus the
+  new `quran/assets/` row; Bayt al-Ahzan Farsi rows repointed
+- open-work item 1 ("Qur'an surahs 3–114 not built") removed — done; list renumbered
+
+---
+
 ## 2026-09-03 (session 8, part 2)
 
 ### Fix — Qur'an verse search never matched الله (or any word spelled with a variant letter)
