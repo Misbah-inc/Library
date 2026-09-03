@@ -597,3 +597,72 @@ a.sura-cell:hover,a.chap-cell:hover{border-color:var(--gold);background:var(--ti
       border-top:1px solid var(--hair);font-family:var(--ui);font-size:.74rem;
       color:var(--ink-3);line-height:1.95;text-align:start}
 .colophon p{margin:0 0 .3rem}
+
+/* --- Qur'an: additional fonts --- */
+.body[data-unit="aya"][data-font="scheherazade"] .aya > p[lang="ar"],
+.body[data-unit="aya"][data-font="scheherazade"] .bismillah{
+       font-family:'Scheherazade New','Traditional Arabic',serif;line-height:2.35}
+.body[data-unit="aya"][data-font="nastaliq"] .aya > p[lang="ar"],
+.body[data-unit="aya"][data-font="nastaliq"] .bismillah{
+       font-family:'Noto Nastaliq Urdu','Scheherazade New',serif;
+       line-height:2.8;font-size:clamp(1.15rem,3.5vw,1.45rem)}
+
+/* Mushaf page-break markers */
+.page-mrk{display:flex;align-items:center;gap:.6rem;margin:1.1rem 0 .5rem;
+           color:var(--ink-3);font-size:.7rem;user-select:none;direction:ltr}
+.page-mrk::before,.page-mrk::after{content:'';flex:1;height:1px;background:var(--hair)}
+.page-mrk span{display:flex;align-items:center;justify-content:center;
+               width:1.65rem;height:1.65rem;border-radius:50%;border:1px solid var(--line);
+               background:var(--surface);font-variant-numeric:tabular-nums;
+               flex-shrink:0}
+
+/* vnav: back link + jump + page-view buttons */
+.vnav{flex-wrap:wrap;gap:.4rem}
+.btn-back-suras{display:inline-flex;align-items:center;gap:.3rem;
+                background:transparent;border:1px solid var(--line);border-radius:999px;
+                padding:.28rem .65rem;font:inherit;font-size:.75rem;
+                color:var(--ink-2);text-decoration:none;white-space:nowrap}
+.btn-back-suras:hover{background:var(--tint);color:var(--ink)}
+.btn-qjump,.btn-pgview{background:transparent;border:1px solid var(--line);
+                border-radius:999px;padding:.28rem .55rem;cursor:pointer;
+                color:var(--ink-2);display:inline-flex;align-items:center;line-height:1}
+.btn-qjump:hover,.btn-pgview:hover{background:var(--tint)}
+.btn-pgview[aria-pressed="true"]{background:var(--green);color:var(--on-green);border-color:var(--green)}
+.btn-qjump .ic,.btn-pgview .ic{width:.85rem;height:.85rem;stroke:currentColor;
+                fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Page-by-page navigation bar */
+.pgview-nav{max-width:var(--leaf-w);margin:.5rem auto;display:flex;
+            align-items:center;justify-content:center;gap:.9rem;
+            padding:.4rem .8rem;background:var(--tint);border-radius:8px;
+            border:1px solid var(--line)}
+.pgview-nav button{background:transparent;border:1px solid var(--line);border-radius:6px;
+                   padding:.22rem .7rem;cursor:pointer;font:inherit;font-size:.82rem;color:var(--ink-2)}
+.pgview-nav button:disabled{opacity:.35;cursor:not-allowed}
+.pgview-nav button:not(:disabled):hover{background:var(--green);color:var(--on-green);border-color:var(--green)}
+#pgview-label{font-variant-numeric:tabular-nums;font-size:.82rem;color:var(--ink);
+              min-width:3rem;text-align:center;direction:ltr}
+
+/* Jump modal */
+.qjump{position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:120;
+        display:flex;align-items:center;justify-content:center;padding:1rem}
+.qjump[hidden]{display:none!important}
+.qjump-box{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);
+            width:100%;max-width:26rem;padding:1.2rem 1.3rem 1.3rem;
+            display:flex;flex-direction:column;gap:.85rem}
+.qjump-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.qjump-tabs{display:flex;gap:.3rem}
+.qjump-tab{background:transparent;border:1px solid var(--line);border-radius:999px;
+            padding:.27rem .72rem;font:inherit;font-size:.76rem;cursor:pointer;color:var(--ink-2)}
+.qjump-tab[aria-selected="true"]{background:var(--green);color:var(--on-green);border-color:var(--green)}
+.qjump-close{background:transparent;border:0;color:var(--ink-3);font-size:1rem;
+              cursor:pointer;padding:.2rem .4rem;border-radius:6px;line-height:1}
+.qjump-close:hover{color:var(--ink);background:var(--tint)}
+.qjump-pane{display:flex;flex-direction:column;gap:.5rem}
+.qjump-pane[hidden]{display:none!important}
+.qjump-pane select{width:100%;font:inherit;font-size:.88rem;padding:.42rem .6rem;
+                   border:1px solid var(--line);border-radius:8px;
+                   background:var(--surface);color:var(--ink);cursor:pointer}
+.qjump-go{width:100%;background:var(--green);color:var(--on-green);border:0;
+           border-radius:8px;padding:.55rem;font:inherit;font-size:.9rem;cursor:pointer}
+.qjump-go:hover{opacity:.88}

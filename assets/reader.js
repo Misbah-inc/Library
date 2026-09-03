@@ -38,7 +38,7 @@
           browse:'تصفح', aboutBody:'مكتبة مصباح مشروع لنشر النصوص التراثية على الإنترنت بصيغة '
                  + 'قابلة للإحالة الدقيقة: كل صفحة تحمل رقمها في الطبعة المطبوعة وعنواناً ثابتاً '
                  + 'لا يتغير، ليستطيع الباحث أن يحيل إليها ويثق ببقاء الرابط.',
-          contactBody:'للاقتراحات وتصحيح الأخطاء والمساهمة في المكتبة، يرجى التواصل معنا.', searchVerse:'ابحث في الآيات…', vsNone:'لا نتائج' },
+          contactBody:'للاقتراحات وتصحيح الأخطاء والمساهمة في المكتبة، يرجى التواصل معنا.', searchVerse:'ابحث في الآيات…', vsNone:'لا نتائج', scriptMushaf:'مصحف', scriptIndoPak:'هندي', juz:'الجزء', mushafPage:'الصفحة', allSurahs:'كل السور', goVerse:'انتقل', pageView:'عرض صفحي' },
     fa: { first:'نخست', prev:'صفحه قبل', next:'صفحه بعد', last:'پایان', volumes:'مجلدات', published:'منتشرشده', pickVolume:'انتخاب جلد', otherVolumes:'جلدهای دیگر', volsNote:'جلدهای غیرفعال هنوز منتشر نشده‌اند.', soon:'به‌زودی', citeAr:'برای ارجاع از صفحهٔ عربی استفاده کنید:', machineTr:'ترجمهٔ ماشینی با هوش مصنوعی، بازبینی‌نشده و ممکن است خطا داشته باشد. برای ارجاع به متن عربی استناد کنید.', viewAr:'عربی', viewTr:'ترجمه', viewBoth:'هر دو', viewSide:'دوستونه', verse:'آیه', surah:'سوره', surahs:'سوره‌ها', pickSurah:'انتخاب سوره', script:'خط', scriptUthmani:'امیری', scriptSimple:'ساده', copyVerse:'کپی آیه', copyRef:'ارجاع', copyLink:'پیوند', copyDo:'کپی', ayat:'آیه', meccan:'مکی', medinan:'مدنی', textFrom:'متن از', transFrom:'ترجمه‌ها از', noTr:'این صفحه هنوز ترجمه نشده است؛ متن عربی نمایش داده می‌شود.', draft:'ترجمهٔ اولیه و بازبینی‌نشده.', trBy:'ترجمه', home:'خانه', mylib:'کتابخانهٔ من', search:'جستجو', allBooks:'همهٔ کتاب‌ها',
           contact:'تماس با ما', about:'دربارهٔ ما', menu:'فهرست', close:'بستن',
           chapter:'فصل', chapters:'فصل‌ها', pickChapter:'فصل را انتخاب کنید', translator:'ترجمه', foreword:'مقدمه', author:'نویسنده', viewSrc:'متن اصلی',
@@ -63,7 +63,7 @@
           browse:'مرور', aboutBody:'کتابخانهٔ مصباح پروژه‌ای است برای انتشار متون تراثی بر '
                  + 'بستر وب به شکلی که ارجاع دقیق ممکن باشد: هر صفحه شمارهٔ چاپی خود و نشانی '
                  + 'ثابتی دارد که تغییر نمی‌کند.',
-          contactBody:'برای پیشنهاد، گزارش اشتباه یا همکاری با کتابخانه با ما در تماس باشید.', searchVerse:'جستجو در آیات…', vsNone:'نتیجه‌ای نیافت' },
+          contactBody:'برای پیشنهاد، گزارش اشتباه یا همکاری با کتابخانه با ما در تماس باشید.', searchVerse:'جستجو در آیات…', vsNone:'نتیجه‌ای نیافت', scriptMushaf:'مصحف', scriptIndoPak:'هندی', juz:'جزء', mushafPage:'صفحه', allSurahs:'همهٔ سوره‌ها', goVerse:'برو', pageView:'صفحه‌به‌صفحه' },
     ur: { first:'پہلا', prev:'پچھلا', next:'اگلا', last:'آخری', volumes:'جلدیں', published:'شائع شدہ', pickVolume:'جلد منتخب کریں', otherVolumes:'دیگر جلدیں', volsNote:'غیر فعال جلدیں ابھی شائع نہیں ہوئیں۔', soon:'جلد آ رہا ہے', citeAr:'حوالے کے لیے عربی صفحہ استعمال کریں:', machineTr:'مصنوعی ذہانت سے تیار کردہ مشینی ترجمہ، غیر نظرثانی شدہ اور اس میں غلطیاں ممکن ہیں۔ حوالے کے لیے عربی اصل پر اعتماد کریں۔', viewAr:'عربی', viewTr:'ترجمہ', viewBoth:'دونوں', viewSide:'آمنے سامنے', verse:'آیت', surah:'سورہ', surahs:'سورتیں', pickSurah:'سورہ منتخب کریں', script:'خط', scriptUthmani:'امیری', scriptSimple:'سادہ', copyVerse:'آیت نقل کریں', copyRef:'حوالہ', copyLink:'لنک', copyDo:'نقل', ayat:'آیات', meccan:'مکی', medinan:'مدنی', textFrom:'متن بشکریہ', transFrom:'تراجم بشکریہ', noTr:'اس صفحے کا ترجمہ ابھی نہیں ہوا؛ عربی متن دکھایا جا رہا ہے۔', draft:'ابتدائی، غیر نظرثانی شدہ ترجمہ۔', trBy:'ترجمہ', home:'صفحۂ اول', mylib:'میری لائبریری', search:'تلاش', allBooks:'تمام کتب',
           contact:'رابطہ کریں', about:'ہمارے بارے میں', menu:'مینو', close:'بند کریں',
           chapter:'باب', chapters:'ابواب', pickChapter:'باب منتخب کریں', translator:'ترجمہ', foreword:'مقدمہ', author:'مصنف', viewSrc:'اصل متن',
@@ -88,7 +88,7 @@
           browse:'دیکھیں', aboutBody:'مصباح لائبریری کا مقصد تراثی متون کو ایسے انداز میں '
                  + 'شائع کرنا ہے کہ درست حوالہ ممکن ہو: ہر صفحہ اپنا مطبوعہ نمبر اور ایک '
                  + 'مستقل پتہ رکھتا ہے۔',
-          contactBody:'تجاویز، اغلاط کی نشاندہی یا تعاون کے لیے ہم سے رابطہ کریں۔', searchVerse:'آیات میں تلاش…', vsNone:'کوئی نتیجہ نہیں' },
+          contactBody:'تجاویز، اغلاط کی نشاندہی یا تعاون کے لیے ہم سے رابطہ کریں۔', searchVerse:'آیات میں تلاش…', vsNone:'کوئی نتیجہ نہیں', scriptMushaf:'مصحف', scriptIndoPak:'ہندی', juz:'جزء', mushafPage:'صفحہ', allSurahs:'تمام سورتیں', goVerse:'جاؤ', pageView:'صفحہ بصفحہ' },
     en: { first:'First', prev:'Previous', next:'Next', last:'Last', volumes:'Volumes', published:'Published', pickVolume:'Choose a volume', otherVolumes:'Other volumes', volsNote:'Greyed volumes have not been published yet.', soon:'Coming soon', citeAr:'For citation use the Arabic page:', machineTr:'Machine translation by AI. Not reviewed and may contain errors — cite the Arabic original, not this translation.', viewAr:'Arabic', viewTr:'Translation', viewBoth:'Both', viewSide:'Side by side', verse:'Verse', surah:'Surah', surahs:'Surahs', pickSurah:'Choose a surah', script:'Script', scriptUthmani:'Amiri', scriptSimple:'Simple', copyVerse:'Copy verse', copyRef:'Reference', copyLink:'Link', copyDo:'Copy', ayat:'ayat', meccan:'Meccan', medinan:'Medinan', textFrom:'Text from', transFrom:'translations via', noTr:'This page has not been translated yet; the Arabic text is shown.', draft:'Draft translation, not yet reviewed.', trBy:'Translation', home:'Home', mylib:'My library', search:'Search', allBooks:'All books',
           contact:'Contact us', about:'About us', menu:'Menu', close:'Close',
           chapter:'Chapter', chapters:'Chapters', pickChapter:'Choose a chapter', translator:'Translation', foreword:'Foreword', author:'Author', viewSrc:'Original',
@@ -117,7 +117,7 @@
                  + 'and a permanent address that does not change, so a reference made today still '
                  + 'resolves years from now.',
           contactBody:'For suggestions, corrections, or to contribute to the library, '
-                    + 'please get in touch.', searchVerse:'Search verses…', vsNone:'No match' }
+                    + 'please get in touch.', searchVerse:'Search verses…', vsNone:'No match', scriptMushaf:'Mushaf', scriptIndoPak:'IndoPak', juz:'Juz', mushafPage:'Page', allSurahs:'All Surahs', goVerse:'Go', pageView:'Page view' }
   };
   var RTL = { ar: 1, fa: 1, ur: 1 };
   var DIGITS = { ar: '٠١٢٣٤٥٦٧٨٩', fa: '۰۱۲۳۴۵۶۷۸۹', ur: '۰۱۲۳۴۵۶۷۸۹', en: '0123456789' };

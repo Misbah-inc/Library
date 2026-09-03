@@ -27,7 +27,7 @@ import argparse, html, json, os, pathlib, re, sys
 import xml.etree.ElementTree as ET
 
 SITE = "https://library.misbah-inc.com"
-ASSETS_V = "3"   # bump when reader.css/js change, to break browser caches
+ASSETS_V = "4"   # bump when reader.css/js change, to break browser caches
 SRC = pathlib.Path(__file__).parent / "quran-source"
 
 # translations available per language; a language may carry more than one
@@ -110,7 +110,9 @@ def read_meta(root):
            for j in root.findall(".//juz")]
     sajda = {(int(x.get("sura")), int(x.get("aya"))): x.get("type")
              for x in root.findall(".//sajda")}
-    return suras, juz, sajda
+    pages = [(int(p.get("index")), int(p.get("sura")), int(p.get("aya")))
+             for p in root.findall(".//page")]
+    return suras, juz, sajda, pages
 
 
 def esc(s):
@@ -126,23 +128,70 @@ def abs_url(lang, n):
 # for, so the marks collide. Amiri Quran is drawn for exactly this; Noto Naskh
 # is the plainer alternative for easier sustained reading.
 FONT_PICKER = ('<span class="fontpick"><span class="lbl" data-i18n="script"></span>'
-               '<button data-font="uthmani" aria-pressed="true" '
-               'data-i18n="scriptUthmani"></button>'
-               '<button data-font="simple" aria-pressed="false" '
-               'data-i18n="scriptSimple"></button></span>')
+               '<button data-font="uthmani" aria-pressed="true" data-i18n="scriptUthmani"></button>'
+               '<button data-font="scheherazade" aria-pressed="false" data-i18n="scriptMushaf"></button>'
+               '<button data-font="nastaliq" aria-pressed="false" data-i18n="scriptIndoPak"></button>'
+               '<button data-font="simple" aria-pressed="false" data-i18n="scriptSimple"></button>'
+               '</span>')
 
 FONT_LINKS = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
               '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
               '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?'
-              'family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;500&display=swap">')
+              'family=Amiri+Quran&family=Scheherazade+New:wght@400;700'
+              '&family=Noto+Nastaliq+Urdu:wght@400;700'
+              '&family=Noto+Naskh+Arabic:wght@400;500&display=swap">')
 
 
-def build(n, lang, meta, ar_text, translations, alts, total=114):
+def verse_pages_for_surah(n, ayas, all_pages):
+    """Return {aya: mushaf_page_num} for every verse in surah n."""
+    pg_starts = {}
+    first_page = 1
+    for pg_num, pg_sura, pg_aya in sorted(all_pages, key=lambda x: (x[1], x[2])):
+        if pg_sura < n or (pg_sura == n and pg_aya == 1):
+            first_page = pg_num
+        if pg_sura == n:
+            pg_starts[pg_aya] = pg_num
+    result = {}
+    curr = first_page
+    for a in range(1, ayas + 1):
+        if a in pg_starts:
+            curr = pg_starts[a]
+        result[a] = curr
+    return result
+
+
+def build_toc(meta, total=114):
+    """Return JSON string for quran/assets/toc.json (used by Contents button)."""
+    items = [{"href": f"quran/{i}/", "title": meta[i]["name"], "p": i,
+              "en": meta[i]["ename"]} for i in range(1, total + 1)]
+    return json.dumps(items, ensure_ascii=False, separators=(",", ":"))
+
+
+def build_qnav(meta, juz, pages, total=114):
+    """Return JSON string for quran/assets/qnav.json (used by jump modal)."""
+    suras_arr = [None] + [[meta[i]["name"], meta[i]["ayas"]] for i in range(1, total + 1)]
+    juz_arr   = [None] + [[j[1], j[2]] for j in sorted(juz,   key=lambda x: x[0])]
+    pages_arr = [None] + [[p[1], p[2]] for p in sorted(pages, key=lambda x: x[0])]
+    return json.dumps({"suras": suras_arr, "juz": juz_arr, "pages": pages_arr},
+                      ensure_ascii=False, separators=(",", ":"))
+
+
+def build(n, lang, meta, ar_text, translations, alts, juz=None, pages=None, total=114):
     L = LANGS[lang]
     R = L["depth"]
     m = meta[n]
     ayas = m["ayas"]
     is_ar = (lang == "ar")
+
+    # Paths for qnav assets (relative to this surah page)
+    # Arabic pages: quran/{n}/  →  ../assets/
+    # Translated:   fa/quran/{n}/  →  ../../../quran/assets/
+    qnav_base = "../assets/" if is_ar else R + "/quran/assets/"
+    qnav_src  = "../assets/qnav.js" if is_ar else R + "/quran/assets/qnav.js"
+    back_url  = "../"            if is_ar else R + "/quran/"
+
+    # Compute verse→Mushaf-page mapping (empty if no page data)
+    vpm = verse_pages_for_surah(n, ayas, pages) if pages else {}
 
     # ---- body -------------------------------------------------------------
     parts = []
@@ -150,14 +199,22 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
         parts.append(f'<p class="bismillah" lang="ar">{BASMALA}</p>')
 
     vl = VERSE_LABEL.get(lang, 'Verse')
+    prev_page = None
     for a in range(1, ayas + 1):
+        pg = vpm.get(a)
+        # Insert a Mushaf page-break marker whenever the page changes
+        if pg is not None and pg != prev_page:
+            parts.append(f'<div class="page-mrk" data-page="{pg}">'
+                         f'<span>{ar_num(pg)}</span></div>')
+            prev_page = pg
+        pg_attr = f' data-page="{pg}"' if pg is not None else ''
         rows = [f'<p lang="ar" data-i="{a-1}">{ar_text[n][a]}'
                 f'<span class="aya-n">۝{ar_num(a)}</span></p>']
         for t in translations:
             rows.append(
                 f'<p class="tr-line" lang="{lang}" data-tr="{t["id"]}">'
                 f'<span class="aya-b">{a}</span>{t["text"][n][a]}</p>')
-        parts.append(f'<div class="aya" id="a{a}" data-ref="{n}:{a}"'
+        parts.append(f'<div class="aya" id="a{a}" data-ref="{n}:{a}"{pg_attr}'
                      f' role="group" aria-label="{vl} {loc_num(a, lang)}">'
                      + "".join(rows)
                      + f'<button class="aya-copy" data-copy="{a}" '
@@ -220,6 +277,36 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
     vpick = (f'<span class="vpick"><span class="lbl" data-i18n="verse"></span>'
              f'<select id="vsel" data-i18n-label="verse">{opts}</select></span>')
 
+    # Jump-to button (opens the 3-tab modal from qnav.js)
+    jump_btn = ('<button class="btn-qjump" id="btn-qjump" type="button" '
+                'data-i18n-label="contents">'
+                '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'
+                '<path d="M4 6h16M4 12h10M4 18h14"/>'
+                '<circle cx="19" cy="12" r="3"/><path d="M22 15l-2 3"/></svg>'
+                '</button>')
+
+    # Page-by-page view toggle
+    pgview_btn = ('<button class="btn-pgview" id="btn-pgview" type="button" '
+                  'aria-pressed="false" data-i18n-label="pageView">'
+                  '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'
+                  '<rect x="3" y="3" width="18" height="18" rx="1.5"/>'
+                  '<path d="M3 9h18M9 3v18"/></svg>'
+                  '</button>')
+
+    vnav_html = (f'<nav class="vnav">'
+                 f'<a class="btn-back-suras" href="{back_url}" data-i18n="allSurahs">←</a>'
+                 f'{vpick}{jump_btn}{pgview_btn}'
+                 f'</nav>'
+                 f'<div class="pgview-nav" id="pgview-nav" hidden>'
+                 f'<button id="pgview-prev">&#8249;</button>'
+                 f'<span id="pgview-label"></span>'
+                 f'<button id="pgview-next">&#8250;</button>'
+                 f'</div>')
+
+    # Inline script that passes the current surah number and asset base path to qnav.js
+    qnav_cfg = json.dumps({"n": n, "base": qnav_base}, ensure_ascii=False, separators=(",", ":"))
+    qnav_inline = f'<script>window.QNAV={qnav_cfg};</script>'
+
     credit = ""
 
     return f'''<!DOCTYPE html>
@@ -260,7 +347,7 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
       </header>
       {tr_bar}
       <div class="vsearch" id="vsearch" role="search"><input type="search" id="vsearch-q" autocomplete="off"><span class="vsearch-count" id="vsearch-count" aria-live="polite" aria-atomic="true"></span><button class="vsearch-clear" id="vsearch-clear" hidden aria-label="clear">✕</button><button class="vsearch-btn" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg><span data-i18n="search">جستجو</span></button></div>
-      <nav class="vnav">{vpick}</nav>
+      {vnav_html}
       <div class="body" data-tr-static="1" data-unit="aya" data-font="uthmani">{body}</div>
       {credit}
     </div>
@@ -301,7 +388,9 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
     <li><a href="{R}/contact/" data-i18n="contact"></a></li>
   </ul></div>
 </div></footer>
+{qnav_inline}
 <script src="{R}/assets/reader.js?v={ASSETS_V}" defer></script>
+<script src="{qnav_src}?v={ASSETS_V}" defer></script>
 </body>
 </html>
 '''
@@ -455,7 +544,7 @@ def main():
     if a.lang not in alts:
         sys.exit(f"--alts must include {a.lang}; hreflang sets are self-referential")
 
-    meta, juz, sajda = read_meta(load(src / "quran-data.xml"))
+    meta, juz, sajda, pages = read_meta(load(src / "quran-data.xml"))
     ar_text = read_text(load(src / "quran-uthmani.xml"))
 
     global BASMALA
@@ -484,7 +573,18 @@ def main():
         d = out / str(n)
         d.mkdir(parents=True, exist_ok=True)
         (d / "index.html").write_text(
-            build(n, a.lang, meta, ar_text, translations, alts), encoding="utf-8")
+            build(n, a.lang, meta, ar_text, translations, alts,
+                  juz=juz, pages=pages), encoding="utf-8")
+
+    # When building Arabic pages, also write the shared JSON assets for the
+    # Contents button (toc.json) and the jump modal (qnav.json).
+    if a.lang == "ar":
+        assets = out / "assets"
+        assets.mkdir(parents=True, exist_ok=True)
+        (assets / "toc.json").write_text(build_toc(meta), encoding="utf-8")
+        (assets / "qnav.json").write_text(build_qnav(meta, juz, pages), encoding="utf-8")
+        print(f"assets -> {assets}/toc.json  qnav.json")
+
     print(f"{len(list(todo))} surah pages -> {out}  (lang={a.lang}, "
           f"translations={[t['id'] for t in translations] or 'none'})")
 

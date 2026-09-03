@@ -4,6 +4,51 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-03 (session 8)
+
+### Feature — Quran reader: 6 new features
+
+1. **Contents button fixed** — Created `quran/assets/toc.json` with all 114 surahs. The
+   Contents drawer (⟰ button in the header) now loads and lists every surah for in-surah
+   navigation. Works for all 4 languages via reader.js's existing BOOK-path fix.
+
+2. **Back to all surahs link** — Each surah page now has an "All Surahs" link (→ index)
+   in the verse-navigation bar, pointing to `quran/index.html` from any language variant.
+
+3. **Jump modal** — A new `↕` icon button next to the verse picker opens a 3-tab modal:
+   - **Surah** tab: choose surah + verse, navigate directly
+   - **Juz** tab: choose 1–30, navigates to the juz's opening verse
+   - **Page** tab: choose 1–604 Mushaf page, navigates to that page's first verse
+   Navigation across surahs uses relative URLs so it works for all 4 languages.
+   Shared JS logic lives in `quran/assets/qnav.js`; data in `quran/assets/qnav.json`.
+
+4. **Mushaf page numbers** — Each surah page now shows a page-break marker (circled
+   Arabic numeral, flanked by hairlines) before the first verse of each new Mushaf page.
+   Verse divs carry `data-page="N"` for JS access. Data derived from `quran-data.xml`.
+
+5. **Page-by-page view** — A new grid-icon button toggles "page view" mode: only the
+   verses belonging to the current Mushaf page are shown. Prev/Next buttons navigate
+   between pages; crossing a surah boundary follows the URL to the adjacent surah.
+
+6. **Font picker expanded to 4 options:**
+   - Amiri (عثماني) — existing Uthmani script
+   - Scheherazade New (مصحف) — traditional Mushaf print style
+   - Noto Nastaliq Urdu (هندی/IndoPak) — Nastaliq calligraphic style
+   - Noto Naskh Arabic (بسیط) — simple reading face
+
+   Font choice is persisted in localStorage and applies across all surah pages.
+
+**What changed:**
+- `assets/reader.js` — added 7 i18n keys to all 4 language tables (`scriptMushaf`, `scriptIndoPak`, `juz`, `mushafPage`, `allSurahs`, `goVerse`, `pageView`)
+- `assets/reader.css` — added font rules for `scheherazade`/`nastaliq`, page-break marker styles, vnav button styles, jump-modal styles, page-view nav styles; bumped asset version to `4`
+- `_translation-kit/quran_build.py` — `read_meta()` now returns page boundaries; added `verse_pages_for_surah()`, `build_toc()`, `build_qnav()` helpers; `FONT_PICKER` expanded to 4 buttons; `FONT_LINKS` adds Scheherazade New + Noto Nastaliq Urdu; `build()` now injects page-break markers, vnav with back link + jump + page-view buttons, and `window.QNAV` config script; `main()` writes `toc.json` + `qnav.json`; `ASSETS_V` bumped to `4`
+- `quran/assets/qnav.js` — new shared JS: jump modal + page-by-page view logic
+- `quran/assets/toc.json` — new: 114-entry TOC for Contents button
+- `quran/assets/qnav.json` — new: surah names/ayat counts, juz + page boundaries (604 pages)
+- `quran/1–114/index.html`, `fa/quran/1–114/`, `ur/quran/1–114/`, `en/quran/1–114/` — all 456 pages rebuilt
+
+---
+
 ## 2026-09-02 (session 7, part 2)
 
 ### Feature — All 114 Quran surahs built in all 4 languages
