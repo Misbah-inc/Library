@@ -598,71 +598,119 @@ a.sura-cell:hover,a.chap-cell:hover{border-color:var(--gold);background:var(--ti
       color:var(--ink-3);line-height:1.95;text-align:start}
 .colophon p{margin:0 0 .3rem}
 
-/* --- Qur'an: additional fonts --- */
+/* ================= Qur'an: reading controls ================= */
+
+/* Additional Arabic faces. 'nastaliq' was retired — Nastaliq breaks Uthmani
+   mark placement badly. 'amiri' is the self-hosted face declared at the top
+   of this file, so it needs no network font. */
 .body[data-unit="aya"][data-font="scheherazade"] .aya > p[lang="ar"],
 .body[data-unit="aya"][data-font="scheherazade"] .bismillah{
        font-family:'Scheherazade New','Traditional Arabic',serif;line-height:2.35}
-.body[data-unit="aya"][data-font="nastaliq"] .aya > p[lang="ar"],
-.body[data-unit="aya"][data-font="nastaliq"] .bismillah{
-       font-family:'Noto Nastaliq Urdu','Scheherazade New',serif;
-       line-height:2.8;font-size:clamp(1.15rem,3.5vw,1.45rem)}
+.body[data-unit="aya"][data-font="amiri"] .aya > p[lang="ar"],
+.body[data-unit="aya"][data-font="amiri"] .bismillah{
+       font-family:'Amiri','Traditional Arabic',serif;line-height:2.25}
 
-/* Mushaf page-break markers */
-.page-mrk{display:flex;align-items:center;gap:.6rem;margin:1.1rem 0 .5rem;
-           color:var(--ink-3);font-size:.7rem;user-select:none;direction:ltr}
-.page-mrk::before,.page-mrk::after{content:'';flex:1;height:1px;background:var(--hair)}
+/* [hidden] guards. Every block below sets `display`, which beats the UA's
+   [hidden]{display:none} — without these the element stays on screen. */
+.aya[hidden],.page-mrk[hidden],.pgview-nav[hidden],.bismillah[hidden],
+.tr-group[hidden],.qjump[hidden],.qjump-pane[hidden]{display:none!important}
+
+/* Mushaf page break. Deliberately gold and double-ruled so it never reads as
+   the plain grey hairline that divides one verse from the next. */
+.page-mrk{display:flex;align-items:center;gap:.75rem;margin:2rem 0 1.4rem;
+          direction:ltr;user-select:none}
+.page-mrk::before,.page-mrk::after{content:'';flex:1;height:3px;opacity:.5;
+          border-top:1px solid var(--gold-2);border-bottom:1px solid var(--gold-2)}
 .page-mrk span{display:flex;align-items:center;justify-content:center;
-               width:1.65rem;height:1.65rem;border-radius:50%;border:1px solid var(--line);
-               background:var(--surface);font-variant-numeric:tabular-nums;
-               flex-shrink:0}
+          min-width:2.15rem;height:2.15rem;padding:0 .5rem;border-radius:999px;
+          border:1px solid var(--gold-2);color:var(--gold-2);background:var(--leaf);
+          font-size:.8rem;font-variant-numeric:tabular-nums;flex-shrink:0}
 
-/* vnav: back link + jump + page-view buttons */
-.vnav{flex-wrap:wrap;gap:.4rem}
-.btn-back-suras{display:inline-flex;align-items:center;gap:.3rem;
-                background:transparent;border:1px solid var(--line);border-radius:999px;
-                padding:.28rem .65rem;font:inherit;font-size:.75rem;
-                color:var(--ink-2);text-decoration:none;white-space:nowrap}
-.btn-back-suras:hover{background:var(--tint);color:var(--ink)}
-.btn-qjump,.btn-pgview{background:transparent;border:1px solid var(--line);
-                border-radius:999px;padding:.28rem .55rem;cursor:pointer;
-                color:var(--ink-2);display:inline-flex;align-items:center;line-height:1}
-.btn-qjump:hover,.btn-pgview:hover{background:var(--tint)}
-.btn-pgview[aria-pressed="true"]{background:var(--green);color:var(--on-green);border-color:var(--green)}
-.btn-qjump .ic,.btn-pgview .ic{width:.85rem;height:.85rem;stroke:currentColor;
-                fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* Breadcrumb back to the surah index, above the surah banner */
+.sura-back{display:inline-flex;align-items:center;gap:.35rem;margin:0 0 .85rem;
+       font-size:.78rem;color:var(--ink-2);text-decoration:none;
+       border-bottom:1px solid transparent}
+.sura-back:hover{color:var(--gold-2);border-bottom-color:var(--gold-2)}
+.sura-back .ic{width:.85rem;height:.85rem;stroke:currentColor;fill:none;
+       stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-/* Page-by-page navigation bar */
-.pgview-nav{max-width:var(--leaf-w);margin:.5rem auto;display:flex;
-            align-items:center;justify-content:center;gap:.9rem;
-            padding:.4rem .8rem;background:var(--tint);border-radius:8px;
-            border:1px solid var(--line)}
-.pgview-nav button{background:transparent;border:1px solid var(--line);border-radius:6px;
-                   padding:.22rem .7rem;cursor:pointer;font:inherit;font-size:.82rem;color:var(--ink-2)}
-.pgview-nav button:disabled{opacity:.35;cursor:not-allowed}
-.pgview-nav button:not(:disabled):hover{background:var(--green);color:var(--on-green);border-color:var(--green)}
-#pgview-label{font-variant-numeric:tabular-nums;font-size:.82rem;color:var(--ink);
-              min-width:3rem;text-align:center;direction:ltr}
+/* Labelled control groups inside the control bar */
+.tr-group{display:flex;align-items:center;gap:.42rem}
+.tr-group > .lbl{font-size:.6rem;letter-spacing:.09em;text-transform:uppercase;
+       color:var(--ink-3);white-space:nowrap}
+.segbtns{display:flex;gap:.22rem;flex-wrap:wrap}
+.segbtns button{font:inherit;font-size:.73rem;border:1px solid var(--line);
+       background:var(--surface);color:var(--ink-2);border-radius:999px;
+       padding:.24rem .68rem;cursor:pointer;white-space:nowrap}
+.segbtns button:hover{border-color:var(--gold)}
+.segbtns button[aria-pressed="true"]{background:var(--green);color:var(--on-green);
+       border-color:var(--green)}
 
-/* Jump modal */
-.qjump{position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:120;
-        display:flex;align-items:center;justify-content:center;padding:1rem}
-.qjump[hidden]{display:none!important}
-.qjump-box{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);
-            width:100%;max-width:26rem;padding:1.2rem 1.3rem 1.3rem;
-            display:flex;flex-direction:column;gap:.85rem}
+/* Verse-navigation bar: "Go to…" plus the paging choice */
+.vnav{max-width:var(--leaf-w);margin:.8rem auto 0;display:flex;flex-wrap:wrap;
+      align-items:center;justify-content:center;gap:.9rem}
+.btn-goto{display:inline-flex;align-items:center;gap:.4rem;background:var(--surface);
+      border:1px solid var(--line);border-radius:999px;padding:.42rem 1rem;
+      font:inherit;font-size:.8rem;color:var(--ink);cursor:pointer;white-space:nowrap}
+.btn-goto:hover{border-color:var(--gold);background:var(--tint)}
+.btn-goto .ic{width:.9rem;height:.9rem;stroke:currentColor;fill:none;stroke-width:2;
+      stroke-linecap:round;stroke-linejoin:round}
+
+/* Page-by-page navigation strip */
+.pgview-nav{max-width:var(--leaf-w);margin:.75rem auto 0;display:flex;
+      align-items:center;justify-content:center;gap:1rem;padding:.55rem .9rem;
+      background:var(--tint);border:1px solid var(--line);border-radius:8px}
+.pgview-nav button{background:var(--surface);border:1px solid var(--line);
+      border-radius:999px;padding:.3rem .9rem;cursor:pointer;font:inherit;
+      font-size:.78rem;color:var(--ink-2);white-space:nowrap}
+.pgview-nav button:disabled{opacity:.32;cursor:not-allowed}
+.pgview-nav button:not(:disabled):hover{background:var(--green);color:var(--on-green);
+      border-color:var(--green)}
+.pgview-pos{font-size:.8rem;color:var(--ink);white-space:nowrap;text-align:center}
+.pgview-pos b{font-variant-numeric:tabular-nums;color:var(--gold-2);font-weight:700}
+
+/* Quick-access jump modal */
+.qjump{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:120;
+       display:flex;align-items:center;justify-content:center;padding:1rem}
+.qjump-box{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);
+       width:100%;max-width:27rem;padding:1.15rem 1.25rem 1.35rem;
+       display:flex;flex-direction:column;gap:1rem}
 .qjump-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
-.qjump-tabs{display:flex;gap:.3rem}
-.qjump-tab{background:transparent;border:1px solid var(--line);border-radius:999px;
-            padding:.27rem .72rem;font:inherit;font-size:.76rem;cursor:pointer;color:var(--ink-2)}
-.qjump-tab[aria-selected="true"]{background:var(--green);color:var(--on-green);border-color:var(--green)}
-.qjump-close{background:transparent;border:0;color:var(--ink-3);font-size:1rem;
-              cursor:pointer;padding:.2rem .4rem;border-radius:6px;line-height:1}
+.qjump-title{font-size:.95rem;color:var(--gold-2);font-weight:700;margin:0}
+.qjump-close{background:transparent;border:0;color:var(--ink-3);font-size:1.05rem;
+       cursor:pointer;padding:.2rem .45rem;border-radius:6px;line-height:1}
 .qjump-close:hover{color:var(--ink);background:var(--tint)}
-.qjump-pane{display:flex;flex-direction:column;gap:.5rem}
-.qjump-pane[hidden]{display:none!important}
-.qjump-pane select{width:100%;font:inherit;font-size:.88rem;padding:.42rem .6rem;
-                   border:1px solid var(--line);border-radius:8px;
-                   background:var(--surface);color:var(--ink);cursor:pointer}
+.qjump-lbl{font-size:.64rem;letter-spacing:.09em;text-transform:uppercase;
+       color:var(--ink-3);display:block;margin-bottom:.35rem}
+.qjump-tabs{display:grid;grid-template-columns:repeat(3,1fr);
+       border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.qjump-tab{background:var(--surface);border:0;padding:.46rem .5rem;font:inherit;
+       font-size:.8rem;cursor:pointer;color:var(--ink-2)}
+.qjump-tab:hover{background:var(--tint)}
+.qjump-tab[aria-selected="true"]{background:var(--gold);color:var(--green);font-weight:700}
+.qjump-fields{display:flex;gap:.7rem}
+.qjump-field{flex:1;min-width:0}
+.qjump-pane select{width:100%;font:inherit;font-size:.9rem;padding:.5rem .6rem;
+       border:1px solid var(--line);border-radius:9px;background:var(--surface);
+       color:var(--ink);cursor:pointer}
 .qjump-go{width:100%;background:var(--green);color:var(--on-green);border:0;
-           border-radius:8px;padding:.55rem;font:inherit;font-size:.9rem;cursor:pointer}
-.qjump-go:hover{opacity:.88}
+       border-radius:9px;padding:.62rem;font:inherit;font-size:.92rem;
+       font-weight:700;cursor:pointer}
+.qjump-go:hover{opacity:.9}
+
+/* Mushaf layout — the Arabic runs on continuously, as on a printed page.
+   Verse blocks become inline so the text flows and justifies; the ۝ marker
+   that already ends each verse does the work the block break used to. */
+.body.m-mushaf{max-width:var(--leaf-w);margin-inline:auto;direction:rtl;
+       text-align:justify;text-align-last:center;
+       border:1px solid var(--gold-2);border-radius:6px;
+       padding:1.7rem 1.5rem;background:var(--leaf)}
+.body.m-mushaf .aya{display:inline;border:0;padding:0}
+.body.m-mushaf .aya:target{background:var(--tint);box-shadow:none;border-radius:4px}
+.body.m-mushaf .aya > p[lang="ar"]{display:inline;line-height:2.5;
+       font-size:clamp(1.35rem,4.2vw,1.7rem)}
+.body.m-mushaf .aya > .tr-line{display:none}
+.body.m-mushaf .aya-copy{display:none}
+.body.m-mushaf .bismillah{display:block;margin:0 0 1.3rem}
+.body.m-mushaf .page-mrk{margin:1.5rem 0}
+@media (max-width:640px){.body.m-mushaf{padding:1.1rem .9rem}}

@@ -1,220 +1,242 @@
-/* qnav.js — Qur'an surah-page navigation: jump modal + page-by-page view.
-   Loaded on every Arabic and translated Qur'an surah page.
-   Each page sets window.QNAV = { n: <surah_num>, base: "<path_to_quran/assets/>" }
-   before this script runs. */
+/* qnav.js — Qur'an quick access and page-by-page reading.
+   Runs on the surah pages and on the /quran/ cover.
+
+   The dialog's markup is emitted by quran_build.py into the page itself, not
+   built here, so reader.js's applyLang() fills its labels and refills them when
+   the reader switches language. This file only wires behaviour.
+
+   The page sets, before this script runs:
+     window.QNAV = { n: <surah number, 0 on the cover>,
+                     base: "<relative path to quran/assets/>",
+                     index: true on the cover }                                 */
 (function () {
   var cfg = window.QNAV;
-  if (!cfg || !cfg.n || !cfg.base) return;
-  var N = cfg.n;
+  if (!cfg) return;
 
-  /* ---------- inject modal HTML (static, filled by reader.js i18n) ---------- */
-  var wrap = document.createElement('div');
-  wrap.innerHTML =
-    '<div id="qjump" class="qjump" hidden role="dialog" aria-modal="true">' +
-    '<div class="qjump-box">' +
-    '<div class="qjump-head">' +
-    '<div class="qjump-tabs">' +
-    '<button class="qjump-tab" data-tab="sura" aria-selected="true" data-i18n="surah"></button>' +
-    '<button class="qjump-tab" data-tab="juz" aria-selected="false" data-i18n="juz"></button>' +
-    '<button class="qjump-tab" data-tab="page" aria-selected="false" data-i18n="mushafPage"></button>' +
-    '</div>' +
-    '<button id="qjump-close" class="qjump-close" data-i18n-label="close">✕</button>' +
-    '</div>' +
-    '<div class="qjump-pane" data-pane="sura">' +
-    '<select id="qj-sura"></select>' +
-    '<select id="qj-aya"></select>' +
-    '</div>' +
-    '<div class="qjump-pane" data-pane="juz" hidden>' +
-    '<select id="qj-juz"></select>' +
-    '</div>' +
-    '<div class="qjump-pane" data-pane="page" hidden>' +
-    '<select id="qj-pg"></select>' +
-    '</div>' +
-    '<button id="qjump-go" class="qjump-go" data-i18n="goVerse"></button>' +
-    '</div></div>';
-  document.body.appendChild(wrap.firstChild);
+  var N        = cfg.n | 0;
+  var IS_INDEX = !!cfg.index;
+  var LAST_PAGE = 604;
+
+  var store = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+  var DIG = { ar: '٠١٢٣٤٥٦٧٨٩', fa: '۰۱۲۳۴۵۶۷۸۹', ur: '۰۱۲۳۴۵۶۷۸۹', en: '0123456789' };
+  function lang() { return document.documentElement.getAttribute('data-lang') || 'ar'; }
+  function num(v) {
+    var d = DIG[lang()] || DIG.ar;
+    return String(v).replace(/\d/g, function (c) { return d[+c]; });
+  }
+  function all(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
 
   var jmod = document.getElementById('qjump');
 
-  /* ---------- open / close ---------- */
+  /* ------------------------- dialog open / close ------------------------- */
   function openMod() { if (jmod) jmod.hidden = false; }
   function closeMod() { if (jmod) jmod.hidden = true; }
 
   var openBtn = document.getElementById('btn-qjump');
   if (openBtn) openBtn.addEventListener('click', openMod);
-
   var closeBtn = document.getElementById('qjump-close');
   if (closeBtn) closeBtn.addEventListener('click', closeMod);
+  if (jmod) jmod.addEventListener('click', function (e) { if (e.target === jmod) closeMod(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && jmod && !jmod.hidden) closeMod();
+  });
 
-  if (jmod) {
-    jmod.addEventListener('click', function (e) { if (e.target === jmod) closeMod(); });
-    jmod.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMod(); });
+  /* tabs switch even before the data lands, so the dialog never looks stuck */
+  all('.qjump-tab').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var name = b.getAttribute('data-tab');
+      all('.qjump-tab').forEach(function (x) {
+        x.setAttribute('aria-selected', String(x.getAttribute('data-tab') === name));
+      });
+      all('.qjump-pane').forEach(function (p) {
+        p.hidden = p.getAttribute('data-pane') !== name;
+      });
+    });
+  });
+
+  /* ------------------- page-by-page: DOM only, no fetch ------------------- */
+  var ayas  = all('.aya[data-page]');
+  var marks = all('.page-mrk[data-page]');
+  var basm  = all('.bismillah[data-page]');
+  var pageable = ayas.concat(marks, basm);
+
+  /* the Mushaf pages this surah actually occupies, ascending */
+  var myPages = [];
+  ayas.forEach(function (a) {
+    var p = parseInt(a.getAttribute('data-page'), 10);
+    if (p && myPages.indexOf(p) === -1) myPages.push(p);
+  });
+  myPages.sort(function (x, y) { return x - y; });
+
+  var DATA = null;                 /* qnav.json, once it arrives */
+  var pagingOn = false;
+  var curPg = myPages.length ? myPages[0] : 1;
+
+  var nav   = document.getElementById('pgview-nav');
+  var lbl   = document.getElementById('pgview-label');
+  var prevB = document.getElementById('pgview-prev');
+  var nextB = document.getElementById('pgview-next');
+
+  /* A neighbouring page is reachable if it is part of this surah, or if the
+     data tells us which surah to follow it into. */
+  function canStep(pg) {
+    if (pg < 1 || pg > LAST_PAGE) return false;
+    if (myPages.indexOf(pg) !== -1) return true;
+    return !!(DATA && DATA.pages && DATA.pages[pg]);
+  }
+  function showPage(pg) {
+    curPg = pg;
+    pageable.forEach(function (el) {
+      el.hidden = parseInt(el.getAttribute('data-page'), 10) !== pg;
+    });
+    if (lbl) lbl.textContent = num(pg);
+    if (prevB) prevB.disabled = !canStep(pg - 1);
+    if (nextB) nextB.disabled = !canStep(pg + 1);
+  }
+  function showEverything() {
+    pageable.forEach(function (el) { el.hidden = false; });
+  }
+  function step(pg) {
+    if (!canStep(pg)) return;
+    if (myPages.indexOf(pg) !== -1) { showPage(pg); return; }
+    var t = DATA.pages[pg];        /* page opens in another surah — follow it */
+    location.href = '../' + t[0] + '/#a' + t[1];
+  }
+  function setPaging(mode) {
+    pagingOn = (mode === 'page');
+    store.set('qpaging', mode);
+    all('.pagepick button').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-paging') === mode));
+    });
+    if (nav) nav.hidden = !pagingOn;
+    if (pagingOn) showPage(curPg); else showEverything();
   }
 
-  /* ---------- fetch shared data then initialise ---------- */
-  fetch(cfg.base + 'qnav.json')
-    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-    .then(function (D) { D.n = N; initData(D); })
-    .catch(function () {});
+  if (ayas.length && all('.pagepick button').length) {
+    all('.pagepick button').forEach(function (b) {
+      b.addEventListener('click', function () { setPaging(b.getAttribute('data-paging')); });
+    });
+    if (prevB) prevB.addEventListener('click', function () { step(curPg - 1); });
+    if (nextB) nextB.addEventListener('click', function () { step(curPg + 1); });
 
-  function initData(D) {
+    /* arriving on #a<n>, open on the page that verse sits on */
+    var h = /^#a(\d+)$/.exec(location.hash || '');
+    if (h) {
+      var at = document.getElementById('a' + h[1]);
+      var ap = at && parseInt(at.getAttribute('data-page'), 10);
+      if (ap) curPg = ap;
+    }
+    setPaging(store.get('qpaging') === 'page' ? 'page' : 'all');
+  }
+
+  /* ------------------------- shared navigation data ------------------------- */
+  var goWired = false;
+
+  function fillModal(D) {
     var sSura = document.getElementById('qj-sura');
     var sAya  = document.getElementById('qj-aya');
     var sJuz  = document.getElementById('qj-juz');
     var sPg   = document.getElementById('qj-pg');
+    if (!sSura || !sAya || !sJuz || !sPg) return;
 
-    /* surah select */
-    if (sSura) {
-      D.suras.forEach(function (s, i) {
-        if (!s) return;
-        var o = document.createElement('option');
-        o.value = i;
-        o.textContent = i + '. ' + s[0];
-        if (i === D.n) o.selected = true;
-        sSura.appendChild(o);
-      });
+    function opt(sel, value, text, chosen) {
+      var o = document.createElement('option');
+      o.value = value; o.textContent = text;
+      if (chosen) o.selected = true;
+      sel.appendChild(o);
     }
-
-    /* verse select */
-    function fillAya(sn) {
-      if (!sAya) return;
+    function fillAya(sn, keep) {
       sAya.innerHTML = '';
-      var c = D.suras[sn] ? D.suras[sn][1] : 1;
-      for (var a = 1; a <= c; a++) {
-        var o = document.createElement('option');
-        o.value = a; o.textContent = a;
-        sAya.appendChild(o);
-      }
+      var c = (D.suras[sn] && D.suras[sn][1]) || 1;
+      for (var a = 1; a <= c; a++) opt(sAya, a, num(a), a === keep);
     }
-    fillAya(D.n);
-    if (sSura) sSura.addEventListener('change', function () {
-      fillAya(parseInt(sSura.value, 10));
+
+    /* rebuilt wholesale, so this is also the language-change refresh */
+    var keptSura = parseInt(sSura.value, 10) || N || 1;
+    var keptAya  = parseInt(sAya.value, 10) || 1;
+    sSura.innerHTML = ''; sJuz.innerHTML = ''; sPg.innerHTML = '';
+
+    D.suras.forEach(function (s, i) {
+      if (s) opt(sSura, i, num(i) + '. ' + s[0], i === keptSura);
+    });
+    fillAya(keptSura, keptAya);
+
+    D.juz.forEach(function (j, i) {
+      if (!j) return;
+      var nm = D.suras[j[0]] ? D.suras[j[0]][0] : '';
+      opt(sJuz, i, num(i) + ' — ' + nm + ' ' + num(j[1]), false);
+    });
+    D.pages.forEach(function (p, i) {
+      if (!p) return;
+      var nm = D.suras[p[0]] ? D.suras[p[0]][0] : '';
+      opt(sPg, i, num(i) + ' — ' + nm + ' ' + num(p[1]), false);
     });
 
-    /* juz select */
-    if (sJuz) {
-      D.juz.forEach(function (j, i) {
-        if (!j) return;
-        var o = document.createElement('option');
-        o.value = i;
-        var nm = D.suras[j[0]] ? D.suras[j[0]][0] : '';
-        o.textContent = i + ' — ' + nm + ' · ' + j[1];
-        sJuz.appendChild(o);
-      });
-    }
+    if (goWired) return;
+    goWired = true;
 
-    /* page select */
-    if (sPg) {
-      D.pages.forEach(function (p, i) {
-        if (!p) return;
-        var o = document.createElement('option');
-        o.value = i;
-        var nm = D.suras[p[0]] ? D.suras[p[0]][0] : '';
-        o.textContent = i + ' — ' + nm + ' · ' + p[1];
-        sPg.appendChild(o);
-      });
-    }
-
-    /* tabs */
-    function tabSwitch(name) {
-      document.querySelectorAll('.qjump-tab').forEach(function (b) {
-        b.setAttribute('aria-selected', String(b.getAttribute('data-tab') === name));
-      });
-      document.querySelectorAll('.qjump-pane').forEach(function (p) {
-        p.hidden = p.getAttribute('data-pane') !== name;
-      });
-    }
-    document.querySelectorAll('.qjump-tab').forEach(function (b) {
-      b.addEventListener('click', function () { tabSwitch(b.getAttribute('data-tab')); });
+    sSura.addEventListener('change', function () {
+      fillAya(parseInt(sSura.value, 10), 1);
     });
 
-    /* navigate */
-    function navTo(s, a) {
-      closeMod();
-      if (s === D.n) { location.hash = '#a' + a; }
-      else { location.href = '../' + s + '/#a' + a; }
-    }
-
-    var goBtn = document.getElementById('qjump-go');
-    if (goBtn) goBtn.addEventListener('click', function () {
+    function confirmGo() {
       var tab = document.querySelector('.qjump-tab[aria-selected="true"]');
       var pane = tab ? tab.getAttribute('data-tab') : 'sura';
       if (pane === 'sura') {
-        navTo(parseInt(sSura ? sSura.value : D.n, 10),
-              parseInt(sAya  ? sAya.value  : 1,   10));
+        navTo(parseInt(sSura.value, 10), parseInt(sAya.value, 10));
       } else if (pane === 'juz') {
-        var ji = parseInt(sJuz ? sJuz.value : 1, 10);
-        if (D.juz[ji]) navTo(D.juz[ji][0], D.juz[ji][1]);
+        var j = D.juz[parseInt(sJuz.value, 10)];
+        if (j) navTo(j[0], j[1]);
       } else {
-        var pi = parseInt(sPg ? sPg.value : 1, 10);
-        if (D.pages[pi]) navTo(D.pages[pi][0], D.pages[pi][1]);
+        var p = D.pages[parseInt(sPg.value, 10)];
+        if (p) navTo(p[0], p[1]);
       }
-    });
-
-    /* re-apply i18n so modal buttons get their translated labels */
-    document.querySelectorAll('#qjump [data-i18n]').forEach(function (el) {
-      var k = el.getAttribute('data-i18n');
-      /* reader.js exposes T and lang via closure — replicate key lookup inline */
-      var langEl = document.documentElement;
-      var lg = langEl.getAttribute('data-lang') || 'ar';
-      var tables = window._T; /* reader.js sets window._T if present, else fall through */
-      if (tables && tables[lg] && tables[lg][k]) el.textContent = tables[lg][k];
-      else if (tables && tables.ar && tables.ar[k]) el.textContent = tables.ar[k];
-    });
-
-    /* ---------- page-by-page view ---------- */
-    var ayas = Array.prototype.slice.call(document.querySelectorAll('.aya[data-page]'));
-    if (!ayas.length) return;
-
-    var firstPg = parseInt(ayas[0].getAttribute('data-page'), 10);
-    var curPg = firstPg;
-
-    function showPage(pg) {
-      ayas.forEach(function (a) {
-        a.hidden = parseInt(a.getAttribute('data-page'), 10) !== pg;
-      });
-      document.querySelectorAll('.page-mrk').forEach(function (m) {
-        m.hidden = parseInt(m.getAttribute('data-page'), 10) !== pg;
-      });
-      var lbl = document.getElementById('pgview-label');
-      if (lbl) lbl.textContent = pg;
-      curPg = pg;
-      var pv = document.getElementById('pgview-prev');
-      if (pv) pv.disabled = (pg <= 1);
-      var nx = document.getElementById('pgview-next');
-      if (nx) nx.disabled = (pg >= 604);
     }
-
-    function allOn() {
-      ayas.forEach(function (a) { a.hidden = false; });
-      document.querySelectorAll('.page-mrk').forEach(function (m) { m.hidden = false; });
-    }
-
-    var pgBtn = document.getElementById('btn-pgview');
-    if (pgBtn) {
-      pgBtn.addEventListener('click', function () {
-        var on = pgBtn.getAttribute('aria-pressed') === 'true';
-        pgBtn.setAttribute('aria-pressed', String(!on));
-        var nav = document.getElementById('pgview-nav');
-        if (nav) nav.hidden = on;
-        if (!on) showPage(curPg); else allOn();
-      });
-    }
-
-    var prevBtn = document.getElementById('pgview-prev');
-    if (prevBtn) prevBtn.addEventListener('click', function () {
-      var np = curPg - 1; if (np < 1) return;
-      var pd = D.pages[np];
-      if (pd && pd[0] !== D.n) location.href = '../' + pd[0] + '/#a' + pd[1];
-      else showPage(np);
-    });
-
-    var nextBtn = document.getElementById('pgview-next');
-    if (nextBtn) nextBtn.addEventListener('click', function () {
-      var np = curPg + 1; if (np > 604) return;
-      var pd = D.pages[np];
-      if (pd && pd[0] !== D.n) location.href = '../' + pd[0] + '/#a' + pd[1];
-      else showPage(np);
+    var go = document.getElementById('qjump-go');
+    if (go) go.addEventListener('click', confirmGo);
+    if (jmod) jmod.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); confirmGo(); }
     });
   }
+
+  function navTo(s, a) {
+    closeMod();
+    if (IS_INDEX) {
+      /* the cover carries no language of its own — follow the reader's choice */
+      var lg = lang();
+      location.href = (lg === 'ar' ? '' : '../' + lg + '/quran/') + s + '/#a' + a;
+      return;
+    }
+    if (s !== N) { location.href = '../' + s + '/#a' + a; return; }
+    var el = document.getElementById('a' + a);
+    if (!el) return;
+    if (pagingOn) {
+      var p = parseInt(el.getAttribute('data-page'), 10);
+      if (p) showPage(p);
+    }
+    location.hash = '#a' + a;
+    el.scrollIntoView({ block: 'center' });
+  }
+
+  fetch(cfg.base + 'qnav.json')
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (D) {
+      DATA = D;
+      fillModal(D);
+      if (pagingOn) showPage(curPg);   /* re-enable steps now the data is here */
+    })
+    .catch(function () {});
+
+  /* the cover switches language in place, so its numerals need re-rendering */
+  all('.langs button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      setTimeout(function () {
+        if (DATA) fillModal(DATA);
+        if (pagingOn && lbl) lbl.textContent = num(curPg);
+      }, 0);
+    });
+  });
 })();

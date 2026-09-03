@@ -4,6 +4,77 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-03 (session 8, part 2)
+
+### Fix — Qur'an verse search never matched الله (or any word spelled with a variant letter)
+
+Both Qur'an searches stripped tashkeel but did not fold letter variants. Uthmani
+spells الله with an **alef wasla** (ٱ, U+0671), so a reader typing the ordinary alef
+matched **nothing** — 55 of Surah Yaseen's 83 verses contain ٱ. Searching `الله` in
+Yaseen returned "No match"; it now returns 2. The cover's whole-Qur'an search had the
+same fault and now returns results from 1:1 onward.
+
+Both now fold the same way `fold()` in `reader.js` already did for the site search:
+tashkeel **and** the Qur'anic annotation marks (U+06D6–U+06ED) are dropped, and the
+alef/yaa/kaf/taa-marbuta variants are unified.
+
+### Change — Qur'an reading controls rebuilt around words, not icons
+
+The unlabelled icon buttons were replaced with named controls, and an empty
+`.pgview-nav` bar was showing on every page because its `display:flex` silently beat
+the `hidden` attribute.
+
+1. **"All Surahs" moved** off the search row (where it read as a search control) to a
+   breadcrumb above the surah banner.
+2. **The stray bar** below the nav is fixed — `[hidden]` guards added for
+   `.pgview-nav`, `.aya`, `.page-mrk`, `.bismillah`, `.tr-group`, `.qjump`. Every one of
+   these sets `display`, which overrides the UA's `[hidden]{display:none}`.
+3. **The unlabelled grid icon** is now a spelled-out choice: `SHOW: All verses | Page by page`.
+   Its bar reads `Previous page · Page 251 of 604 · Next page`, in the reader's own numerals.
+4. **Quick-access dialog redesigned** to guide the reader: title, a `GO TO` label, three
+   named tabs (Surah / Juz / Page), labelled fields, and a full-width Confirm button.
+   **It is now on the cover page as well**, where it navigates with the reader's language
+   prefix (`/en/quran/36/#a9`).
+5. **Page separator made distinct** — the Mushaf page break is now a gold double rule with
+   a gold-ringed numeral, no longer the same grey hairline that divides one verse from the next.
+6. **Page-by-page reading** works from either layout and is remembered between pages;
+   arriving on `#a<n>` opens the page that verse sits on.
+7. **IndoPak removed** (Nastaliq mangles Uthmani mark placement) and replaced with
+   **Uthmani**. The four faces are now Uthmani (Amiri Quran), Mushaf (Scheherazade New),
+   Amiri (self-hosted), Simple (Noto Naskh Arabic) — all four verified distinct.
+8. **Mushaf layout added** — `LAYOUT: Verse by verse | Mushaf page`. Mushaf runs the Arabic
+   on continuously as justified text inside a gold-ruled frame, the way a printed page reads.
+   It is Arabic-only by nature, so choosing it hides the text-mode control and restores the
+   reader's previous choice on the way back. Combined with page-by-page it reads like the book.
+
+**The control bar is now emitted on Arabic-only pages too** (it carries the script and
+layout pickers, which apply there). That needed a guard in `wireModes()`: those pages have
+no `.tr-line`, and the stored `setMode('tr')` would have hidden the Arabic and left the
+page blank.
+
+**What changed:**
+- `assets/reader.js` — verse search now folds via `fold()`; `wireModes()` guard; layout
+  picker wiring with text-mode save/restore; retired-font fallback; i18n reworked across all
+  four tables (`scriptIndoPak`→`scriptAmiri`, `scriptUthmani` relabelled, plus `quickAccess`,
+  `goTo`, `layout`, `layoutVerse`, `layoutMushaf`, `showAs`, `showAll`, `showPaged`, `pageOf`,
+  `prevPage`, `nextPage`, `textView`)
+- `assets/reader.css` — Quran control block rewritten: `[hidden]` guards, gold page rule,
+  breadcrumb, labelled `.tr-group`/`.segbtns`, `.btn-goto`, page-nav strip, redesigned dialog,
+  `.m-mushaf` layout
+- `_translation-kit/quran_build.py` — control bar always emitted; `LAYOUT_PICKER`, `JUMP_MODAL`,
+  `GOTO_BUTTON` added; breadcrumb; worded nav; basmala carries `data-page`; page numerals use
+  `data-num`; cover gains the dialog; cover search folding fixed; Nastaliq dropped from `FONT_LINKS`
+- `quran/assets/qnav.js` — rewritten: wires the page-emitted dialog, cover mode, DOM-first
+  paging that works before the JSON lands, localized numerals, language-change refresh
+- all 456 surah pages + the cover rebuilt
+
+**Verified in a browser** (localhost, all four languages): dialog tabs and navigation, Juz and
+Page jumps, page stepping incl. correct disabling at page 604, Mushaf layout, Arabic-only page
+still renders its text, both searches, Contents (114 entries), all 4 fonts, all 4 text modes.
+Bihar and Bayt al-Ahzan re-checked — unaffected, no Qur'an controls leak in.
+
+---
+
 ## 2026-09-03 (session 8)
 
 ### Feature — Quran reader: 6 new features

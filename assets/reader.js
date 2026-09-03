@@ -14,7 +14,7 @@
   };
 
   var T = {
-    ar: { first:'الأولى', prev:'السابقة', next:'التالية', last:'الأخيرة', volumes:'المجلدات', published:'المنشور', pickVolume:'اختر المجلد', otherVolumes:'مجلدات أخرى', volsNote:'المجلدات غير المفعّلة لم تُنشر بعد.', soon:'قريباً', citeAr:'للإحالة استعمل الصفحة العربية:', machineTr:'ترجمة آلية بالذكاء الاصطناعي، غير مراجَعة وقد تحتوي أخطاء. للإحالة يُعتمد الأصل العربي.', viewAr:'العربية', viewTr:'الترجمة', viewBoth:'كلاهما', viewSide:'مقابل', verse:'الآية', surah:'السورة', surahs:'السور', pickSurah:'اختر السورة', script:'الخط', scriptUthmani:'أميري', scriptSimple:'بسيط', copyVerse:'نسخ الآية', copyRef:'الإحالة', copyLink:'الرابط', copyDo:'نسخ', ayat:'آية', meccan:'مكية', medinan:'مدنية', textFrom:'النص من', transFrom:'الترجمات عبر', noTr:'لم تُترجم هذه الصفحة بعد؛ النص معروض بالعربية.', draft:'ترجمة أولية غير مراجَعة.', trBy:'الترجمة', home:'الرئيسية', mylib:'مكتبتي', search:'بحث', allBooks:'كل الكتب',
+    ar: { first:'الأولى', prev:'السابقة', next:'التالية', last:'الأخيرة', volumes:'المجلدات', published:'المنشور', pickVolume:'اختر المجلد', otherVolumes:'مجلدات أخرى', volsNote:'المجلدات غير المفعّلة لم تُنشر بعد.', soon:'قريباً', citeAr:'للإحالة استعمل الصفحة العربية:', machineTr:'ترجمة آلية بالذكاء الاصطناعي، غير مراجَعة وقد تحتوي أخطاء. للإحالة يُعتمد الأصل العربي.', viewAr:'العربية', viewTr:'الترجمة', viewBoth:'كلاهما', viewSide:'مقابل', verse:'الآية', surah:'السورة', surahs:'السور', pickSurah:'اختر السورة', script:'الخط', scriptUthmani:'عثماني', scriptSimple:'بسيط', copyVerse:'نسخ الآية', copyRef:'الإحالة', copyLink:'الرابط', copyDo:'نسخ', ayat:'آية', meccan:'مكية', medinan:'مدنية', textFrom:'النص من', transFrom:'الترجمات عبر', noTr:'لم تُترجم هذه الصفحة بعد؛ النص معروض بالعربية.', draft:'ترجمة أولية غير مراجَعة.', trBy:'الترجمة', home:'الرئيسية', mylib:'مكتبتي', search:'بحث', allBooks:'كل الكتب',
           contact:'اتصل بنا', about:'من نحن', menu:'القائمة', close:'إغلاق',
           chapter:'الفصل', chapters:'الفصول', pickChapter:'اختر الفصل', translator:'الترجمة', foreword:'تقديم', author:'المؤلف', viewSrc:'الأصل',
           contents:'الفهرس', cite:'نسخ الإحالة', copied:'تم النسخ ✓',
@@ -38,8 +38,8 @@
           browse:'تصفح', aboutBody:'مكتبة مصباح مشروع لنشر النصوص التراثية على الإنترنت بصيغة '
                  + 'قابلة للإحالة الدقيقة: كل صفحة تحمل رقمها في الطبعة المطبوعة وعنواناً ثابتاً '
                  + 'لا يتغير، ليستطيع الباحث أن يحيل إليها ويثق ببقاء الرابط.',
-          contactBody:'للاقتراحات وتصحيح الأخطاء والمساهمة في المكتبة، يرجى التواصل معنا.', searchVerse:'ابحث في الآيات…', vsNone:'لا نتائج', scriptMushaf:'مصحف', scriptIndoPak:'هندي', juz:'الجزء', mushafPage:'الصفحة', allSurahs:'كل السور', goVerse:'انتقل', pageView:'عرض صفحي' },
-    fa: { first:'نخست', prev:'صفحه قبل', next:'صفحه بعد', last:'پایان', volumes:'مجلدات', published:'منتشرشده', pickVolume:'انتخاب جلد', otherVolumes:'جلدهای دیگر', volsNote:'جلدهای غیرفعال هنوز منتشر نشده‌اند.', soon:'به‌زودی', citeAr:'برای ارجاع از صفحهٔ عربی استفاده کنید:', machineTr:'ترجمهٔ ماشینی با هوش مصنوعی، بازبینی‌نشده و ممکن است خطا داشته باشد. برای ارجاع به متن عربی استناد کنید.', viewAr:'عربی', viewTr:'ترجمه', viewBoth:'هر دو', viewSide:'دوستونه', verse:'آیه', surah:'سوره', surahs:'سوره‌ها', pickSurah:'انتخاب سوره', script:'خط', scriptUthmani:'امیری', scriptSimple:'ساده', copyVerse:'کپی آیه', copyRef:'ارجاع', copyLink:'پیوند', copyDo:'کپی', ayat:'آیه', meccan:'مکی', medinan:'مدنی', textFrom:'متن از', transFrom:'ترجمه‌ها از', noTr:'این صفحه هنوز ترجمه نشده است؛ متن عربی نمایش داده می‌شود.', draft:'ترجمهٔ اولیه و بازبینی‌نشده.', trBy:'ترجمه', home:'خانه', mylib:'کتابخانهٔ من', search:'جستجو', allBooks:'همهٔ کتاب‌ها',
+          contactBody:'للاقتراحات وتصحيح الأخطاء والمساهمة في المكتبة، يرجى التواصل معنا.', searchVerse:'ابحث في الآيات…', vsNone:'لا نتائج', scriptMushaf:'مصحف', scriptAmiri:'أميري', juz:'الجزء', mushafPage:'الصفحة', allSurahs:'كل السور', quickAccess:'وصول سريع', goTo:'اذهب إلى', goVerse:'انتقل', layout:'التنسيق', layoutVerse:'آية بآية', layoutMushaf:'صفحة مصحف', showAs:'العرض', showAll:'كل الآيات', showPaged:'صفحة بصفحة', pageOf:'من', prevPage:'الصفحة السابقة', nextPage:'الصفحة التالية', textView:'النص' },
+    fa: { first:'نخست', prev:'صفحه قبل', next:'صفحه بعد', last:'پایان', volumes:'مجلدات', published:'منتشرشده', pickVolume:'انتخاب جلد', otherVolumes:'جلدهای دیگر', volsNote:'جلدهای غیرفعال هنوز منتشر نشده‌اند.', soon:'به‌زودی', citeAr:'برای ارجاع از صفحهٔ عربی استفاده کنید:', machineTr:'ترجمهٔ ماشینی با هوش مصنوعی، بازبینی‌نشده و ممکن است خطا داشته باشد. برای ارجاع به متن عربی استناد کنید.', viewAr:'عربی', viewTr:'ترجمه', viewBoth:'هر دو', viewSide:'دوستونه', verse:'آیه', surah:'سوره', surahs:'سوره‌ها', pickSurah:'انتخاب سوره', script:'خط', scriptUthmani:'عثمانی', scriptSimple:'ساده', copyVerse:'کپی آیه', copyRef:'ارجاع', copyLink:'پیوند', copyDo:'کپی', ayat:'آیه', meccan:'مکی', medinan:'مدنی', textFrom:'متن از', transFrom:'ترجمه‌ها از', noTr:'این صفحه هنوز ترجمه نشده است؛ متن عربی نمایش داده می‌شود.', draft:'ترجمهٔ اولیه و بازبینی‌نشده.', trBy:'ترجمه', home:'خانه', mylib:'کتابخانهٔ من', search:'جستجو', allBooks:'همهٔ کتاب‌ها',
           contact:'تماس با ما', about:'دربارهٔ ما', menu:'فهرست', close:'بستن',
           chapter:'فصل', chapters:'فصل‌ها', pickChapter:'فصل را انتخاب کنید', translator:'ترجمه', foreword:'مقدمه', author:'نویسنده', viewSrc:'متن اصلی',
           contents:'فهرست', cite:'کپی ارجاع', copied:'کپی شد ✓',
@@ -63,8 +63,8 @@
           browse:'مرور', aboutBody:'کتابخانهٔ مصباح پروژه‌ای است برای انتشار متون تراثی بر '
                  + 'بستر وب به شکلی که ارجاع دقیق ممکن باشد: هر صفحه شمارهٔ چاپی خود و نشانی '
                  + 'ثابتی دارد که تغییر نمی‌کند.',
-          contactBody:'برای پیشنهاد، گزارش اشتباه یا همکاری با کتابخانه با ما در تماس باشید.', searchVerse:'جستجو در آیات…', vsNone:'نتیجه‌ای نیافت', scriptMushaf:'مصحف', scriptIndoPak:'هندی', juz:'جزء', mushafPage:'صفحه', allSurahs:'همهٔ سوره‌ها', goVerse:'برو', pageView:'صفحه‌به‌صفحه' },
-    ur: { first:'پہلا', prev:'پچھلا', next:'اگلا', last:'آخری', volumes:'جلدیں', published:'شائع شدہ', pickVolume:'جلد منتخب کریں', otherVolumes:'دیگر جلدیں', volsNote:'غیر فعال جلدیں ابھی شائع نہیں ہوئیں۔', soon:'جلد آ رہا ہے', citeAr:'حوالے کے لیے عربی صفحہ استعمال کریں:', machineTr:'مصنوعی ذہانت سے تیار کردہ مشینی ترجمہ، غیر نظرثانی شدہ اور اس میں غلطیاں ممکن ہیں۔ حوالے کے لیے عربی اصل پر اعتماد کریں۔', viewAr:'عربی', viewTr:'ترجمہ', viewBoth:'دونوں', viewSide:'آمنے سامنے', verse:'آیت', surah:'سورہ', surahs:'سورتیں', pickSurah:'سورہ منتخب کریں', script:'خط', scriptUthmani:'امیری', scriptSimple:'سادہ', copyVerse:'آیت نقل کریں', copyRef:'حوالہ', copyLink:'لنک', copyDo:'نقل', ayat:'آیات', meccan:'مکی', medinan:'مدنی', textFrom:'متن بشکریہ', transFrom:'تراجم بشکریہ', noTr:'اس صفحے کا ترجمہ ابھی نہیں ہوا؛ عربی متن دکھایا جا رہا ہے۔', draft:'ابتدائی، غیر نظرثانی شدہ ترجمہ۔', trBy:'ترجمہ', home:'صفحۂ اول', mylib:'میری لائبریری', search:'تلاش', allBooks:'تمام کتب',
+          contactBody:'برای پیشنهاد، گزارش اشتباه یا همکاری با کتابخانه با ما در تماس باشید.', searchVerse:'جستجو در آیات…', vsNone:'نتیجه‌ای نیافت', scriptMushaf:'مصحف', scriptAmiri:'امیری', juz:'جزء', mushafPage:'صفحه', allSurahs:'همهٔ سوره‌ها', quickAccess:'دسترسی سریع', goTo:'برو به', goVerse:'تأیید', layout:'چیدمان', layoutVerse:'آیه‌به‌آیه', layoutMushaf:'صفحهٔ مصحف', showAs:'نمایش', showAll:'همهٔ آیات', showPaged:'صفحه‌به‌صفحه', pageOf:'از', prevPage:'صفحهٔ قبل', nextPage:'صفحهٔ بعد', textView:'متن' },
+    ur: { first:'پہلا', prev:'پچھلا', next:'اگلا', last:'آخری', volumes:'جلدیں', published:'شائع شدہ', pickVolume:'جلد منتخب کریں', otherVolumes:'دیگر جلدیں', volsNote:'غیر فعال جلدیں ابھی شائع نہیں ہوئیں۔', soon:'جلد آ رہا ہے', citeAr:'حوالے کے لیے عربی صفحہ استعمال کریں:', machineTr:'مصنوعی ذہانت سے تیار کردہ مشینی ترجمہ، غیر نظرثانی شدہ اور اس میں غلطیاں ممکن ہیں۔ حوالے کے لیے عربی اصل پر اعتماد کریں۔', viewAr:'عربی', viewTr:'ترجمہ', viewBoth:'دونوں', viewSide:'آمنے سامنے', verse:'آیت', surah:'سورہ', surahs:'سورتیں', pickSurah:'سورہ منتخب کریں', script:'خط', scriptUthmani:'عثمانی', scriptSimple:'سادہ', copyVerse:'آیت نقل کریں', copyRef:'حوالہ', copyLink:'لنک', copyDo:'نقل', ayat:'آیات', meccan:'مکی', medinan:'مدنی', textFrom:'متن بشکریہ', transFrom:'تراجم بشکریہ', noTr:'اس صفحے کا ترجمہ ابھی نہیں ہوا؛ عربی متن دکھایا جا رہا ہے۔', draft:'ابتدائی، غیر نظرثانی شدہ ترجمہ۔', trBy:'ترجمہ', home:'صفحۂ اول', mylib:'میری لائبریری', search:'تلاش', allBooks:'تمام کتب',
           contact:'رابطہ کریں', about:'ہمارے بارے میں', menu:'مینو', close:'بند کریں',
           chapter:'باب', chapters:'ابواب', pickChapter:'باب منتخب کریں', translator:'ترجمہ', foreword:'مقدمہ', author:'مصنف', viewSrc:'اصل متن',
           contents:'فہرست', cite:'حوالہ نقل کریں', copied:'نقل ہو گیا ✓',
@@ -88,8 +88,8 @@
           browse:'دیکھیں', aboutBody:'مصباح لائبریری کا مقصد تراثی متون کو ایسے انداز میں '
                  + 'شائع کرنا ہے کہ درست حوالہ ممکن ہو: ہر صفحہ اپنا مطبوعہ نمبر اور ایک '
                  + 'مستقل پتہ رکھتا ہے۔',
-          contactBody:'تجاویز، اغلاط کی نشاندہی یا تعاون کے لیے ہم سے رابطہ کریں۔', searchVerse:'آیات میں تلاش…', vsNone:'کوئی نتیجہ نہیں', scriptMushaf:'مصحف', scriptIndoPak:'ہندی', juz:'جزء', mushafPage:'صفحہ', allSurahs:'تمام سورتیں', goVerse:'جاؤ', pageView:'صفحہ بصفحہ' },
-    en: { first:'First', prev:'Previous', next:'Next', last:'Last', volumes:'Volumes', published:'Published', pickVolume:'Choose a volume', otherVolumes:'Other volumes', volsNote:'Greyed volumes have not been published yet.', soon:'Coming soon', citeAr:'For citation use the Arabic page:', machineTr:'Machine translation by AI. Not reviewed and may contain errors — cite the Arabic original, not this translation.', viewAr:'Arabic', viewTr:'Translation', viewBoth:'Both', viewSide:'Side by side', verse:'Verse', surah:'Surah', surahs:'Surahs', pickSurah:'Choose a surah', script:'Script', scriptUthmani:'Amiri', scriptSimple:'Simple', copyVerse:'Copy verse', copyRef:'Reference', copyLink:'Link', copyDo:'Copy', ayat:'ayat', meccan:'Meccan', medinan:'Medinan', textFrom:'Text from', transFrom:'translations via', noTr:'This page has not been translated yet; the Arabic text is shown.', draft:'Draft translation, not yet reviewed.', trBy:'Translation', home:'Home', mylib:'My library', search:'Search', allBooks:'All books',
+          contactBody:'تجاویز، اغلاط کی نشاندہی یا تعاون کے لیے ہم سے رابطہ کریں۔', searchVerse:'آیات میں تلاش…', vsNone:'کوئی نتیجہ نہیں', scriptMushaf:'مصحف', scriptAmiri:'امیری', juz:'جزء', mushafPage:'صفحہ', allSurahs:'تمام سورتیں', quickAccess:'فوری رسائی', goTo:'جائیں', goVerse:'تصدیق', layout:'ترتیب', layoutVerse:'آیت بہ آیت', layoutMushaf:'مصحف صفحہ', showAs:'نمائش', showAll:'تمام آیات', showPaged:'صفحہ بہ صفحہ', pageOf:'از', prevPage:'پچھلا صفحہ', nextPage:'اگلا صفحہ', textView:'متن' },
+    en: { first:'First', prev:'Previous', next:'Next', last:'Last', volumes:'Volumes', published:'Published', pickVolume:'Choose a volume', otherVolumes:'Other volumes', volsNote:'Greyed volumes have not been published yet.', soon:'Coming soon', citeAr:'For citation use the Arabic page:', machineTr:'Machine translation by AI. Not reviewed and may contain errors — cite the Arabic original, not this translation.', viewAr:'Arabic', viewTr:'Translation', viewBoth:'Both', viewSide:'Side by side', verse:'Verse', surah:'Surah', surahs:'Surahs', pickSurah:'Choose a surah', script:'Script', scriptUthmani:'Uthmani', scriptSimple:'Simple', copyVerse:'Copy verse', copyRef:'Reference', copyLink:'Link', copyDo:'Copy', ayat:'ayat', meccan:'Meccan', medinan:'Medinan', textFrom:'Text from', transFrom:'translations via', noTr:'This page has not been translated yet; the Arabic text is shown.', draft:'Draft translation, not yet reviewed.', trBy:'Translation', home:'Home', mylib:'My library', search:'Search', allBooks:'All books',
           contact:'Contact us', about:'About us', menu:'Menu', close:'Close',
           chapter:'Chapter', chapters:'Chapters', pickChapter:'Choose a chapter', translator:'Translation', foreword:'Foreword', author:'Author', viewSrc:'Original',
           contents:'Contents', cite:'Copy citation', copied:'Copied ✓',
@@ -117,7 +117,7 @@
                  + 'and a permanent address that does not change, so a reference made today still '
                  + 'resolves years from now.',
           contactBody:'For suggestions, corrections, or to contribute to the library, '
-                    + 'please get in touch.', searchVerse:'Search verses…', vsNone:'No match', scriptMushaf:'Mushaf', scriptIndoPak:'IndoPak', juz:'Juz', mushafPage:'Page', allSurahs:'All Surahs', goVerse:'Go', pageView:'Page view' }
+                    + 'please get in touch.', searchVerse:'Search verses…', vsNone:'No match', scriptMushaf:'Mushaf', scriptAmiri:'Amiri', juz:'Juz', mushafPage:'Page', allSurahs:'All Surahs', quickAccess:'Quick access', goTo:'Go to', goVerse:'Confirm', layout:'Layout', layoutVerse:'Verse by verse', layoutMushaf:'Mushaf page', showAs:'Show', showAll:'All verses', showPaged:'Page by page', pageOf:'of', prevPage:'Previous page', nextPage:'Next page', textView:'Text' }
   };
   var RTL = { ar: 1, fa: 1, ur: 1 };
   var DIGITS = { ar: '٠١٢٣٤٥٦٧٨٩', fa: '۰۱۲۳۴۵۶۷۸۹', ur: '۰۱۲۳۴۵۶۷۸۹', en: '0123456789' };
@@ -736,6 +736,10 @@
   function wireModes() {
     var bar = document.getElementById('tr-bar');
     if (!bar) return;
+    /* The Qur'an control bar is emitted even on Arabic-only pages (it carries the
+       script and layout pickers). Those pages have no .tr-line, and running
+       setMode('tr') there would hide the Arabic and leave the page blank. */
+    if (!document.querySelector('.tr-line')) return;
     each('#tr-bar [data-mode]', function (b) {
       b.addEventListener('click', function () { setMode(b.getAttribute('data-mode')); });
     });
@@ -843,7 +847,42 @@
     each('.fontpick button', function (b) {
       b.addEventListener('click', function () { setFont(b.getAttribute('data-font')); });
     });
-    setFont(store.get('qfont') || 'uthmani');
+    /* 'nastaliq' was retired; fall back rather than leaving a dead attribute */
+    var savedFont = store.get('qfont');
+    if (savedFont !== 'uthmani' && savedFont !== 'scheherazade' &&
+        savedFont !== 'amiri' && savedFont !== 'simple') savedFont = 'uthmani';
+    setFont(savedFont);
+
+    /* --- layout: verse-by-verse, or continuous Mushaf page --- */
+    var hasTr = !!document.querySelector('.tr-line');
+    var prevTextMode = null;
+    function setLayout(l) {
+      var mushaf = (l === 'mushaf');
+      store.set('qlayout', l);
+      qbody.classList.toggle('m-mushaf', mushaf);
+      each('.laypick button', function (b) {
+        b.setAttribute('aria-pressed', String(b.getAttribute('data-layout') === l));
+      });
+      /* A Mushaf page is Arabic only, so the text-mode control does not apply.
+         Hide it and force Arabic; restore the reader's choice on the way back. */
+      var modes = document.querySelector('#tr-bar .tr-modes');
+      var wrap = modes && modes.closest('.tr-group');
+      if (hasTr) {
+        if (mushaf) {
+          if (prevTextMode === null) prevTextMode = TRVIEW;
+          setMode('ar');
+        } else if (prevTextMode !== null) {
+          setMode(prevTextMode); prevTextMode = null;
+        }
+        if (wrap) wrap.hidden = mushaf;
+      }
+    }
+    each('.laypick button', function (b) {
+      b.addEventListener('click', function () { setLayout(b.getAttribute('data-layout')); });
+    });
+    if (document.querySelector('.laypick')) {
+      setLayout(store.get('qlayout') === 'mushaf' ? 'mushaf' : 'verse');
+    }
 
     /* --- copy a verse, with the reader choosing what goes on the clipboard --- */
     var DEF = { ar: 1, tr: 1, ref: 1, link: 0 };
@@ -989,8 +1028,12 @@
     var qi = document.getElementById('vsearch-q');
     if (!qi) return;
     var cnt = document.getElementById('vsearch-count');
-    function stripDiac(s) { return s.replace(/[\u064B-\u065F\u0670]/g, ''); }
-    function norm(s) { return stripDiac(s).toLowerCase(); }
+    /* fold() is what the rest of the site searches with: as well as the
+       tashkeel it drops the Qur'anic annotation marks (U+06D6\u2013U+06ED) and
+       unifies the alef, yaa and kaf variants. Stripping diacritics alone is
+       not enough here \u2014 Uthmani spells \u0627\u0644\u0644\u0647 with an alef wasla (\u0671, U+0671),
+       so a reader typing the ordinary alef matched nothing at all. */
+    function norm(s) { return fold(s).text; }
     qi.setAttribute('placeholder', t('searchVerse'));
     qi.setAttribute('aria-label', t('searchVerse'));
     var vbtn = document.querySelector('.vsearch-btn');

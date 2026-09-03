@@ -127,19 +127,61 @@ def abs_url(lang, n):
 # Uthmani script stacks marks that a general-purpose naskh face was never cut
 # for, so the marks collide. Amiri Quran is drawn for exactly this; Noto Naskh
 # is the plainer alternative for easier sustained reading.
-FONT_PICKER = ('<span class="fontpick"><span class="lbl" data-i18n="script"></span>'
-               '<button data-font="uthmani" aria-pressed="true" data-i18n="scriptUthmani"></button>'
-               '<button data-font="scheherazade" aria-pressed="false" data-i18n="scriptMushaf"></button>'
-               '<button data-font="nastaliq" aria-pressed="false" data-i18n="scriptIndoPak"></button>'
-               '<button data-font="simple" aria-pressed="false" data-i18n="scriptSimple"></button>'
-               '</span>')
+FONT_PICKER = ('<div class="tr-group"><span class="lbl" data-i18n="script"></span>'
+               '<span class="segbtns fontpick">'
+               '<button type="button" data-font="uthmani" aria-pressed="true" data-i18n="scriptUthmani"></button>'
+               '<button type="button" data-font="scheherazade" aria-pressed="false" data-i18n="scriptMushaf"></button>'
+               '<button type="button" data-font="amiri" aria-pressed="false" data-i18n="scriptAmiri"></button>'
+               '<button type="button" data-font="simple" aria-pressed="false" data-i18n="scriptSimple"></button>'
+               '</span></div>')
+
+# Verse-by-verse blocks, or the continuous run-on text of a printed Mushaf page.
+LAYOUT_PICKER = ('<div class="tr-group"><span class="lbl" data-i18n="layout"></span>'
+                 '<span class="segbtns laypick">'
+                 '<button type="button" data-layout="verse" aria-pressed="true" data-i18n="layoutVerse"></button>'
+                 '<button type="button" data-layout="mushaf" aria-pressed="false" data-i18n="layoutMushaf"></button>'
+                 '</span></div>')
 
 FONT_LINKS = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
               '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
               '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?'
               'family=Amiri+Quran&family=Scheherazade+New:wght@400;700'
-              '&family=Noto+Nastaliq+Urdu:wght@400;700'
               '&family=Noto+Naskh+Arabic:wght@400;500&display=swap">')
+
+# The quick-access jump dialog. It is emitted into the page (rather than built by
+# qnav.js) so reader.js's applyLang() fills and re-fills its labels, which keeps
+# them correct after the reader switches language.
+JUMP_MODAL = (
+    '<div id="qjump" class="qjump" hidden role="dialog" aria-modal="true"'
+    ' aria-labelledby="qjump-title">'
+    '<div class="qjump-box">'
+    '<div class="qjump-head">'
+    '<p class="qjump-title" id="qjump-title" data-i18n="quickAccess"></p>'
+    '<button id="qjump-close" class="qjump-close" type="button" data-i18n-label="close">&#10005;</button>'
+    '</div>'
+    '<div><span class="qjump-lbl" data-i18n="goTo"></span>'
+    '<div class="qjump-tabs" role="tablist">'
+    '<button class="qjump-tab" type="button" role="tab" data-tab="sura" aria-selected="true" data-i18n="surah"></button>'
+    '<button class="qjump-tab" type="button" role="tab" data-tab="juz" aria-selected="false" data-i18n="juz"></button>'
+    '<button class="qjump-tab" type="button" role="tab" data-tab="page" aria-selected="false" data-i18n="mushafPage"></button>'
+    '</div></div>'
+    '<div class="qjump-pane" data-pane="sura"><div class="qjump-fields">'
+    '<div class="qjump-field"><span class="qjump-lbl" data-i18n="surah"></span>'
+    '<select id="qj-sura"></select></div>'
+    '<div class="qjump-field"><span class="qjump-lbl" data-i18n="verse"></span>'
+    '<select id="qj-aya"></select></div>'
+    '</div></div>'
+    '<div class="qjump-pane" data-pane="juz" hidden>'
+    '<span class="qjump-lbl" data-i18n="juz"></span><select id="qj-juz"></select></div>'
+    '<div class="qjump-pane" data-pane="page" hidden>'
+    '<span class="qjump-lbl" data-i18n="mushafPage"></span><select id="qj-pg"></select></div>'
+    '<button id="qjump-go" class="qjump-go" type="button" data-i18n="goVerse"></button>'
+    '</div></div>')
+
+GOTO_BUTTON = ('<button class="btn-goto" id="btn-qjump" type="button">'
+               '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'
+               '<path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg>'
+               '<span data-i18n="quickAccess"></span></button>')
 
 
 def verse_pages_for_surah(n, ayas, all_pages):
@@ -195,8 +237,13 @@ def build(n, lang, meta, ar_text, translations, alts, juz=None, pages=None, tota
 
     # ---- body -------------------------------------------------------------
     parts = []
+    # The basmala belongs to the page its surah opens on, so it hides with that
+    # page when the reader is paging through the Mushaf one page at a time.
+    bismillah = ""
     if n != 1 and n != 9:
-        parts.append(f'<p class="bismillah" lang="ar">{BASMALA}</p>')
+        bp = vpm.get(1)
+        bp_attr = f' data-page="{bp}"' if bp is not None else ''
+        bismillah = f'<p class="bismillah" lang="ar"{bp_attr}>{BASMALA}</p>'
 
     vl = VERSE_LABEL.get(lang, 'Verse')
     prev_page = None
@@ -205,8 +252,10 @@ def build(n, lang, meta, ar_text, translations, alts, juz=None, pages=None, tota
         # Insert a Mushaf page-break marker whenever the page changes
         if pg is not None and pg != prev_page:
             parts.append(f'<div class="page-mrk" data-page="{pg}">'
-                         f'<span>{ar_num(pg)}</span></div>')
+                         f'<span data-num="{pg}">{ar_num(pg)}</span></div>')
             prev_page = pg
+        if a == 1 and bismillah:
+            parts.append(bismillah)
         pg_attr = f' data-page="{pg}"' if pg is not None else ''
         rows = [f'<p lang="ar" data-i="{a-1}">{ar_text[n][a]}'
                 f'<span class="aya-n">۝{ar_num(a)}</span></p>']
@@ -247,18 +296,25 @@ def build(n, lang, meta, ar_text, translations, alts, juz=None, pages=None, tota
         f'data-alt-{a}="{R}{"" if a == "ar" else "/" + a}/quran/{n}/"'
         for a in alts if a != lang)
 
-    # translation view controls only exist where there is a translation
+    # The text-mode buttons only mean something where a translation exists, but the
+    # script and layout pickers apply to every page — so the bar itself is always
+    # emitted. reader.js's wireModes() skips setMode() when no .tr-line is present,
+    # which is what keeps an Arabic-only page from hiding its own text.
     if translations:
-        tr_bar = ('<div class="tr-bar" id="tr-bar"><div class="tr-modes">'
-                  '<button data-mode="tr" data-i18n="viewTr" aria-pressed="true"></button>'
-                  '<button data-mode="both" data-i18n="viewBoth" aria-pressed="false"></button>'
-                  '<button data-mode="side" data-i18n="viewSide" aria-pressed="false"></button>'
-                  '<button data-mode="ar" data-i18n="viewAr" aria-pressed="false"></button>'
-                  '</div>' + FONT_PICKER + '<span class="tr-who">'
+        tr_modes = ('<div class="tr-group"><span class="lbl" data-i18n="textView"></span>'
+                    '<span class="segbtns tr-modes">'
+                    '<button type="button" data-mode="tr" data-i18n="viewTr" aria-pressed="true"></button>'
+                    '<button type="button" data-mode="both" data-i18n="viewBoth" aria-pressed="false"></button>'
+                    '<button type="button" data-mode="side" data-i18n="viewSide" aria-pressed="false"></button>'
+                    '<button type="button" data-mode="ar" data-i18n="viewAr" aria-pressed="false"></button>'
+                    '</span></div>')
+        tr_who = ('<span class="tr-who">'
                   + " · ".join(esc(t.get("display", t["translator"])) for t in translations)
-                  + '</span></div>')
+                  + '</span>')
     else:
-        tr_bar = ""
+        tr_modes = tr_who = ""
+    tr_bar = ('<div class="tr-bar" id="tr-bar">' + tr_modes + FONT_PICKER
+              + LAYOUT_PICKER + tr_who + '</div>')
 
     title = f'{m["name"]} — {L["title"]}' if not is_ar else f'{m["name"]} — القرآن الكريم'
     desc = esc(describe(m, ayas, lang))
@@ -271,37 +327,31 @@ def build(n, lang, meta, ar_text, translations, alts, juz=None, pages=None, tota
     badges.append(f'<span class="sura-badge"><span data-num="{ayas}">{loc_num(ayas, lang)}</span>&#8201;<span data-i18n="ayat"></span></span>')
     sura_badges = "".join(badges)
 
-    # verse picker: reader.js wires the jump; the options are static so the
-    # control works before any script runs
-    opts = "".join(f'<option value="{i}">{i}</option>' for i in range(1, ayas + 1))
-    vpick = (f'<span class="vpick"><span class="lbl" data-i18n="verse"></span>'
-             f'<select id="vsel" data-i18n-label="verse">{opts}</select></span>')
+    # Breadcrumb back to the surah index, above the surah banner where a reader
+    # looks for it — not beside the search box, where it read as a search control.
+    back_link = (f'<a class="sura-back" href="{back_url}">'
+                 f'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'
+                 f'<rect x="3" y="3" width="7" height="7" rx="1"/>'
+                 f'<rect x="14" y="3" width="7" height="7" rx="1"/>'
+                 f'<rect x="3" y="14" width="7" height="7" rx="1"/>'
+                 f'<rect x="14" y="14" width="7" height="7" rx="1"/></svg>'
+                 f'<span data-i18n="allSurahs"></span></a>')
 
-    # Jump-to button (opens the 3-tab modal from qnav.js)
-    jump_btn = ('<button class="btn-qjump" id="btn-qjump" type="button" '
-                'data-i18n-label="contents">'
-                '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'
-                '<path d="M4 6h16M4 12h10M4 18h14"/>'
-                '<circle cx="19" cy="12" r="3"/><path d="M22 15l-2 3"/></svg>'
-                '</button>')
-
-    # Page-by-page view toggle
-    pgview_btn = ('<button class="btn-pgview" id="btn-pgview" type="button" '
-                  'aria-pressed="false" data-i18n-label="pageView">'
-                  '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'
-                  '<rect x="3" y="3" width="18" height="18" rx="1.5"/>'
-                  '<path d="M3 9h18M9 3v18"/></svg>'
-                  '</button>')
-
-    vnav_html = (f'<nav class="vnav">'
-                 f'<a class="btn-back-suras" href="{back_url}" data-i18n="allSurahs">←</a>'
-                 f'{vpick}{jump_btn}{pgview_btn}'
-                 f'</nav>'
-                 f'<div class="pgview-nav" id="pgview-nav" hidden>'
-                 f'<button id="pgview-prev">&#8249;</button>'
-                 f'<span id="pgview-label"></span>'
-                 f'<button id="pgview-next">&#8250;</button>'
-                 f'</div>')
+    # Quick access + the paging choice, both spelled out in words.
+    vnav_html = (
+        '<nav class="vnav">' + GOTO_BUTTON +
+        '<span class="tr-group"><span class="lbl" data-i18n="showAs"></span>'
+        '<span class="segbtns pagepick">'
+        '<button type="button" data-paging="all" aria-pressed="true" data-i18n="showAll"></button>'
+        '<button type="button" data-paging="page" aria-pressed="false" data-i18n="showPaged"></button>'
+        '</span></span></nav>'
+        '<div class="pgview-nav" id="pgview-nav" hidden>'
+        '<button id="pgview-prev" type="button"><span data-i18n="prevPage"></span></button>'
+        '<span class="pgview-pos"><span data-i18n="mushafPage"></span> '
+        '<b id="pgview-label">1</b> <span data-i18n="pageOf"></span> '
+        '<b data-num="604">604</b></span>'
+        '<button id="pgview-next" type="button"><span data-i18n="nextPage"></span></button>'
+        '</div>')
 
     # Inline script that passes the current surah number and asset base path to qnav.js
     qnav_cfg = json.dumps({"n": n, "base": qnav_base}, ensure_ascii=False, separators=(",", ":"))
@@ -339,6 +389,7 @@ def build(n, lang, meta, ar_text, translations, alts, juz=None, pages=None, tota
 <main class="wrap">
   <article>
     <div class="leaf" id="text">
+      {back_link}
       <header class="sura-header">
         <span class="sh-c sh-tl" aria-hidden="true"></span><span class="sh-c sh-tr" aria-hidden="true"></span><span class="sh-c sh-bl" aria-hidden="true"></span><span class="sh-c sh-br" aria-hidden="true"></span>
         <div class="sura-header-info"><span data-i18n="surah"></span> {loc_num(n, lang)}</div>
@@ -388,6 +439,7 @@ def build(n, lang, meta, ar_text, translations, alts, juz=None, pages=None, tota
     <li><a href="{R}/contact/" data-i18n="contact"></a></li>
   </ul></div>
 </div></footer>
+{JUMP_MODAL}
 {qnav_inline}
 <script src="{R}/assets/reader.js?v={ASSETS_V}" defer></script>
 <script src="{qnav_src}?v={ASSETS_V}" defer></script>
@@ -467,6 +519,7 @@ def build_index(meta, published, total=114, ar_text=None):
     </div>
     <ul class="qsearch-res" id="qsearch-res" hidden></ul>
   </div>
+  <div class="cover-go">{GOTO_BUTTON}</div>
   <h2 data-i18n="pickSurah"></h2>
   <div class="suras" data-langpath="quran">{"".join(cells)}</div>
   <p class="note-msg" data-i18n="volsNote"></p>
@@ -484,7 +537,10 @@ def build_index(meta, published, total=114, ar_text=None):
 <footer class="foot"><div class="foot-in">
   <div><h3 data-i18n="libName"></h3></div>
 </div></footer>
+{JUMP_MODAL}
+<script>window.QNAV={{"n":0,"base":"assets/","index":true}};</script>
 <script src="../assets/reader.js?v={ASSETS_V}" defer></script>
+<script src="assets/qnav.js?v={ASSETS_V}" defer></script>
 <script>(function(){{
   var SN={snames_json};
   var qi=document.getElementById('qsearch-q');
@@ -493,7 +549,16 @@ def build_index(meta, published, total=114, ar_text=None):
   var data=null,busy=false;
   function lang(){{var b=document.querySelector('.langs button[aria-pressed="true"]');return b?b.dataset.lang:'ar';}}
   function href(s,v){{var l=lang();return(l==='ar'?'':('../'+l+'/quran/'))+s+'/#a'+v;}}
-  function strip(s){{return s.replace(/[\\u064B-\\u065F\\u0670]/g,'');}}
+  /* Mirrors fold() in reader.js. Dropping tashkeel alone is not enough: Uthmani
+     spells الله with an alef wasla (U+0671), so an ordinary alef never matched. */
+  var FOLD={{'\\u0623':'\\u0627','\\u0625':'\\u0627','\\u0622':'\\u0627','\\u0671':'\\u0627',
+             '\\u0649':'\\u06CC','\\u064A':'\\u06CC','\\u0643':'\\u06A9','\\u0629':'\\u0647',
+             '\\u0624':'\\u0648','\\u0626':'\\u06CC'}};
+  function strip(s){{return s
+    .replace(/[\\u0610-\\u061A\\u064B-\\u0652\\u0670\\u06D6-\\u06ED\\u0640]/g,'')
+    .replace(/[\\u0623\\u0625\\u0622\\u0671\\u0649\\u064A\\u0643\\u0629\\u0624\\u0626]/g,
+             function(c){{return FOLD[c];}})
+    .toLowerCase();}}
   function render(ms){{
     if(!ms.length){{res.innerHTML='<li class="qsr-none">—</li>';}}
     else{{res.innerHTML=ms.slice(0,20).map(function(m){{
