@@ -54,6 +54,8 @@ AR_DIGITS = "٠١٢٣٤٥٦٧٨٩"          # Arabic-Indic
 FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹"          # Eastern Arabic-Indic, used by Persian and Urdu
 DIGITS = {"ar": AR_DIGITS, "fa": FA_DIGITS, "ur": FA_DIGITS}
 
+VERSE_LABEL = {"ar": "الآية", "fa": "آیه", "ur": "آیت", "en": "Verse"}
+
 
 def ar_num(n):
     return "".join(AR_DIGITS[int(d)] for d in str(n))
@@ -143,10 +145,12 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
     is_ar = (lang == "ar")
 
     # ---- body -------------------------------------------------------------
-    parts = []
+    bismillah_html = ''
     if n != 1 and n != 9:
-        parts.append(f'<p class="bismillah" lang="ar">{BASMALA}</p>')
+        bismillah_html = f'<p class="bismillah" lang="ar">{BASMALA}</p>'
 
+    parts = []
+    vl = VERSE_LABEL.get(lang, 'Verse')
     for a in range(1, ayas + 1):
         rows = [f'<p lang="ar" data-i="{a-1}">{ar_text[n][a]}'
                 f'<span class="aya-n">۝{ar_num(a)}</span></p>']
@@ -154,7 +158,8 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
             rows.append(
                 f'<p class="tr-line" lang="{lang}" data-tr="{t["id"]}">'
                 f'<span class="aya-b">{a}</span>{t["text"][n][a]}</p>')
-        parts.append(f'<div class="aya" id="a{a}" data-ref="{n}:{a}">'
+        parts.append(f'<div class="aya" id="a{a}" data-ref="{n}:{a}"'
+                     f' role="group" aria-label="{vl} {loc_num(a, lang)}">'
                      + "".join(rows)
                      + f'<button class="aya-copy" data-copy="{a}" '
                        f'data-i18n-label="copyVerse">'
@@ -202,17 +207,13 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
     title = f'{m["name"]} — {L["title"]}' if not is_ar else f'{m["name"]} — القرآن الكريم'
     desc = esc(describe(m, ayas, lang))
 
-    # The surah name is an Arabic proper noun and stays Arabic in every
-    # language. The Latin transliteration and the English gloss are only
-    # meaningful to an English reader, so they appear on that page alone.
-    meta_bits = []
+    # surah header badges: name (English only), place of revelation, ayat count
+    badges = []
     if lang == "en":
-        meta_bits.append(esc(m["tname"]))
-        meta_bits.append(esc(m["ename"]))
-    meta_bits.append(f'<span data-i18n="{"meccan" if m["type"] == "Meccan" else "medinan"}"></span>')
-    meta_bits.append(f'<span data-num="{ayas}">{ayas}</span> '
-                     f'<span data-i18n="ayat"></span>')
-    sura_meta = " · ".join(meta_bits)
+        badges.append(f'<span class="sura-badge">{esc(m["tname"])} · {esc(m["ename"])}</span>')
+    badges.append(f'<span class="sura-badge"><span data-i18n="{"meccan" if m["type"] == "Meccan" else "medinan"}"></span></span>')
+    badges.append(f'<span class="sura-badge"><span data-num="{ayas}">{loc_num(ayas, lang)}</span>&#8201;<span data-i18n="ayat"></span></span>')
+    sura_badges = "".join(badges)
 
     # verse picker: reader.js wires the jump; the options are static so the
     # control works before any script runs
@@ -258,9 +259,13 @@ def build(n, lang, meta, ar_text, translations, alts, total=114):
 <main class="wrap">
   <article>
     <div class="leaf" id="text">
-      <div class="part-label"><span class="sura-name">{m["name"]}</span>
-        <span class="sura-meta">{sura_meta}</span></div>
+      <header class="sura-header">
+        <p class="sura-name" lang="ar">{esc(m["name"])}</p>
+        <div class="sura-badges">{sura_badges}</div>
+      </header>
+      {bismillah_html}
       {tr_bar}
+      <div class="vsearch" id="vsearch" role="search"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg><input type="search" id="vsearch-q" autocomplete="off"><span class="vsearch-count" id="vsearch-count" aria-live="polite" aria-atomic="true"></span></div>
       <nav class="vnav">{vpick}</nav>
       <div class="body" data-tr-static="1" data-unit="aya" data-font="uthmani">{body}</div>
       {credit}
