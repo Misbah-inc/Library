@@ -33,6 +33,9 @@ Four things here are load-bearing and were each got wrong once:
 import argparse, html, json, pathlib, re, sys
 
 SITE = "https://library.misbah-inc.com"
+ASSETS_V = "6"   # bump when reader.css/js change, to break browser caches.
+                 # Without it a returning reader keeps a stale stylesheet and
+                 # never sees the fix — which is what happened to the Qur'an.
 SLUG = "bayt-al-ahzan-fa"   # standalone Farsi translation (no /fa/ URL prefix)
 SRC  = "fa"
 
@@ -154,7 +157,7 @@ def build_page(page, order, idx, lang, alts):
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{desc}">
 {canonical}{alt_links}{prev_l}{next_l}
-<link rel="stylesheet" href="{R}/assets/reader.css">
+<link rel="stylesheet" href="{R}/assets/reader.css?v={ASSETS_V}">
 </head>
 <body>
 <a class="skip" href="#text">&rarr;</a>
@@ -215,7 +218,7 @@ def build_page(page, order, idx, lang, alts):
     <li><a href="{R}/contact/" data-i18n="contact"></a></li>
   </ul></div>
 </div></footer>
-<script src="{R}/assets/reader.js" defer></script>
+<script src="{R}/assets/reader.js?v={ASSETS_V}" defer></script>
 </body>
 </html>
 '''
@@ -245,7 +248,7 @@ def build_index(data, starts):
 <meta name="description" content="{esc(TITLES['fa'])} — ترجمهٔ بیت‌الاحزان اثر {esc(AUTHOR['fa'])}، به قلم {esc(TRANSLATOR_FA)}.">
 <meta property="og:title" content="{esc(TITLES['fa'])}">
 <link rel="canonical" href="{SITE}/{SLUG}/">
-<link rel="stylesheet" href="../assets/reader.css">
+<link rel="stylesheet" href="../assets/reader.css?v={ASSETS_V}">
 </head>
 <body>
 <a class="skip" href="#text">&rarr;</a>
@@ -298,7 +301,7 @@ def build_index(data, starts):
     <li><a href="../contact/" data-i18n="contact"></a></li>
   </ul></div>
 </div></footer>
-<script src="../assets/reader.js" defer></script>
+<script src="../assets/reader.js?v={ASSETS_V}" defer></script>
 </body>
 </html>
 '''
@@ -338,7 +341,7 @@ def build_fa_index(data, starts):
 <meta name="description" content="{esc(TITLES['fa'])} — ترجمهٔ بیت‌الاحزان اثر {esc(AUTHOR['fa'])}، به قلم {esc(TRANSLATOR_FA)}.">
 <meta property="og:title" content="{esc(TITLES['fa'])}">
 {canonical}{alts}
-<link rel="stylesheet" href="../assets/reader.css">
+<link rel="stylesheet" href="../assets/reader.css?v={ASSETS_V}">
 </head>
 <body>
 <a class="skip" href="#text">&rarr;</a>
@@ -391,7 +394,7 @@ def build_fa_index(data, starts):
     <li><a href="../contact/" data-i18n="contact"></a></li>
   </ul></div>
 </div></footer>
-<script src="../assets/reader.js" defer></script>
+<script src="../assets/reader.js?v={ASSETS_V}" defer></script>
 </body>
 </html>
 '''

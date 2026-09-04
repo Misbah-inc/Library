@@ -79,6 +79,22 @@
         "en": "Supplications, ziyarat and munajat."
       },
       "always": true
+    },
+    {
+      "id": "arabic",
+      "name": {
+        "ar": "زبان عربي",
+        "fa": "زبان عربی",
+        "ur": "عربی زبان",
+        "en": "Arabic Language"
+      },
+      "desc": {
+        "ar": "الصرف والنحو والمنطق — متون الدراسة المقدماتية.",
+        "fa": "صرف، نحو و منطق — متون مقدماتی حوزوی.",
+        "ur": "صرف، نحو اور منطق — ابتدائی درسی متون۔",
+        "en": "Morphology, syntax and logic — the introductory curriculum."
+      },
+      "always": true
     }
   ],
   "books": [
@@ -365,6 +381,33 @@
       "volumesPublished": [
         1
       ]
+    },
+    {
+      "slug": "jame-al-muqaddimat",
+      "category": "arabic",
+      "title": {
+        "ar": "جامع المقدمات",
+        "fa": "جامع المقدمات",
+        "ur": "جامع المقدمات",
+        "en": "Jami' al-Muqaddimat"
+      },
+      "subtitle": {
+        "ar": "مجموعة متون الصرف والنحو والمنطق",
+        "fa": "مجموعهٔ متون مقدماتی صرف، نحو و منطق",
+        "ur": "صرف، نحو اور منطق کے ابتدائی متون کا مجموعہ",
+        "en": "The classical primers of morphology, syntax and logic"
+      },
+      "author": {
+        "ar": "مؤلفون",
+        "fa": "جمعی از مؤلفان",
+        "ur": "متعدد مؤلفین",
+        "en": "Various authors"
+      },
+      "volumes": 2,
+      "unit": "volumes",
+      "pages": 1216,
+      "href": "jame-al-muqaddimat/",
+      "srclang": "fa"
     }
   ]
 }

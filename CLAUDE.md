@@ -316,6 +316,39 @@ On top of the above, before the owner is asked to commit:
 | `bayt-al-ahzan/1–189/` | 189 | Arabic original (Qummi), pages 1–189 |
 | `bayt-al-ahzan-fa/` | 1 | Farsi cover |
 | `bayt-al-ahzan-fa/1–262/` | 262 | Complete Persian text (Ishtihardi), printed pages |
+| `jame-al-muqaddimat/` | 1 | Volume selector |
+| `jame-al-muqaddimat/1/` + `1/1–609/` | 610 | Vol 1 contents + pages, 9 treatises |
+| `jame-al-muqaddimat/2/` + `2/1–607/` | 608 | Vol 2 contents + pages, 6 treatises |
+
+**جامع المقدمات (2026-09-03).** Multi-volume, Bihar-shaped: `/jame-al-muqaddimat/<vol>/<page>/`.
+Persian commentary around Arabic matn, so every block carries its own `lang` (`ar`/`fa`)
+and the two set in different faces; `data-standalone="1"` as on Bayt al-Ahzan, since it
+lives at its own top-level slug rather than under `/fa/`. Built by `jame_extract.py`
+(Ghaemiyeh export → `jame_pages.json`) then `jame_build.py`.
+
+> Its `assets/toc.json` is **book-level, not per volume**. reader.js rewrites `BOOK` to
+> `ROOT + '/' + data-slug` on any page with `data-sitelang`, so a per-volume toc.json is
+> never fetched and the drawer silently comes up empty. Any future multi-volume book has
+> the same constraint.
+
+> Page markers in this export (`ص :137`) **close** the page they name — the opposite of
+> Bayt al-Ahzan's `[ صفحه N ]`, which opens it. Check the tail of a new export before
+> assuming either way.
+
+**Tashkīl.** The source is unvocalised (~0.5%). کتاب الامثله (vol 1 pp. 11–14) has been
+vocalised — 13 blocks, 583 marks — by `jame_tashkil.py`, which enforces two rules any
+future treatise must also follow:
+
+1. **Add marks only, never substitute a letter.** The source writes `اضرب` and `ضاربه`,
+   not `أضرب`/`ضاربة`; changing those is editing, not vocalising. Verified per block by
+   `strip_diacritics(vocalised) == original`, exact — the build fails otherwise.
+2. **Vocalise positionally, never by word lookup.** `ضربت` appears four times in the ماضی
+   block as four different words (ضَرَبَتْ / ضَرَبْتَ / ضَرَبْتِ / ضَرَبْتُ). A word map gets
+   three wrong, silently, for exactly the reader trying to learn it.
+
+It ships as an overlay: the page emits the printed text plus `data-tashkil`, and reader.js
+swaps them behind the اعراب button. Never replace the printed text — a citation must not
+resolve to something an editor added. The other 14 treatises are unvocalised.
 
 **Architecture change (2026-09-01):** Bayt al-Ahzan now follows the Bihar model.
 `/bayt-al-ahzan/` is the Arabic primary cover. **The Farsi edition is a top-level sibling

@@ -734,3 +734,29 @@ a.sura-cell:hover,a.chap-cell:hover{border-color:var(--gold);background:var(--ti
    the same word-gaps the run-on page avoids by having a whole page to spread. */
 .body.m-mushaf.m-withtr .aya > p[lang="ar"]{text-align:right;
        line-height:2.45;font-size:clamp(1.3rem,calc(var(--body-size) * 1.4),3.1rem)}
+
+/* --- جامع المقدمات: treatise headings, page-label link, blank printed pages ---
+   The book interleaves Arabic matn and Persian commentary line by line, so each
+   block carries its own lang and the existing .body p[lang="fa"] rule already
+   picks the UI face for Persian. These add the h2 level the treatises need. */
+.body h2{font-weight:700;font-family:var(--display);font-size:1.34rem;
+      margin:2.2rem 0 1.1rem;line-height:1.7;color:var(--rubric);text-align:center}
+.body h2[lang="fa"]{font-family:var(--ui);font-size:1.14rem}
+.body h2::after{content:"";display:block;width:3.2rem;height:1px;
+      background:var(--gold);margin:.7rem auto 0}
+/* the part label doubles as the way back to the volume contents */
+.part-label .up-link{color:inherit;text-decoration:none;border-bottom:1px dotted var(--line)}
+.part-label .up-link:hover{color:var(--gold-2);border-bottom-color:var(--gold-2)}
+/* a printed page that carries no text in the export — keep it navigable */
+.blank-page{min-height:6rem}
+/* vocalisation toggle — only rendered on pages that carry a vocalised layer */
+.tashkil-bar{max-width:var(--leaf-w);margin:0 auto .9rem;display:flex;justify-content:flex-end}
+.tashkil-btn{background:transparent;border:1px solid var(--line);border-radius:999px;
+      padding:.26rem .8rem;font:inherit;font-size:.74rem;color:var(--ink-2);cursor:pointer}
+.tashkil-btn:hover{background:var(--tint);color:var(--ink)}
+.tashkil-btn[aria-pressed="true"]{background:var(--green);color:var(--on-green);border-color:var(--green)}
+/* citation line under the pager, as on the Bihar pages */
+.btn-cite{background:transparent;border:1px solid var(--line);border-radius:999px;
+      padding:.2rem .7rem;font:inherit;font-size:.72rem;color:var(--ink-2);
+      cursor:pointer;margin-inline-start:.4rem}
+.btn-cite:hover{background:var(--tint);color:var(--ink)}

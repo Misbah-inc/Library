@@ -17,6 +17,9 @@ Usage:
 import argparse, html, json, pathlib, re, sys
 
 SITE  = "https://library.misbah-inc.com"
+ASSETS_V = "6"   # bump when reader.css/js change, to break browser caches.
+                 # Without it a returning reader keeps a stale stylesheet and
+                 # never sees the fix — which is what happened to the Qur'an.
 SLUG  = "bayt-al-ahzan"
 LANG  = "ar"
 TITLE = "بيت الأحزان في مصائب سيدة النسوان"
@@ -117,7 +120,7 @@ def build_reading_page(page, order, idx):
 <meta property="og:title" content="{esc(title_str)}">
 <meta property="og:description" content="{desc}">
 {canonical}{alts}{prev_l}{next_l}
-<link rel="stylesheet" href="{R}/assets/reader.css">
+<link rel="stylesheet" href="{R}/assets/reader.css?v={ASSETS_V}">
 </head>
 <body>
 <a class="skip" href="#text">&rarr;</a>
@@ -188,7 +191,7 @@ def build_reading_page(page, order, idx):
     <li><a href="{R}/contact/" data-i18n="contact"></a></li>
   </ul></div>
 </div></footer>
-<script src="{R}/assets/reader.js" defer></script>
+<script src="{R}/assets/reader.js?v={ASSETS_V}" defer></script>
 </body>
 </html>"""
 
@@ -261,7 +264,7 @@ def build_arabic_cover(data, out_dir):
 <title>{esc(TITLE)}</title>
 <meta name="description" content="{esc(TITLE)} — {esc(AUTH)} — {esc(PUB)}">
 {canonical}{alts}
-<link rel="stylesheet" href="../assets/reader.css">
+<link rel="stylesheet" href="../assets/reader.css?v={ASSETS_V}">
 </head>
 <body class="cover">
 <a class="skip" href="#main">&rarr;</a>
@@ -306,7 +309,7 @@ def build_arabic_cover(data, out_dir):
     <li><a href="../contact/" data-i18n="contact"></a></li>
   </ul></div>
 </div></footer>
-<script src="../assets/reader.js" defer></script>
+<script src="../assets/reader.js?v={ASSETS_V}" defer></script>
 </body>
 </html>"""
 

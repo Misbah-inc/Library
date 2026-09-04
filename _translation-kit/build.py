@@ -29,6 +29,9 @@ list a language whose pages have not been published: an hreflang pointing at a
 import argparse, html, json, re, sys, pathlib
 
 SITE = "https://library.misbah-inc.com"
+ASSETS_V = "6"   # bump when reader.css/js change, to break browser caches.
+                 # Without it a returning reader keeps a stale stylesheet and
+                 # never sees the fix — which is what happened to the Qur'an.
 R = "../../../.."          # depth of <lang>/bihar/<vol>/<page>/ below the Library root
 
 LANGS = {
@@ -127,7 +130,7 @@ def build(page, lang, vol, total, alts):
 <title>{L["title"]} — p. {n_}</title>
 <meta name="description" content="{description(nodes, lang)}">
 {canonical}{alt_links}{link_prev}{link_next}
-<link rel="stylesheet" href="{R}/assets/reader.css">
+<link rel="stylesheet" href="{R}/assets/reader.css?v={ASSETS_V}">
 </head>
 <body>
 <a class="skip" href="#text">&rarr;</a>
@@ -205,7 +208,7 @@ def build(page, lang, vol, total, alts):
     <li><a href="{R}/contact/" data-i18n="contact"></a></li>
   </ul></div>
 </div></footer>
-<script src="{R}/assets/reader.js" defer></script>
+<script src="{R}/assets/reader.js?v={ASSETS_V}" defer></script>
 </body>
 </html>
 '''

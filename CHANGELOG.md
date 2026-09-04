@@ -4,6 +4,235 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-04 (session 8, part 7)
+
+### Fix — asset versioning made consistent sitewide (v=6), and a broken Bihar control
+
+Two corrections, no structure or content touched. Both verified rather than asserted.
+
+**1. Every page now versions the shared assets.** 1,391 pages — Bihar and its three
+translations, both Bayt al-Ahzan books, and the six root pages — linked
+`assets/reader.css` / `reader.js` with no `?v=` at all, so they relied on whenever the
+browser felt like re-fetching. Edit the shared stylesheet and a returning reader keeps
+the stale one indefinitely. That is the same bug that hid the part-4 Qur'an fixes.
+
+New `_translation-kit/stamp_assets.py` does the stamping and proves it is safe:
+
+- **operates on bytes.** Every page here is CRLF; Python's text mode would have rewritten
+  all 1,391 to LF — 1,391 files showing as wholly changed for a four-character edit.
+  Bytes also cannot introduce a BOM or round-trip the Arabic.
+- **proves only the version moved.** With the version stripped from both, patched and
+  original must be byte-identical, and the CRLF count must match. A file failing either
+  is skipped and reported, never written.
+
+`ASSETS_V` added to `bayt_build.py`, `bayt_ar_build.py` and `build.py` (they had none), and
+all five builders set to **6** so a future rebuild cannot silently revert this.
+
+*Independently checked:* rebuilt bayt-al-ahzan from `bayt_ar.json` into a scratch directory
+and diffed against the live pages — **190 identical, 0 differing**. So the surgical stamp
+produced exactly what the updated builder produces; builder and site are back in sync, and
+"structure and content unchanged" is demonstrated, not claimed.
+
+**2. Bihar's page navigation was dead, and worse than merely absent.** Its pages ship 120
+tick-mark links; reader.js reads the page number from `aria-label`, which those links do
+not carry — it sits on the parent `<nav>`, and the links have `title="صفحة ٤٠"` in
+Arabic-Indic digits that `parseInt` cannot read. So the list came out empty *and*
+`install()` still replaced the working links with a dropdown containing nothing: the
+control didn't degrade, it destroyed what was there. Pre-existing, not from this session
+(the earlier edit sits below that `return`). Now falls back to the page number in the
+href, which is language-neutral and works for every book.
+
+Before: 120 links → **0** parsed. After: 120 links → **120** parsed, page ۴۰ selected,
+targets resolve 200.
+
+**What changed:**
+- `_translation-kit/stamp_assets.py` — new: byte-exact, self-verifying asset stamper
+- `_translation-kit/{bayt_build,bayt_ar_build,build}.py` — `ASSETS_V` introduced
+- `_translation-kit/{jame_build,quran_build}.py` — `ASSETS_V` → 6
+- `assets/reader.js` — page-number fallback for the edge-link dropdown
+- 3,067 HTML files — asset refs restamped to `?v=6` (asset URL only)
+
+Verified across 25 URLs spanning every book and all four languages: all 200, all on
+`?v=6`, every reading page still has its `.body` and `.pager`. Spot-checked live: Bihar
+dropdown 120 options resolving 200 · جامع المقدمات اعراب toggle swaps both ways with 609
+dropdown options, TOC, cite and language switcher all present · Qur'an ا+ grows the
+Arabic as well as the translation.
+
+---
+
+## 2026-09-04 (session 8, part 6)
+
+### Feature — tashkīl on کتاب الامثله, as a verified toggleable layer
+
+Vocalised the ضرب paradigm — 13 blocks, **583 marks**, vol 1 pp. 11–14. New
+`_translation-kit/jame_tashkil.py` holds the table and enforces two rules:
+
+**1. Add marks only, never substitute a letter.** The source writes `اضرب` with a bare
+alef and `ضاربه` with ه. "Correcting" those to `أضرب`/`ضاربة` would be editing the text,
+not vocalising it. Enforced by a machine check on every block:
+
+```
+strip_diacritics(vocalised) == original     # exact, or the build fails
+```
+
+All 13 pass. Any letter change, dropped word or typo breaks the build loudly.
+
+**2. Vocalise positionally, never by word lookup.** In the ماضی block `ضربت` occurs four
+times and is a different word each time — ضَرَبَتْ (she) · ضَرَبْتَ (you m.) · ضَرَبْتِ
+(you f.) · ضَرَبْتُ (I). A word→word map gets three of four wrong, silently, for the
+reader who came to learn exactly that. Each entry is a whole phrase replaced in order.
+
+Reviewed against the standard paradigm: باب ضَرَبَ يَضْرِبُ takes kasra on the ʿayn
+(یَضْرِبُ, not یَضْرُبُ); امر uses hamzat waṣl with kasra (اِضْرِبْ); and the pair the two
+chapters exist to teach is correctly distinguished — **نهی is jussive** (لَا یَضْرِبْ)
+against **نفی indicative** (لَا یَضْرِبُ). That one sukun/ḍamma *is* the lesson.
+
+Shipped as an **overlay, not a rewrite**: the page emits the printed text and carries the
+vocalised variant in `data-tashkil`; reader.js keeps the plain form in `data-plain` and
+the اعراب button swaps them (default on, remembered). With JavaScript off a reader still
+sees the printed text, and a citation is never silently something an editor added.
+
+Coverage is 13 of ~2,975 blocks. The other 14 treatises are untouched — the remaining
+~500,000 Arabic letters are mostly running نحو prose, where vocalisation is
+interpretation rather than paradigm and the same per-phrase care is needed.
+
+### Fix — three Bihar features were missing from the new book
+
+Audited جامع المقدمات against a Bihar page element by element. Three gaps, now closed:
+
+| feature | was | now |
+|---|---|---|
+| language switcher (`.langs`) | missing | present, all four buttons |
+| citation (`#btn-cite` + `#cite-text`) | missing | per-language `data-cite-*`, copies with the URL |
+| page dropdown (edge bar successor) | missing | 609/607 options, verified to resolve 200 |
+
+### Fix — page dropdown was broken for every standalone book (reader.js)
+
+Finding the third gap exposed a real bug. reader.js built the dropdown's hrefs as
+`ROOT + '/' + FIXED + '/' + slug`, with no standalone guard — so on a book living at its
+own top-level slug every option pointed at `/fa/<slug>/…`, which does not exist. Now
+follows the same `FIXED && !STANDALONE` rule the TOC links already used. Bihar's
+translated pages are unaffected (they are not standalone and keep the prefix); Bayt
+al-Ahzan ships no `pages-*.json` so it had no dropdown to break.
+
+**What changed:**
+- `_translation-kit/jame_tashkil.py` — new: vocalisation table, positional application, strip-invariant verifier
+- `_translation-kit/jame_tashkil.json` — new: 13-block overlay
+- `_translation-kit/jame_build.py` — `--tashkil`; `data-tashkil` emission; اعراب toggle; `.langs`; cite block; `assets/pages-<vol>.json`; `ASSETS_V` → 5
+- `assets/reader.js` — vocalisation overlay; standalone guard on the page dropdown; `tashkil` i18n key ×4 languages
+- `assets/reader.css` — `.tashkil-bar`/`.tashkil-btn`, `.btn-cite`
+- `jame-al-muqaddimat/` — 1,216 pages rebuilt; `assets/pages-1.json`, `pages-2.json`
+
+### Fix — the part-4 Qur'an fixes would never have reached returning readers
+
+Checking the asset versions turned this up, and it matters more than the caching note
+that first prompted the check.
+
+`?v=N` on `reader.css` / `reader.js` exists only to defeat browser caching: same URL means
+the browser reuses its stored copy, so a changed stylesheet reaches nobody until the
+number moves. Timestamps showed the problem plainly —
+
+```
+assets/reader.css      written  9/4 00:00     <- the ا+/ا− and mobile fixes
+quran/1/index.html     built    9/3 14:40     <- and still asking for ?v=4
+```
+
+`reader.css` was edited in part 4 (Arabic scales with `--body-size`, the word-spacing fix
+for the pause-mark gaps, صفحهٔ مصحف with translation) **after** the Qur'an pages were
+built. Because those pages still requested `?v=4`, any returning reader would have kept a
+cached v4 stylesheet and seen **none of those three fixes** — while a new visitor saw them
+all. Exactly the kind of bug that looks like "works on my machine".
+
+`quran_build.py` `ASSETS_V` → 5 and all 456 surah pages + the cover rebuilt. Verified: **0
+pages anywhere on the site still ask for v=4.**
+
+Bihar and Bayt al-Ahzan reference `reader.css` / `reader.js` with no version at all, so
+they depend on ordinary HTTP cache expiry. Pre-existing, unchanged here, and worth
+versioning when either builder is next touched.
+
+Also checked for CSS leakage, since `assets/reader.css` is shared sitewide: the new
+`.body h2` rule matches **0** pages across Bihar (231), Bayt al-Ahzan (189) and
+bayt-al-ahzan-fa (262) — none put an `<h2>` inside `.body` — so it reaches only this book.
+
+Verified in-browser: toggle swaps both ways and the label localises (اِعراب); dropdown
+609 options resolving 200; no missing elements against the Bihar checklist; and
+`/quran/`, `/bihar/`, `/bayt-al-ahzan/`, `/bayt-al-ahzan-fa/`, `/books/` all still 200.
+
+---
+
+## 2026-09-03 (session 8, part 5)
+
+### Feature — جامع المقدمات added: 2 volumes, 1,216 printed pages
+
+New book from the two Ghaemiyeh HTML exports, in a new **زبان عربي** category.
+URL shape follows Bihar, the library's model for a multi-volume work:
+
+```
+/jame-al-muqaddimat/            volume selector
+/jame-al-muqaddimat/1/          volume 1 contents — 9 treatises
+/jame-al-muqaddimat/1/<page>/   printed pages 1..609
+/jame-al-muqaddimat/2/<page>/   printed pages 1..607
+```
+
+Volume 1: الامثله · شرح الامثله · صرف میر · التصریف · شرح التصریف · عوامل جرجانی ·
+عوامل منظومه · عوامل ملا محسن · شرح العوامل فی النحو
+Volume 2: الکبری فی المنطق · آداب المتعلمین · الهدایه فی النحو · صیغ مشکله ·
+شرح الانموذج · الصمدیه
+
+**Pagination.** The export marks pages as `ص :137`. The marker *closes* the page it
+names, the opposite of Bayt al-Ahzan's `[ صفحه N ]`. Established from the tail of both
+files: the last marker is 609 / 607 with no content after it, impossible if a marker
+opened its page. Both volumes number 1..N with **no gaps**, so unlike Bayt al-Ahzan
+there was nothing to fill in. 66 pages carry no text in the export and render as blank
+but navigable, preserving the printed numbering.
+
+**Per-block language.** This edition is Persian commentary wrapped around Arabic matn,
+interleaved down to the line. Every block is tagged `ar` or `fa` so each sets in the
+right face — Arabic in Amiri, Persian in Vazirmatn — via the `.body p[lang="fa"]` rule
+already in the stylesheet. Classification is biased toward `fa`: mislabelling Persian as
+Arabic would set it in the Arabic serif and expose it to vocalisation, the worse failure.
+Measured ~90% clean; the residue is genuinely mixed lines (Arabic paradigm + Persian
+gloss), which no per-block scheme can split.
+
+**Bug found and fixed during verification.** The TOC drawer came up empty. reader.js
+rewrites `BOOK` to `ROOT + '/' + data-slug` on any page carrying `data-sitelang`, so the
+per-volume `assets/toc.json` was never fetched. Moved to one book-level
+`assets/toc.json` spanning both volumes — which is the better listing anyway: all 15
+treatises in one drawer, so a reader can cross from volume 1 to volume 2 without backing
+out. Verified: 19 rows, links resolve 200.
+
+**Tashkīl — NOT applied. Deliberate, and it needs a decision.** The request was to
+vocalise Arabic where it aids reading. On measuring, the source is essentially bare:
+**0–3.9% vocalised, ~500,000 Arabic letters across the two volumes**. Two reasons not to
+bulk-generate it:
+
+1. These are صرف/نحو primers. The case endings *are* the lesson — a wrong ḥaraka does not
+   look untidy, it teaches the opposite rule, and it is invisible to the reader who came
+   to learn it. This is the one corpus where vocalisation errors do maximum damage.
+2. Arabic and Persian interleave *within* single lines, so there is no clean seam to
+   vocalise along.
+
+The book ships faithful to the printed text, with the ~4,200 existing marks preserved.
+Proposed next step: vocalise **one** treatise — کتاب الامثله (18 blocks, the shortest) —
+as a reviewable sample, and if the quality holds, extend treatise by treatise with the
+vocalised text as a *toggleable layer* rather than a replacement, so citations stay clean.
+
+**What changed:**
+- `_translation-kit/jame_extract.py` — new: Ghaemiyeh export → printed pages + per-block language
+- `_translation-kit/jame_build.py` — new: pages, volume contents, cover, book-level toc.json
+- `_translation-kit/jame_pages.json` — new: extracted source (1.4 MB)
+- `jame-al-muqaddimat/` — new: cover, 2 volume contents, 1,216 reading pages, `assets/toc.json`
+- `catalog.json` — new `arabic` category (6th tab) + the book entry
+- `assets/reader.css` — `.body h2` treatise headings, `.part-label .up-link`, `.blank-page`
+- `.claude/launch.json` — new: local preview server on :8099 for browser verification
+- `sitemap.xml`, `robots.txt` — regenerated: **3,066 URLs** (was 1,847; +1,219)
+
+Verified in-browser at 8099: page renders with correct fonts per language, part label and
+folio correct, pager resolves, TOC populated, new category shows on `/books/`, and
+`/quran/`, `/bihar/`, `/bayt-al-ahzan/`, `/bayt-al-ahzan-fa/` all still return 200.
+
+---
+
 ## 2026-09-03 (session 8, part 4)
 
 ### Not a bug — Bayt al-Ahzan was never deleted

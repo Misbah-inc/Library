@@ -1,0 +1,9 @@
+# Python bytecode — regenerated on every run of the _translation-kit scripts.
+# Machine- and version-specific, so it only ever produces noise in a diff.
+__pycache__/
+*.py[cod]
+
+# OS and editor scratch
+.DS_Store
+Thumbs.db
+*.swp

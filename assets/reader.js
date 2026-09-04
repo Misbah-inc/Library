@@ -38,7 +38,7 @@
           browse:'تصفح', aboutBody:'مكتبة مصباح مشروع لنشر النصوص التراثية على الإنترنت بصيغة '
                  + 'قابلة للإحالة الدقيقة: كل صفحة تحمل رقمها في الطبعة المطبوعة وعنواناً ثابتاً '
                  + 'لا يتغير، ليستطيع الباحث أن يحيل إليها ويثق ببقاء الرابط.',
-          contactBody:'للاقتراحات وتصحيح الأخطاء والمساهمة في المكتبة، يرجى التواصل معنا.', searchVerse:'ابحث في الآيات…', vsNone:'لا نتائج', scriptMushaf:'مصحف', scriptAmiri:'أميري', juz:'الجزء', mushafPage:'الصفحة', allSurahs:'كل السور', quickAccess:'وصول سريع', goTo:'اذهب إلى', goVerse:'انتقل', layout:'التنسيق', layoutVerse:'آية بآية', layoutMushaf:'صفحة مصحف', showAs:'العرض', showAll:'كل الآيات', showPaged:'صفحة بصفحة', pageOf:'من', prevPage:'الصفحة السابقة', nextPage:'الصفحة التالية', textView:'النص' },
+          contactBody:'للاقتراحات وتصحيح الأخطاء والمساهمة في المكتبة، يرجى التواصل معنا.', searchVerse:'ابحث في الآيات…', vsNone:'لا نتائج', tashkil:'التشكيل', scriptMushaf:'مصحف', scriptAmiri:'أميري', juz:'الجزء', mushafPage:'الصفحة', allSurahs:'كل السور', quickAccess:'وصول سريع', goTo:'اذهب إلى', goVerse:'انتقل', layout:'التنسيق', layoutVerse:'آية بآية', layoutMushaf:'صفحة مصحف', showAs:'العرض', showAll:'كل الآيات', showPaged:'صفحة بصفحة', pageOf:'من', prevPage:'الصفحة السابقة', nextPage:'الصفحة التالية', textView:'النص' },
     fa: { first:'نخست', prev:'صفحه قبل', next:'صفحه بعد', last:'پایان', volumes:'مجلدات', published:'منتشرشده', pickVolume:'انتخاب جلد', otherVolumes:'جلدهای دیگر', volsNote:'جلدهای غیرفعال هنوز منتشر نشده‌اند.', soon:'به‌زودی', citeAr:'برای ارجاع از صفحهٔ عربی استفاده کنید:', machineTr:'ترجمهٔ ماشینی با هوش مصنوعی، بازبینی‌نشده و ممکن است خطا داشته باشد. برای ارجاع به متن عربی استناد کنید.', viewAr:'عربی', viewTr:'ترجمه', viewBoth:'هر دو', viewSide:'دوستونه', verse:'آیه', surah:'سوره', surahs:'سوره‌ها', pickSurah:'انتخاب سوره', script:'خط', scriptUthmani:'عثمانی', scriptSimple:'ساده', copyVerse:'کپی آیه', copyRef:'ارجاع', copyLink:'پیوند', copyDo:'کپی', ayat:'آیه', meccan:'مکی', medinan:'مدنی', textFrom:'متن از', transFrom:'ترجمه‌ها از', noTr:'این صفحه هنوز ترجمه نشده است؛ متن عربی نمایش داده می‌شود.', draft:'ترجمهٔ اولیه و بازبینی‌نشده.', trBy:'ترجمه', home:'خانه', mylib:'کتابخانهٔ من', search:'جستجو', allBooks:'همهٔ کتاب‌ها',
           contact:'تماس با ما', about:'دربارهٔ ما', menu:'فهرست', close:'بستن',
           chapter:'فصل', chapters:'فصل‌ها', pickChapter:'فصل را انتخاب کنید', translator:'ترجمه', foreword:'مقدمه', author:'نویسنده', viewSrc:'متن اصلی',
@@ -63,7 +63,7 @@
           browse:'مرور', aboutBody:'کتابخانهٔ مصباح پروژه‌ای است برای انتشار متون تراثی بر '
                  + 'بستر وب به شکلی که ارجاع دقیق ممکن باشد: هر صفحه شمارهٔ چاپی خود و نشانی '
                  + 'ثابتی دارد که تغییر نمی‌کند.',
-          contactBody:'برای پیشنهاد، گزارش اشتباه یا همکاری با کتابخانه با ما در تماس باشید.', searchVerse:'جستجو در آیات…', vsNone:'نتیجه‌ای نیافت', scriptMushaf:'مصحف', scriptAmiri:'امیری', juz:'جزء', mushafPage:'صفحه', allSurahs:'همهٔ سوره‌ها', quickAccess:'دسترسی سریع', goTo:'برو به', goVerse:'تأیید', layout:'چیدمان', layoutVerse:'آیه‌به‌آیه', layoutMushaf:'صفحهٔ مصحف', showAs:'نمایش', showAll:'همهٔ آیات', showPaged:'صفحه‌به‌صفحه', pageOf:'از', prevPage:'صفحهٔ قبل', nextPage:'صفحهٔ بعد', textView:'متن' },
+          contactBody:'برای پیشنهاد، گزارش اشتباه یا همکاری با کتابخانه با ما در تماس باشید.', searchVerse:'جستجو در آیات…', vsNone:'نتیجه‌ای نیافت', tashkil:'اِعراب', scriptMushaf:'مصحف', scriptAmiri:'امیری', juz:'جزء', mushafPage:'صفحه', allSurahs:'همهٔ سوره‌ها', quickAccess:'دسترسی سریع', goTo:'برو به', goVerse:'تأیید', layout:'چیدمان', layoutVerse:'آیه‌به‌آیه', layoutMushaf:'صفحهٔ مصحف', showAs:'نمایش', showAll:'همهٔ آیات', showPaged:'صفحه‌به‌صفحه', pageOf:'از', prevPage:'صفحهٔ قبل', nextPage:'صفحهٔ بعد', textView:'متن' },
     ur: { first:'پہلا', prev:'پچھلا', next:'اگلا', last:'آخری', volumes:'جلدیں', published:'شائع شدہ', pickVolume:'جلد منتخب کریں', otherVolumes:'دیگر جلدیں', volsNote:'غیر فعال جلدیں ابھی شائع نہیں ہوئیں۔', soon:'جلد آ رہا ہے', citeAr:'حوالے کے لیے عربی صفحہ استعمال کریں:', machineTr:'مصنوعی ذہانت سے تیار کردہ مشینی ترجمہ، غیر نظرثانی شدہ اور اس میں غلطیاں ممکن ہیں۔ حوالے کے لیے عربی اصل پر اعتماد کریں۔', viewAr:'عربی', viewTr:'ترجمہ', viewBoth:'دونوں', viewSide:'آمنے سامنے', verse:'آیت', surah:'سورہ', surahs:'سورتیں', pickSurah:'سورہ منتخب کریں', script:'خط', scriptUthmani:'عثمانی', scriptSimple:'سادہ', copyVerse:'آیت نقل کریں', copyRef:'حوالہ', copyLink:'لنک', copyDo:'نقل', ayat:'آیات', meccan:'مکی', medinan:'مدنی', textFrom:'متن بشکریہ', transFrom:'تراجم بشکریہ', noTr:'اس صفحے کا ترجمہ ابھی نہیں ہوا؛ عربی متن دکھایا جا رہا ہے۔', draft:'ابتدائی، غیر نظرثانی شدہ ترجمہ۔', trBy:'ترجمہ', home:'صفحۂ اول', mylib:'میری لائبریری', search:'تلاش', allBooks:'تمام کتب',
           contact:'رابطہ کریں', about:'ہمارے بارے میں', menu:'مینو', close:'بند کریں',
           chapter:'باب', chapters:'ابواب', pickChapter:'باب منتخب کریں', translator:'ترجمہ', foreword:'مقدمہ', author:'مصنف', viewSrc:'اصل متن',
@@ -88,7 +88,7 @@
           browse:'دیکھیں', aboutBody:'مصباح لائبریری کا مقصد تراثی متون کو ایسے انداز میں '
                  + 'شائع کرنا ہے کہ درست حوالہ ممکن ہو: ہر صفحہ اپنا مطبوعہ نمبر اور ایک '
                  + 'مستقل پتہ رکھتا ہے۔',
-          contactBody:'تجاویز، اغلاط کی نشاندہی یا تعاون کے لیے ہم سے رابطہ کریں۔', searchVerse:'آیات میں تلاش…', vsNone:'کوئی نتیجہ نہیں', scriptMushaf:'مصحف', scriptAmiri:'امیری', juz:'جزء', mushafPage:'صفحہ', allSurahs:'تمام سورتیں', quickAccess:'فوری رسائی', goTo:'جائیں', goVerse:'تصدیق', layout:'ترتیب', layoutVerse:'آیت بہ آیت', layoutMushaf:'مصحف صفحہ', showAs:'نمائش', showAll:'تمام آیات', showPaged:'صفحہ بہ صفحہ', pageOf:'از', prevPage:'پچھلا صفحہ', nextPage:'اگلا صفحہ', textView:'متن' },
+          contactBody:'تجاویز، اغلاط کی نشاندہی یا تعاون کے لیے ہم سے رابطہ کریں۔', searchVerse:'آیات میں تلاش…', vsNone:'کوئی نتیجہ نہیں', tashkil:'اعراب', scriptMushaf:'مصحف', scriptAmiri:'امیری', juz:'جزء', mushafPage:'صفحہ', allSurahs:'تمام سورتیں', quickAccess:'فوری رسائی', goTo:'جائیں', goVerse:'تصدیق', layout:'ترتیب', layoutVerse:'آیت بہ آیت', layoutMushaf:'مصحف صفحہ', showAs:'نمائش', showAll:'تمام آیات', showPaged:'صفحہ بہ صفحہ', pageOf:'از', prevPage:'پچھلا صفحہ', nextPage:'اگلا صفحہ', textView:'متن' },
     en: { first:'First', prev:'Previous', next:'Next', last:'Last', volumes:'Volumes', published:'Published', pickVolume:'Choose a volume', otherVolumes:'Other volumes', volsNote:'Greyed volumes have not been published yet.', soon:'Coming soon', citeAr:'For citation use the Arabic page:', machineTr:'Machine translation by AI. Not reviewed and may contain errors — cite the Arabic original, not this translation.', viewAr:'Arabic', viewTr:'Translation', viewBoth:'Both', viewSide:'Side by side', verse:'Verse', surah:'Surah', surahs:'Surahs', pickSurah:'Choose a surah', script:'Script', scriptUthmani:'Uthmani', scriptSimple:'Simple', copyVerse:'Copy verse', copyRef:'Reference', copyLink:'Link', copyDo:'Copy', ayat:'ayat', meccan:'Meccan', medinan:'Medinan', textFrom:'Text from', transFrom:'translations via', noTr:'This page has not been translated yet; the Arabic text is shown.', draft:'Draft translation, not yet reviewed.', trBy:'Translation', home:'Home', mylib:'My library', search:'Search', allBooks:'All books',
           contact:'Contact us', about:'About us', menu:'Menu', close:'Close',
           chapter:'Chapter', chapters:'Chapters', pickChapter:'Choose a chapter', translator:'Translation', foreword:'Foreword', author:'Author', viewSrc:'Original',
@@ -117,7 +117,7 @@
                  + 'and a permanent address that does not change, so a reference made today still '
                  + 'resolves years from now.',
           contactBody:'For suggestions, corrections, or to contribute to the library, '
-                    + 'please get in touch.', searchVerse:'Search verses…', vsNone:'No match', scriptMushaf:'Mushaf', scriptAmiri:'Amiri', juz:'Juz', mushafPage:'Page', allSurahs:'All Surahs', quickAccess:'Quick access', goTo:'Go to', goVerse:'Confirm', layout:'Layout', layoutVerse:'Verse by verse', layoutMushaf:'Mushaf page', showAs:'Show', showAll:'All verses', showPaged:'Page by page', pageOf:'of', prevPage:'Previous page', nextPage:'Next page', textView:'Text' }
+                    + 'please get in touch.', searchVerse:'Search verses…', vsNone:'No match', tashkil:'Vowels', scriptMushaf:'Mushaf', scriptAmiri:'Amiri', juz:'Juz', mushafPage:'Page', allSurahs:'All Surahs', quickAccess:'Quick access', goTo:'Go to', goVerse:'Confirm', layout:'Layout', layoutVerse:'Verse by verse', layoutMushaf:'Mushaf page', showAs:'Show', showAll:'All verses', showPaged:'Page by page', pageOf:'of', prevPage:'Previous page', nextPage:'Next page', textView:'Text' }
   };
   var RTL = { ar: 1, fa: 1, ur: 1 };
   var DIGITS = { ar: '٠١٢٣٤٥٦٧٨٩', fa: '۰۱۲۳۴۵۶۷۸۹', ur: '۰۱۲۳۴۵۶۷۸۹', en: '0123456789' };
@@ -1007,7 +1007,17 @@
       if (links.length) {
         var pages = [], hrefs = {};
         links.forEach(function (a) {
+          /* Bihar's tick links put aria-label on the parent <nav> and carry
+             only title="صفحة ٤٠" — Arabic-Indic digits parseInt cannot read.
+             Falling back to the href's own page segment is language-neutral
+             and works for every book. Without it the list came out empty and
+             install() still replaced the working tick links with a dropdown
+             holding nothing, so the page navigation vanished. */
           var p = parseInt(a.getAttribute('aria-label'), 10);
+          if (isNaN(p)) {
+            var seg = /\/(\d+)\/?(?:[?#].*)?$/.exec(a.getAttribute('href') || '');
+            if (seg) p = parseInt(seg[1], 10);
+          }
           if (!isNaN(p)) { pages.push(p); hrefs[p] = a.getAttribute('href'); }
         });
         install(makeSelect(pages, function (p) { return hrefs[p] || ''; }));
@@ -1018,7 +1028,11 @@
     /* Translated pages: fetch pages.json */
     if (!FIXED || !_slug) return;
     var _jsonUrl = ROOT + '/' + _slug + '/assets/pages' + (_vol ? '-' + _vol : '') + '.json';
-    var _langBase = FIXED + '/' + _slug + (_vol ? '/' + _vol : '');
+    /* A standalone book lives at its own top-level slug, not under /<lang>/,
+       so prefixing the language here would point every option at a path that
+       does not exist — the same rule the TOC links already follow. */
+    var _langBase = (FIXED && !STANDALONE ? FIXED + '/' : '') +
+                    _slug + (_vol ? '/' + _vol : '');
     fetch(_jsonUrl).then(function (r) { return r.ok ? r.json() : null; }).then(function (pages) {
       if (!pages || !pages.length) return;
       install(makeSelect(pages, function (p) { return ROOT + '/' + _langBase + '/' + p + '/'; }));
@@ -1074,6 +1088,32 @@
       );
       qi.focus();
     });
+  })();
+
+  /* ---------- vocalisation overlay ----------
+     A block carrying data-tashkil has a vocalised variant of its own text.
+     The printed text stays the text: the plain form is kept in data-plain and
+     the toggle swaps between them, so what a reader cites is never silently
+     something an editor added. Only marks differ between the two — the builder
+     verifies strip(vocalised) == plain before emitting either. */
+  (function () {
+    var els = Array.prototype.slice.call(document.querySelectorAll('[data-tashkil]'));
+    if (!els.length) return;
+    els.forEach(function (el) {
+      if (!el.hasAttribute('data-plain')) el.setAttribute('data-plain', el.textContent);
+    });
+    var btn = document.getElementById('btn-tashkil');
+    function setOn(on) {
+      els.forEach(function (el) {
+        el.textContent = el.getAttribute(on ? 'data-tashkil' : 'data-plain');
+      });
+      if (btn) btn.setAttribute('aria-pressed', String(on));
+      store.set('tashkil', on ? '1' : '0');
+    }
+    if (btn) btn.addEventListener('click', function () {
+      setOn(btn.getAttribute('aria-pressed') !== 'true');
+    });
+    setOn(store.get('tashkil') !== '0');       /* on unless turned off */
   })();
 
   var _applyLang = applyLang;
