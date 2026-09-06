@@ -4,6 +4,179 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-04 (session 8, part 11)
+
+### Tashkīl round 3 — the derived أبواب, and the نصر drill
+
+- **1:84:0** — the مزید فیه أبواب: name · past · present · masdar, each with its exemplar
+  (اِفْتِعَال اِفْتَعَلَ یَفْتَعِلُ اِفْتِعَالًا · چون اِکْتَسَبَ یَکْتَسِبُ اِکْتِسَابًا, and six more
+  through اِفْعِیلَال)
+- **1:87:1** — باب نصر in full, 14 ماضی + 14 مستقبل, then the other five أبواب abbreviated
+
+**19 blocks · 1,375 marks · 19/19 text-preserving.**
+
+Accuracy pass, again independent of the harness:
+
+```
+باب نصر         14/14 ماضی · 14/14 مستقبل present
+five أبواب      ع-vowel agrees past↔present in all 5
+derived أبواب   7/7 rows: wazn, exemplar and masdar all consistent
+Persian frame   8/8 checked phrases carry no marks
+```
+
+Rendered, which is the check that matters:
+
+```
+… آن سه که مذکر را بود چون نَصَرْتَ نَصَرْتُمَا نَصَرْتُمْ─ و آن سه که مؤنث را بود …
+  ^^^^^^^^^^^^^^^^^^^^^^^^ Persian, bare   ^^^^^^^^^^^^^^^^ Arabic, vowelled
+```
+
+**Left deliberately bare:** the opening fragment "ضرابا و ضیرابا" on 1:84:0. It carries over
+mid-sentence from the previous page; ضِرابًا would be the فِعال masdar, but ضیرابا fits no
+standard pattern here and guessing at a matn word is the one thing that must not happen.
+
+**Website checked:** default on, toggle both ways, Persian bare, and TOC / cite / 4 pager
+links / 609-entry dropdown all intact on both pages.
+
+> Process note: `python jame_build.py … | Select-Object -First 1` returns exit 255. That is
+> PowerShell closing the pipe and killing the process, **not** a build failure — the full
+> run completes. Don't chase it.
+
+**Pending: 2,226 blocks.**
+
+---
+
+## 2026-09-04 (session 8, part 10)
+
+### Tashkīl round 2 — صرف میر paradigm tables
+
+Two blocks from کتاب صرف میر, chosen because their vowels are *derivable* rather than
+judged — which is what makes them safe to do at volume.
+
+- **1:74:0** — the noun example (رَجُل رَجُلَان رِجَال · رُجَیْل) and the full 14-form
+  ماضی and مستقبل drill of باب ضرب
+- **1:82:0** — the six أبواب of ثلاثی مجرد, each wazn beside its exemplar
+
+**17 blocks · 890 marks · 17/17 text-preserving.**
+
+**Accuracy checked independently of the harness.** The harness proves no letter changed;
+it cannot tell a right vowel from a wrong one. So the paradigms were also checked against
+the canonical forms:
+
+```
+ماضی   14/14 forms match   ضَرَبَ ضَرَبَا ضَرَبُوا ضَرَبَتْ … ضَرَبْتُ ضَرَبْنَا
+مستقبل 14/14 forms match   یَضْرِبُ یَضْرِبَانِ یَضْرِبُونَ … اَضْرِبُ نَضْرِبُ
+ابواب   6/6 wazn↔exemplar  فَعَلَ یَفْعُلُ چون نَصَرَ یَنْصُرُ …
+```
+
+The اصول/فروع split the matn asserts also holds: نصر/ضرب/علم change the ع vowel between
+past and present, منع/حسب/شرف keep it.
+
+One phrase was deliberately **not** vocalised — "و مستقبل فعل یکی است". That فعل sits in
+a Persian clause and which wazn is meant is not certain, so it was left bare rather than
+guessed at.
+
+**Website checked after the rebuild:** toggle defaults to **on** (`aria-pressed="true"`,
+marks visible), turning it off persists to `localStorage.tashkil`, and the page's other
+features are intact — TOC, cite, 4 pager links, 609-entry page dropdown.
+
+> A caution for future rounds: while testing I left `tashkil=0` in localStorage and then
+> misread the default as "off". The default is on. Clear the key before judging initial
+> state.
+
+**Pending: 2,228 blocks.** 241 of them carry six or more paradigm markers, so the
+derivable-vowel seam continues for a good while yet.
+
+---
+
+## 2026-09-04 (session 8, part 9)
+
+### Tashkīl round 1 — verification harness, and the rule that Persian stays bare
+
+**`jame_tashkil_check.py`** — new. Vocalising a صرف/نحو text is where a quiet error does
+real damage, so the vocalised text is no longer trusted on inspection. The check that can
+be made absolute: strip every diacritic from the vocalised form and from the printed form
+and the two must be byte-identical. That catches the dangerous failure — a letter changed,
+a word dropped, a phrase "corrected" — which is far worse than a debatable vowel because
+it alters the text itself. It also flags marks landing on Persian (via پ چ ژ گ and a
+function-word list), and exits non-zero so it can gate a build.
+
+Confirmed the rule the owner set — the Persian commentary stays bare, only the Arabic matn
+and the paradigms inside it are vocalised:
+
+```
+و از ماضی چهارده وجه باز می گردد─ … ضَرَبَ ضَرَبَا ضَرَبُوا─ … ضَرَبَتْ
+^^^^^^^ Persian, bare                  ^^^^^^ Arabic paradigm, vowelled
+```
+
+Round 1 added the شرح الامثله opening: the basmala with و بِهِ نَسْتَعِینُ, and the
+hadith اَوَّلُ الْعِلْمِ مَعْرِفَهُ الْجَبَّارِ. Bare alef and the Persian ی of the printed
+text are preserved — only marks were added, which is what the harness proves.
+
+**15 of 2,245 blocks, 645 marks, 15/15 text-preserving.**
+
+The harness immediately earned itself twice:
+
+1. It flagged `بِهِ` as Persian. False positive — `به` is both the Persian preposition and
+   Arabic bi-hi. Fixed by keying the exception to the *vocalised* form rather than the bare
+   word: Persian بِه is "be" and could not carry the pronoun's kasra, so a genuine slip on
+   Persian به is still caught.
+2. Rebuilding wiped the vocalisation off all 1,216 pages. `jame_build.py` only loaded the
+   overlay when `--tashkil` was passed, and nothing failed when it was forgotten. It now
+   **defaults** to `jame_tashkil.json` beside the script, warns on stderr if the file is
+   missing, and takes `--no-tashkil` to opt out.
+
+Verified on the page: toggle present on 1/14, 3 vocalised blocks, swaps cleanly both ways.
+
+**Pending: 2,230 blocks.** Next round is the صرف paradigm tables — pattern-determined, so
+derivable rather than judged.
+
+---
+
+## 2026-09-04 (session 8, part 8)
+
+### Change — آیه‌به‌آیه rebuilt as verse cards, so it differs from صفحهٔ مصحف
+
+The two layouts were doing nearly the same thing. صفحهٔ مصحف is unchanged; آیه‌به‌آیه now
+gives every verse its own card, and clicking one scrolls it to the top and marks it as
+the focused verse — so it reads as "work through one verse at a time" rather than a
+slightly different page.
+
+- `.body[data-unit="aya"]:not(.m-mushaf) .aya` — bordered, rounded card with hover and a
+  `.v-focus` state; scoped with `:not(.m-mushaf)` so the Mushaf run-on page is untouched
+- clicking a card calls `focusAya()`; the verse dropdown sets the same `.v-focus`, so
+  picking a verse and tapping one look identical
+- arriving on `#a<n>` focuses that verse too
+
+**Two implementation notes worth keeping.** The verse dropdown already had a handler that
+owned `location.hash`; adding a second scroller made them fight, so the existing one was
+extended rather than duplicated. And the first attempt used `window.scrollTo` with an
+offset measured from the sticky bar — wrong, because it assumes the window is the scroll
+container. Replaced with `scrollIntoView({block:'start'})` plus `scroll-margin-top` in
+CSS: it scrolls whatever the real container is, and the header clearance stops being a
+number the JS has to compute.
+
+Verified at 1100×800: card styling applied, `scroll-margin-top` 72px, click focuses
+exactly one verse, the copy button does **not** hijack the click, and in صفحهٔ مصحف the
+cards disappear and clicks are ignored.
+
+> Not verified: the scroll movement itself. Nothing scrolls inside the preview pane —
+> `scrollIntoView`, `body.scrollTop` and `documentElement.scrollTop` all leave the element
+> rect unmoved — so the API call and its CSS clearance are confirmed but the visible glide
+> is not. Worth one tap on a real device.
+
+### Tashkīl — not advanced this session; scope measured
+
+Coverage is **13 of 2,245 Arabic blocks (0.6%)**, on 4 pages of vol 1. کتاب الامثله is
+effectively done (13 of its 16 blocks; the gaps are its title and one Persian line). The
+remaining 14 treatises are ~495,000 Arabic characters — a multi-session job at any quality
+worth having; see part 5 for why bulk-generating it on a صرف/نحو text is the wrong trade.
+
+`assets/reader.css`, `assets/reader.js` changed → `ASSETS_V` 7 and all 3,067 pages
+restamped.
+
+---
+
 ## 2026-09-04 (session 8, part 7)
 
 ### Fix — asset versioning made consistent sitewide (v=6), and a broken Bihar control

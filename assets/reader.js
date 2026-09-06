@@ -830,7 +830,12 @@
       var id = 'a' + vs.value;
       location.hash = '#' + id;
       var el = document.getElementById(id);
-      if (el) el.scrollIntoView({ block: 'center' });
+      if (!el) return;
+      /* mark it the same way a click on the card does, so picking a verse from
+         the dropdown and tapping it look identical in the آیه‌به‌آیه layout */
+      each('.aya.v-focus', function (x) { x.classList.remove('v-focus'); });
+      el.classList.add('v-focus');
+      el.scrollIntoView({ block: 'center' });
     });
   })();
 
@@ -885,6 +890,46 @@
     if (document.querySelector('.laypick')) {
       setLayout(store.get('qlayout') === 'mushaf' ? 'mushaf' : 'verse');
     }
+
+    /* --- آیه‌به‌آیه: click a verse card to bring it to the top --------------
+       Only in the verse layout: on a Mushaf page the verses run together, so
+       there is no card to pick and the click would fight text selection.
+       The header is sticky, so the scroll target is offset by its height or
+       the verse lands underneath it. */
+    /* scrollIntoView rather than window.scrollTo with a computed offset: it
+       scrolls whichever element is actually the scroll container, which
+       window.scrollTo does not, and the clearance for the sticky header comes
+       from scroll-margin-top in the stylesheet instead of measuring the bar. */
+    function focusAya(aya, smooth) {
+      if (!aya) return;
+      each('.aya.v-focus', function (x) { x.classList.remove('v-focus'); });
+      aya.classList.add('v-focus');
+      var reduce = window.matchMedia &&
+                   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      try {
+        aya.scrollIntoView({ block: 'start',
+                             behavior: (smooth && !reduce) ? 'smooth' : 'auto' });
+      } catch (e) { aya.scrollIntoView(true); }
+    }
+    qbody.addEventListener('click', function (e) {
+      if (qbody.classList.contains('m-mushaf')) return;
+      /* let the copy button, its popover and any real control do their own job */
+      if (e.target.closest &&
+          e.target.closest('.aya-copy, .copy-pop, a, button, input, select, textarea')) return;
+      /* a click that is really a text selection should not scroll the page away */
+      var sel = window.getSelection && window.getSelection();
+      if (sel && String(sel).length > 1) return;
+      var aya = e.target.closest && e.target.closest('.aya');
+      if (aya) focusAya(aya, true);
+    });
+    /* the verse dropdown has its own handler above, which owns the URL hash;
+       it sets .v-focus itself rather than adding a second scroller here */
+    (function () {
+      var m = /^#a(\d+)$/.exec(location.hash || '');
+      if (m) setTimeout(function () {
+        focusAya(document.getElementById('a' + m[1]), false);
+      }, 60);
+    })();
 
     /* --- copy a verse, with the reader choosing what goes on the clipboard --- */
     var DEF = { ar: 1, tr: 1, ref: 1, link: 0 };

@@ -30,12 +30,13 @@ without data-langpath is left alone.
 """
 import argparse, html, json, pathlib, re, sys
 
+HERE = pathlib.Path(__file__).parent
 SITE = "https://library.misbah-inc.com"
 SLUG = "jame-al-muqaddimat"
 # Keep in step with the other builders — every page in the library links the
 # same assets/reader.css and assets/reader.js, so they must all move together
 # or a reader gets one book's stylesheet while browsing another's.
-ASSETS_V = "6"
+ASSETS_V = "7"
 SRC = "fa"
 FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹"
 
@@ -340,16 +341,26 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("pages")
     ap.add_argument("--out", required=True)
-    ap.add_argument("--tashkil", help="vocalisation overlay from jame_tashkil.py")
+    # Defaults to the overlay sitting next to this script. It used to require an
+    # explicit --tashkil, which meant a plain rebuild silently stripped every
+    # vocalisation from all 1,216 pages — the flag is easy to forget and nothing
+    # failed when you did. Opt out with --no-tashkil if that is ever wanted.
+    ap.add_argument("--tashkil", default=str(HERE / "jame_tashkil.json"),
+                    help="vocalisation overlay (default: jame_tashkil.json beside this script)")
+    ap.add_argument("--no-tashkil", action="store_true",
+                    help="build the printed text only, with no vocalisation overlay")
     a = ap.parse_args()
 
     data = json.loads(pathlib.Path(a.pages).read_text(encoding="utf-8"))
 
-    if a.tashkil:
+    if not a.no_tashkil:
         tp = pathlib.Path(a.tashkil)
         if tp.exists():
             TASHKIL.update(json.loads(tp.read_text(encoding="utf-8")))
             print(f"vocalisation overlay: {len(TASHKIL)} blocks")
+        else:
+            print(f"WARNING: no vocalisation overlay at {tp} — "
+                  f"building the printed text only", file=sys.stderr)
 
     out = pathlib.Path(a.out)
     out.mkdir(parents=True, exist_ok=True)

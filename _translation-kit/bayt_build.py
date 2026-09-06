@@ -33,7 +33,7 @@ Four things here are load-bearing and were each got wrong once:
 import argparse, html, json, pathlib, re, sys
 
 SITE = "https://library.misbah-inc.com"
-ASSETS_V = "6"   # bump when reader.css/js change, to break browser caches.
+ASSETS_V = "7"   # bump when reader.css/js change, to break browser caches.
                  # Without it a returning reader keeps a stale stylesheet and
                  # never sees the fix — which is what happened to the Qur'an.
 SLUG = "bayt-al-ahzan-fa"   # standalone Farsi translation (no /fa/ URL prefix)

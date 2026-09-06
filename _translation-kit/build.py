@@ -29,7 +29,7 @@ list a language whose pages have not been published: an hreflang pointing at a
 import argparse, html, json, re, sys, pathlib
 
 SITE = "https://library.misbah-inc.com"
-ASSETS_V = "6"   # bump when reader.css/js change, to break browser caches.
+ASSETS_V = "7"   # bump when reader.css/js change, to break browser caches.
                  # Without it a returning reader keeps a stale stylesheet and
                  # never sees the fix — which is what happened to the Qur'an.
 R = "../../../.."          # depth of <lang>/bihar/<vol>/<page>/ below the Library root
