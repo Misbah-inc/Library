@@ -71,7 +71,7 @@ def main():
             for i, b in enumerate(pg["blocks"]):
                 index[f'{vol["v"]}:{pg["n"]}:{i}'] = (b, pg.get("chapter") or "?")
 
-    altered, orphan, persian, unchanged = [], [], [], []
+    altered, orphan, persian, unchanged, reordered = [], [], [], [], []
     marks_added = 0
 
     for key, voc in t.items():
@@ -87,6 +87,16 @@ def main():
         if bare(voc) == voc:
             unchanged.append(key)          # nothing actually added
         marks_added += len(DIA.findall(voc)) - len(DIA.findall(orig))
+
+        # Where the SOURCE already carried marks — Qur'anic quotations, mostly —
+        # those runs must survive byte for byte. Retyping such a span silently
+        # reorders its combining marks (the source writes shadda-then-vowel, NFC
+        # writes vowel-then-shadda): identical on screen, different bytes, and
+        # for scripture that is not good enough. Splice the source, do not retype.
+        for run in re.findall(r"\S*[" + DIA.pattern[1:-1] + r"]\S*", orig):
+            if len(DIA.findall(run)) >= 2 and run not in voc:
+                reordered.append((key, chapter, run))
+                break
 
         for word in re.findall(r"\S+", voc):
             if not DIA.search(word):
@@ -125,6 +135,12 @@ def main():
         print(f"\nWARN — {len(persian)} block(s) put marks on a Persian word:")
         for key, chapter, word in persian[:10]:
             print(f"  {key}  ({chapter})  {word}")
+    if reordered:
+        ok = False
+        print(f"\nFAIL — {len(reordered)} block(s) lost a pre-vocalised run from the "
+              f"source (retyped instead of spliced):")
+        for key, chapter, run in reordered[:10]:
+            print(f"  {key}  ({chapter})  {run}")
     if unchanged:
         print(f"\nWARN — {len(unchanged)} block(s) add no marks at all "
               f"(they only cost a data-tashkil attribute): {unchanged[:5]}")
