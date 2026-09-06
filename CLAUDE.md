@@ -370,9 +370,25 @@ swaps them behind the اعراب button. Never replace the printed text — a ci
 resolve to something an editor added.
 
 ```
-python jame_tashkil_check.py       # must print "All clear" — 764/764 text-preserving
+python jame_tashkil_check.py       # in-loop check: must print "All clear"
+python jame_tashkil_review.py      # independent audit: must print "no mechanical fault"
 python jame_build.py jame_pages.json --out <L>/jame-al-muqaddimat
 ```
+
+> **Progress counts must not ask "is the key in the overlay?"** An early automated pass
+> vocalised the ضرب/نصر paradigm book-wide, which leaves a key on blocks whose prose is
+> untouched. Counting keys overstated شرح التصریف as 511/511 and التصریف as 80/80 when
+> eleven of those blocks carried three or four marks in 400+ letters. `jame_tashkil_review.py`
+> audit 5 lists them; the count must require ≥0.05 marks per letter *added by the overlay*.
+
+> **When comparing vocalised against printed, strip BOTH sides.** The printed text carries
+> its own diacritics wherever the source quotes a vocalised verse. Stripping only one side
+> can never match and looks like catastrophic corruption. This mistake has been made three
+> times in this project — in a browser check and twice in review code.
+
+> The overlay is NFC (vowel-then-shadda) **except** inside spliced source runs, which keep
+> the edition's shadda-then-vowel order byte-for-byte. Both render identically. Do not
+> normalise the file: it would break the splice guarantee.
 
 > `jame_build.py` loads the overlay **by default**. Passing `--no-tashkil` silently strips
 > vocalisation from all 1,216 pages with no error, which is how it was lost once.

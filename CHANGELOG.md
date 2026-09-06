@@ -4,6 +4,89 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-06 (session 8, part 34)
+
+### Audit of the whole vocalisation — two wrong vowels and eleven blocks that were never done
+
+Asked to review the tashḷīl rather than extend it. Wrote
+`_translation-kit/jame_tashkil_review.py`, which deliberately does **not** import
+`jame_tashkil_check.py`: re-running the checker the work was produced against can only
+confirm its own assumptions. Everything is reimplemented from `jame_pages.json`.
+
+**Final state: 764 blocks · 114,681 marks.**
+
+```
+1  TEXT     764/764 blocks strip back to the printed text exactly
+2  SPLICE   65/65 pre-vocalised source runs survive byte-identical
+3  SHAPE    0 impossible mark clusters
+5  STUB     6 blocks still to vocalise (all in treatises still in progress)
+VERDICT     no mechanical fault found
+```
+
+### What it found
+
+**Two genuinely wrong vowels**, both caught by audit 4 — which lists every case where the
+same bare word is vocalised one way 50+ times and some other way exactly once:
+
+| block | was | is | why |
+|---|---|---|---|
+| `1:282:0` | کَانْ | کَاَنْ | Jarīr's line is کَأَنْ لَمْ تَهْجُ, "as though you had not satirised". kāna cannot carry sukun there. |
+| `1:290:1` | آخِرَهُ | آخِرُهُ | تُحْذَفَ and تُعْطَی are both passive; with the passive of أعطى the first object becomes نائب فاعل and takes the nominative. |
+
+**Eleven blocks reported complete that were never vocalised.** An early automated pass
+had vocalised the ضرب/نصر paradigm across the whole book. That puts a key in the overlay
+for a block whose prose is untouched — and every progress count I have given asked only
+*is the key present?*, so **شرح التصریف 511/511 and التصریف 80/80 were both overstated**.
+Eight and three blocks respectively, up to 773 letters each, carrying three or four marks.
+All eleven are now properly vocalised, and both figures are true as stated.
+
+The counting is fixed at the source: the review now asks whether a block carries at least
+0.05 marks per letter *of its own*, not whether a key exists.
+
+**Four more text alterations, caught by the applier while repairing:**
+`الشبیهین` for printed `الشبهین` · `اذ الالف` for `اذا الالف` · and two in the first pass.
+Even a repair pass writing carefully produces them at the same rate as any other round.
+
+### Where the reviewer itself was wrong — worth recording
+
+Three of its five audits fired falsely on the first run, and each one is a lesson:
+
+* **44 "text mismatches."** It stripped marks from the overlay and compared against an
+  *unstripped* source. Wherever the printed text quotes a vocalised Qur'anic verse that can
+  never match. The invariant is strip **both** sides. This is the third time this exact
+  mistake has been made in this project — once in a browser check, once here.
+* **6,894 "impossible clusters."** It demanded shadda before the vowel. NFC sorts by
+  combining class, so the standard order is vowel-then-shadda; the overlay is NFC except
+  inside spliced runs, which keep the source's order byte-for-byte on purpose.
+* **"sukun on the first letter", "tanwīn mid-word."** Both are real in this edition:
+  وَ لْیَقْضُوا and فُلَانٌ بْنُ فُلَانٍ write the silent letter as a separate token, and
+  عَمْرٍو carries a silent wāw after its tanwīn.
+
+A reviewer that reports nothing is worthless; one whose failures are all its own is worse
+than worthless. Both rules and reasons are now in the file.
+
+### One inconsistency reported, not "fixed"
+
+Hamzat al-waṣl is written bare 5,310 times (اضْرِبْ) and with a kasra 268 times (اِضْرِبْ).
+The 268 are the early automated pass; the 5,310 are the round work. Both are orthographically
+valid and they render nearly identically. Rewriting 268 blocks to normalise a
+convention would be 268 more chances to alter the text for no reader benefit, so this is
+recorded rather than churned.
+
+### What this review does and does not establish
+
+It establishes, exhaustively and by independent code, that **no letter of the printed text
+was changed anywhere**, that every verse the source had already vocalised is untouched, and
+that no mark cluster is orthographically impossible.
+
+It does **not** establish that all 114,681 marks are contextually correct. That is a
+scholarly judgment, not a decidable property. What audit 4 does is narrow the search: of
+275 flagged spellings I read the top 55 with their context, and two were wrong. The rest of
+the corpus rests on the care taken round by round and on the paradigm tables having been
+checked against each other as they were written.
+
+---
+
 ## 2026-09-06 (session 8, part 33)
 
 ### کتاب شرح التصریف is complete — 511 / 511
