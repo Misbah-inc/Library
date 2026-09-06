@@ -4,6 +4,97 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-06 (session 8, part 17)
+
+### Tashkīl rounds 9–10 — التصریف: passive مضارع, jussive, imperative, emphatic nūn
+
+**198 blocks · 8,412 marks · 198/198 text-preserving.**
+
+Round 9 covered the passive مضارع (یُنْصَرُ یُدَحْرَجُ یُکْرَمُ یُقَاتَلُ یُفَرَّحُ یُسْتَخْرَجُ — each
+with the damma-on-prefix, fatha-before-last that the text itself specifies), the ناصب
+(لَنْ یَنْصُرَ, nūns dropped), lām al-amr as a **jāzim** (لِیَنْصُرْ, sukūn — the same jussive
+trap that defeated the mechanical pass in round 4, here with the particle explicit), and the
+imperative's waṣl hamza copying the ع vowel: اُنْصُرْ but اضْرِبْ.
+
+Round 10 covered the doubled tāʾ, افتعل assimilation (اصْطَلَحَ · اضْطَرَبَ · اطَّرَدَ; ادَّرَءَ ·
+اذَّکَرَ · ازْدَجَرَ), and the emphatic nūn heavy and light.
+
+### A new class of error found — and now permanently guarded
+
+The Qur'anic quotations are already vocalised in the source. I said I was copying them
+verbatim. I was not:
+
+```
+source : ز + shadda U+0651 + fatha U+064E      ← as printed
+mine   : ز + fatha  U+064E + shadda U+0651     ← what retyping produces
+NFC(source) == NFC(mine) → True
+```
+
+Canonically equivalent, pixel-identical, different bytes. The strip-back invariant could
+never catch it — stripping removes both marks whatever their order. For scripture,
+"renders the same" is not the standard.
+
+`jame_tashkil_check.py` gained a check for it: **any run in the source that already carried
+two or more marks must appear unchanged in the output.** It immediately found a second
+instance I had missed — `1:167:0`, the Yūsuf verse from round 8 — and a deliberate
+re-introduction of the bug makes it exit 1, so the guard is proven rather than assumed.
+
+Both verses are now spliced from the source rather than retyped. The lesson is in the
+check's comment: **splice pre-vocalised spans, never retype them.**
+
+> A second-order trap while fixing it: `mine.find("إِنّ")` returns −1, because in the
+> NFC-ordered copy the shadda sits after the kasra, so the marked substring does not match.
+> That silently made `mine[:-1] + verse`, duplicating the verse. Anchor on an unmarked
+> codepoint instead.
+
+Verified on p.170: 3/3 Qur'anic verses render, اُنْصُرْ/اضْرِبْ correct, toggle and page intact.
+
+**Pending: 2,164 blocks.** التصریف is 28 of 80.
+
+---
+
+## 2026-09-06 (session 8, part 16)
+
+### Tashkīl round 8 — التصریف: six-letter أبواب, transitivity, the passive, the مضارع
+
+**185 blocks · 6,881 marks · 185/185 text-preserving.**
+
+### The harness caught me altering the text
+
+Round 8 failed its first check — `1:166:1` changed a letter rather than only adding marks:
+
+```
+printed : تقول یفعل الان و یسمی…     ا  U+0627  plain alef
+mine    : تقول یفعل الآن و یسمی…     آ  U+0622  alef with madda
+```
+
+I had silently "corrected" the source's الان to the standard الآن. That is editing the
+text, not vocalising it — precisely the failure the strip-back invariant exists to catch,
+and it would have been invisible on screen, in a diff, and to me. Reverted to الْانَ; the
+printed orthography stands even where it departs from the standard spelling.
+
+### Reasoning worth keeping
+
+**1:166:0 is the passive section**, not a repeat of the active أبواب. The text says so —
+"ما کان اوله مضموما", *what has a damma on its first letter* — so the list is فُعِلَ,
+فُعْلِلَ, اُفْعِلَ, فُعِّلَ, فُوعِلَ, تُفُعِّلَ, تُفُوعِلَ, تُفُعْلِلَ, افْتُعِلَ, اسْتُفْعِلَ, and its own
+examples follow: نُصِرَ زَیْدٌ, اسْتُخْرِجَ الْمَالُ. Reading the section heading is what settles
+ten forms at once.
+
+**لم يتجاوز الفاعل → لَمْ یَتَجَاوَزِ الْفَاعِلَ.** لم forces the jussive; the resulting sukun
+then takes kasra before the article's hamzat al-waṣl.
+
+**The Qur'anic verse in 1:167:0** (Yūsuf 12:13) is already vocalised in the source and uses
+real hamza — إِنِّی لَیَحْزُنُنِی أَنْ تَذْهَبُوا بِهِ — unlike the surrounding text. Copied
+verbatim rather than re-marked.
+
+Verified on p.166: passive list renders, نُصِرَ زَیْدٌ present, الْانَ not الْآنَ, toggle and
+page features intact.
+
+**Pending: 2,170 blocks.** التصریف is 15 of 80.
+
+---
+
 ## 2026-09-06 (session 8, part 15)
 
 ### Tashkīl round 7 — کتاب التصریف, opening
