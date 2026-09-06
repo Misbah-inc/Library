@@ -48,6 +48,8 @@ ARABIC_HOMOGRAPHS = {
     "مَا",       # mā, negative or relative                   (Persian ما = "we")
     "کَمْ",      # kam, "how many"
     "اِنْ", "اِنِ",   # in, the conditional particle
+    "کَرَدَّ",    # kا + radda, "like radda"                (Persian کرد = "did")
+    "کَانَ",     # kāna                                     (Persian کان = "mine")
 }
 
 

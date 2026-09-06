@@ -4,6 +4,116 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-06 (session 8, part 20)
+
+### Tashkīl round 14 — **کتاب التصریف complete, 80/80**
+
+All 24 remaining blocks in one pass: الناقص's مضارع, imperative and participles, both
+kinds of لفیف, المهموز, أسماء الزمان والمکان, and المرّة/الفعلة.
+
+**246 blocks · 15,915 marks · 246/246 text-preserving. Second treatise finished.**
+
+Checks that held:
+
+```
+Qur'anic verse (Ṭā-Hā 20:132)  spliced from source, byte-identical
+اسماء الزمان/المکان follow the ع vowel:  مَجْلِس (kasra) · مَذْهَب (fatha)
+                       معتل الفاء always kasra (مَوْعِد), معتل اللام always fatha (مَرْمَی)
+```
+
+`1:186:0` also settles the قین/قن forms that **round 6 deliberately skipped**. With the
+surrounding context here — "و الامر منه ق … و تقول فی التاکید" — they are unambiguously the
+emphatic imperative of وقى: قِیَنَّ قِیَانِّ قُنَّ قِنَّ قِیَانِّ قِینَانِّ, light قِیَنْ قُنْ قِنْ.
+Leaving that gap rather than guessing was the right call; the answer arrived with context.
+
+### Four single-character errors, all caught by the harness
+
+None would have been visible on the page:
+
+| block | printed | I wrote |
+|---|---|---|
+| `1:185:1` | رضیا | رضی — dropped an alef |
+| `1:185:1` | احیی | احی — dropped a yāʾ |
+| `1:189:0` | راؤن | راؤون — **added** a wāw |
+| `1:189:0` | ارائه | اراءه — wrote ء where the source has ئ |
+
+The راؤن case is the instructive one: the standard plural of رَاءٍ *is* راؤون, so I
+"corrected" the page without noticing. Same failure mode as الان→الآن in round 8. The
+printed text wins every time.
+
+**Left bare on purpose:** ایا and ایو in `1:188:0` — compressed imperatives from وأى and
+أوى whose vowels I cannot fix with confidence.
+
+### Two verification artifacts worth not chasing
+
+- Searching the rendered page for the Qur'anic verse fails on an exact match but succeeds
+  under NFC — because the stored text keeps the source's combining order, which is the
+  whole point. Compare normalised when checking, never store normalised.
+- The toggle-off text still contains diacritics, so a "no marks when off" assertion fails.
+  Correct: the printed source already carried the verse's marks. Assert that the two
+  strings *differ*, not that one is bare.
+
+**Pending: 1,986 blocks.** Next: کتاب آداب المتعلمین (70 blocks / 14,801 chars).
+
+---
+
+## 2026-09-06 (session 8, part 19)
+
+### Tashkīl rounds 12–13 — التصریف: المثال, الأجوف, الناقص
+
+**222 blocks · 12,377 marks · 222/222 text-preserving. کتاب التصریف is 56 of 80.**
+
+Round 12 took المعتل and المثال — where the whole point is which مضارع keeps the wāw:
+وَعَدَ **یَعِدُ** drops it, وَجِلَ **یَوْجَلُ** and وَجُهَ **یَوْجُهُ** keep it — and the أجوف
+paradigm, whose 14 forms split by root: صُنْتُ from the wāwī, بِعْتُ from the yāʾī, with
+both passives taking kasra (صِینَ, بِیعَ) exactly as the text says.
+
+Round 13 took the أجوف jussive and imperative, its مزید, and الناقص.
+
+`1:182:0` is the clearest case yet of the text auditing its own vocalisation. It *explains*
+why its examples carry the vowels they do — "فان انفتح ما قبلها ابقی علی الفتحه و ان انضم
+او انکسر ضم" — so غَزَوْا and رَمَوْا must keep a fatha while رَضُوا and سَرُوا take a damma,
+and it even gives the underlying رَضِیُوا it derives رَضُوا from. All five present.
+
+The export's proper-name markers (a leading `؟` and trailing `"` around سیبویه, ابی الحسن
+الاخفش, بنو تمیم) are structure rather than text, so they are kept byte-for-byte with the
+names inside them vowelled.
+
+Two check artifacts worth not chasing again: a paradigm count came out 15 instead of 14
+because صَانَ and بَاعَ each appear once in "نحو صان و باع" before their run begins; and a
+substring test flagged `لِیَنْصُرُ` as an indicative when it was only matching inside
+`لِیَنْصُرُوا`. Both were the check being naive, not the text being wrong — word-boundary
+matching settles both.
+
+---
+
+## 2026-09-06 (session 8, part 18)
+
+### Tashkīl round 11 — التصریف: participles, المضاعف, إدغام
+
+**207 blocks · 9,827 marks · 207/207 text-preserving. کتاب التصریف is 41 of 80.**
+
+The participle rule the text states — "تکسر ما قبل آخره فی اسم الفاعل و تفتحه فی اسم
+المفعول" — checked on its own examples, which must differ in exactly that one vowel:
+مُکْرِمٍ/مُکْرَمٍ · مُدَحْرِجٍ/مُدَحْرَجٍ · مُسْتَخْرِجٍ/مُسْتَخْرَجٍ.
+
+`1:175:0` restates its verb list twice — once active, once after "اذا بنیتها للمفعول". The
+second run therefore had to come out passive: مَدَّ یَمُدُّ → مُدَّ یُمَدُّ, اَعَدَّ یُعِدُّ →
+اُعِدَّ یُعَدُّ, انْقَدَّ یَنْقَدُّ → انْقُدَّ یُنْقَدُّ. Both runs verified separately.
+
+`1:176:0`: لم forces the jussive, and with a doubled verb the text allows both إدغام and
+فكّ — لَمْ یَفِرَّ / لَمْ یَفْرِرْ, لَمْ یَمُدَّ / لَمْ یَمْدُدْ. Both present.
+
+Two catches this round, both from the harness rather than from reading:
+
+- **`1:175:0` lost its trailing `─` block separator.** One character, invisible in the
+  rendered page, and it would have quietly changed how the block joins its neighbour.
+- **`کَرَدَّ` flagged as Persian** — كَـ + رَدَّ, "like *radda*", colliding with Persian کرد
+  ("did"). Added to the homograph allowlist with کَانَ (vs Persian کان, "mine"), keyed to
+  the vocalised form as before.
+
+---
+
 ## 2026-09-06 (session 8, part 17)
 
 ### Tashkīl rounds 9–10 — التصریف: passive مضارع, jussive, imperative, emphatic nūn
