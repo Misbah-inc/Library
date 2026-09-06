@@ -335,9 +335,10 @@ lives at its own top-level slug rather than under `/fa/`. Built by `jame_extract
 > Bayt al-Ahzan's `[ صفحه N ]`, which opens it. Check the tail of a new export before
 > assuming either way.
 
-**Tashkīl.** The source is unvocalised (~0.5%). کتاب الامثله (vol 1 pp. 11–14) has been
-vocalised — 13 blocks, 583 marks — by `jame_tashkil.py`, which enforces two rules any
-future treatise must also follow:
+**Tashkīl.** The source is unvocalised (~0.5%). **764 blocks, 110,532 marks** are now
+vocalised as an overlay in `_translation-kit/jame_tashkil.json`. Four treatises are
+complete: کتاب الامثله, شرح الامثله, کتاب التصریف (80/80) and **کتاب شرح التصریف
+(511/511)**. عوامل ملا محسن is in progress. Three rules any future treatise must follow:
 
 1. **Add marks only, never substitute a letter.** The source writes `اضرب` and `ضاربه`,
    not `أضرب`/`ضاربة`; changing those is editing, not vocalising. Verified per block by
@@ -345,10 +346,36 @@ future treatise must also follow:
 2. **Vocalise positionally, never by word lookup.** `ضربت` appears four times in the ماضی
    block as four different words (ضَرَبَتْ / ضَرَبْتَ / ضَرَبْتِ / ضَرَبْتُ). A word map gets
    three wrong, silently, for exactly the reader trying to learn it.
+3. **Never write a batch straight to the overlay — go through `jame_tashkil_apply.py`.**
+   It refuses the whole batch if any entry alters the text, printing the first differing
+   character with context. Over 764 blocks it caught ~40 attempts, every one of them a
+   case of writing the *standard* form instead of the *printed* one: `فائه`→`فاؤه`
+   fourteen times, `الان`→`الآن`, `متعد`→`معتد` (transposed), `مست`→`مسست` in a sentence
+   that is *about* مست being contracted, and `قه`→`ته` where the edition's own example
+   repeats itself. None is visible on a rendered page.
+
+> **Pre-vocalised runs in the source must be spliced, never retyped.** Qur'anic verses in
+> this export already carry their marks, and the source writes shadda-then-vowel where NFC
+> writes vowel-then-shadda — canonically equal, visually identical, not byte-identical.
+> `runs()` (see any `batch*.py`) finds maximal spans that already carry diacritics and
+> returns them verbatim. `jame_tashkil_check.py` verifies all 65 survive.
+
+> **A "Persian" block is not always the one tagged `fa`.** `1:496:1` is Arabic prose that
+> quotes a mnemonic the author introduces with نَظَمْتُهَا بِالْفَارِسِیَّةِ — "I versified them in
+> Persian." Nothing about the line looks Persian; the only evidence is the sentence before
+> it. The harness's Persian-word check caught it. That line ships unmarked.
 
 It ships as an overlay: the page emits the printed text plus `data-tashkil`, and reader.js
 swaps them behind the اعراب button. Never replace the printed text — a citation must not
-resolve to something an editor added. The other 14 treatises are unvocalised.
+resolve to something an editor added.
+
+```
+python jame_tashkil_check.py       # must print "All clear" — 764/764 text-preserving
+python jame_build.py jame_pages.json --out <L>/jame-al-muqaddimat
+```
+
+> `jame_build.py` loads the overlay **by default**. Passing `--no-tashkil` silently strips
+> vocalisation from all 1,216 pages with no error, which is how it was lost once.
 
 **Architecture change (2026-09-01):** Bayt al-Ahzan now follows the Bihar model.
 `/bayt-al-ahzan/` is the Arabic primary cover. **The Farsi edition is a top-level sibling
