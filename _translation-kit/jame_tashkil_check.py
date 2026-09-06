@@ -38,10 +38,16 @@ FA_WORDS = set("""است هست بود باشد باشند شود شوند کن�
 # the exception is the *vocalised* form, not the bare word: this stays narrow and
 # a genuine slip on Persian به is still caught.
 ARABIC_HOMOGRAPHS = {
-    "بِهِ",      # bi-hi — "by Him", as in و به نستعین
+    "بِهِ",      # bi-hi — "by Him", as in و به نستعین      (Persian به = "to")
     "بِهَا",     # bi-hā
     "لَهُ", "لَهَا",
     "مِنْ", "مَنْ",
+    "یَا",       # the vocative particle                     (Persian یا = "or")
+    "اَیْنَ",    # ayna, "where" — a conditional noun         (Persian این = "this")
+    "اَیْ",      # ay, the explicative/vocative particle
+    "مَا",       # mā, negative or relative                   (Persian ما = "we")
+    "کَمْ",      # kam, "how many"
+    "اِنْ", "اِنِ",   # in, the conditional particle
 }
 
 

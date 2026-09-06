@@ -4,6 +4,186 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-06 (session 8, part 15)
+
+### Tashkīl round 7 — کتاب التصریف, opening
+
+Eight blocks: the definition of تصریف, the ثلاثی/رباعی division, the three أبواب of the
+sound triliteral with their throat-letter exception, and the مزید فیه forms.
+
+**178 blocks · 5,871 marks · 178/178 text-preserving.**
+
+**Accuracy checked against the matn's own rules**, which is the strongest test available
+here — the text *states* a rule and then gives examples, so the vocalisation has to satisfy
+what the text itself asserts:
+
+```
+"فَعَلَ مَفْتُوحَ الْعَیْنِ … یَفْعُلُ بِضَمِّ … اَوْ یَفْعِلُ بِکَسْرِهَا"
+      → نَصَرَ یَنْصُرُ (damma)   ضَرَبَ یَضْرِبُ (kasra)          OK
+throat-letter exception → سَئَلَ یَسْئَلُ · مَنَعَ یَمْنَعُ        OK
+"فَعِلَ مَکْسُورَ الْعَیْنِ → یَفْعَلُ"  → عَلِمَ یَعْلَمُ, شاذ حَسِبَ یَحْسِبُ   OK
+"فَعُلَ مَضْمُومَ الْعَیْنِ → یَفْعُلُ"  → حَسُنَ یَحْسُنُ                OK
+8/8 مزید فیه أبواب: wazn matches exemplar                        OK
+hamzat al-waṣl after و takes no vowel: وَ افْتَعَلَ, وَ افْعَلَّ      OK
+```
+
+### Console check — three 404s, all pre-existing
+
+Read the console rather than assuming, and traced each:
+
+| 404 | verdict |
+|---|---|
+| `/favicon.ico` ×3 | **site-wide and pre-existing** — no page in the library declares a favicon, so every page load asks for it and misses. Cosmetic; fixing it means touching every builder and rebuilding 3,067 pages, so not folded into this work. |
+| `assets/search-index.json` | never actually requested — this book has no drawer search box, same as Bayt al-Ahzan (also 404). Only Bihar ships an in-book index. |
+| `1/assets/toc.json` | expected — the TOC moved to book level in part 5. |
+
+No regression from this session's work. TOC drawer serves 19 items; toggle, pager and
+609-entry dropdown all intact.
+
+**Pending: 2,177 blocks.** کتاب التصریف is 8 of 80 done.
+
+---
+
+## 2026-09-06 (session 8, part 14)
+
+### Tashkīl round 6 — صرف میر's weak-verb and quadriliteral أبواب
+
+Eleven blocks: لفیف مقرون (اَهْوَی یُهْوِی اِهْوَاءً), مضاعف (اَحَبَّ یُحِبُّ, with the three
+imperative variants a doubled verb allows), مثال یائی (اِیتَسَرَ / اتَّسَرَ), ناقص یائی
+(اِسْتَخْبَی یَسْتَخْبِی), and the four quadriliterals — فَعْلَل, تَفَعْلُل, اِفْعِنْلَال, اِفْعِلْلَال.
+
+**170 blocks · 5,007 marks · 170/170 text-preserving.**
+
+Persian glosses embedded in the entries stay bare — قصدکردن, دوست داشتن, خیمه زدن,
+سرخ شدن — as do the Persian labels امر / نهی / ماضی, confirmed on the rendered page:
+`امر دَحْرِجْ نهی لَا یُدَحْرِجْ`.
+
+**Skipped, on purpose:** `1:127:0` — "قیان قینان─ نون تاکید خفیفه قین قن قن", the
+emphatic-nun forms of وقى. I cannot pin those with confidence, and a plausible wrong vowel
+is worse here than a visible gap. Also `1:76:1` and `1:78:1`, which are Persian headings.
+
+### Scope corrected — the backlog is Arabic, but not all of it
+
+Measured what is genuinely Arabic among the blocks tagged `ar`, rather than trusting the
+tag:
+
+```
+tagged Arabic                 2,245
+  genuinely Arabic            2,232   (489,663 chars)
+  Persian, mis-tagged            13   ← need no vowels at all
+REAL remaining                2,185
+```
+
+The detector needs two Persian tells to fire, so short headings like
+"فصل [در تصور و تصدیق]" (کتاب الکبری فی المنطق) and the Persian bibliographic block
+مشخصات کتاب still read as Arabic to it — they are skipped on sight instead. The tag is a
+heuristic; the sentence decides.
+
+Distribution of what is left, which is why the end is far off:
+
+| treatise | blocks | chars |
+|---|---|---|
+| شرح التصریف | 509 | 150,544 |
+| شرح الانموذج | 689 | 142,091 |
+| الهدایه فی النحو | 261 | 63,275 |
+| الصمدیه | 271 | 34,832 |
+| شرح العوامل | 131 | 33,723 |
+| عوامل ملا محسن | 147 | 27,637 |
+| التصریف | 80 | 18,429 |
+| آداب المتعلمین | 70 | 14,801 |
+
+Two commentaries are 60% of the total. Those are running نحو prose, where mood and voice
+turn on the particle before the verb — the case that defeated the mechanical pass in round 4.
+
+---
+
+## 2026-09-06 (session 8, part 13)
+
+### Tashkīl round 5 — **کتاب عوامل جرجانی complete**, read sentence by sentence
+
+First treatise finished. العوامل المائة of al-Jurjānī — all 16 of its Arabic blocks, done
+by reading rather than by table lookup, because every case ending follows from the syntax:
+
+| | reasoning |
+|---|---|
+| `حُرُوفٌ تَجُرُّ الْاِسْمَ فَقَطْ` | الاسم is the object of تجر → accusative |
+| `وَ هِیَ تِسْعَهَ عَشَرَ حَرْفًا` | تمييز after a number → accusative |
+| `فَاِنَّ الْعَوَامِلَ … مِاَهُ عَامِلٍ` | اسم إنّ accusative; عامل is the tamyīz of مائة → genitive |
+| `اِذَا رُکِّبَتْ مَعَ اَحَدٍ` | passive — "when it is compounded" |
+
+**159 blocks · 4,553 marks · 159/159 text-preserving.**
+
+The printed orthography is kept exactly: bare alef (اَمَّا, never أمّا), the Persian ی and ک
+the export uses, and ه wherever the source writes ه for ة.
+
+**Left bare, deliberately:** the two treatise titles, and all of کتاب عوامل منظومه — it is
+Persian verse. Three of its lines are tagged `ar` by the extractor and are nothing of the
+sort ("بعد توحید خداوند و درود مصطفی"), which is a useful reminder that the `lang` tag is a
+heuristic and the text itself decides. Two blocks in عوامل جرجانی are the mirror image —
+tagged `fa`, plainly Arabic — and those were vowelled.
+
+Two more Arabic/Persian homographs joined the harness allowlist, same mechanism as بِهِ:
+**یَا** (vocative; Persian یا = "or") and **اَیْنَ** ("where"; Persian این = "this"). The
+vocalisation is what distinguishes them, so the exception keys on the marked form and a
+real slip on Persian یا or این is still caught.
+
+Verified on p. 483: 6 vocalised blocks, default on, toggles both ways, TOC/cite/pager intact.
+
+**Pending: 2,086 blocks.**
+
+---
+
+## 2026-09-06 (session 8, part 12)
+
+### Tashkīl round 4 — mechanised, after the manual rate proved hopeless
+
+At two blocks a round, 2,226 blocks is over a thousand rounds. The way this finishes is
+that the book **repeats itself** — it is a drill, so نَصَرُوا / یَنْصُرُونَ recur across صرف
+میر, شرح الامثله and شرح التصریف. Rounds 1–3 hand-verified ~60 canonical forms; this
+applies them wherever the identical bare word appears.
+
+**`jame_tashkil_auto.py`** — new. Forms are *generated* from the six sound أبواب (one vowel
+pattern per باب) rather than typed, so a slip surfaces in every form of that باب at once
+instead of hiding in one cell.
+
+**19 → 142 blocks · 3,033 marks · 142/142 text-preserving · 68 pages.**
+
+Three findings, each of which changed the tool:
+
+**1. Unicode combining-mark order.** The generator emitted ضَرَبْتُنَّ as shadda-then-fatha;
+the hand-typed form was fatha-then-shadda. Identical on screen, different bytes, and the
+same word would have failed to match itself. Now normalised to NFC — which is what the
+existing hand-typed data already was.
+
+**2. A preview caught two real errors before anything was written.** Both were single verbs
+in running prose, where syntax decides the vowel:
+
+| block | proposed | actually |
+|---|---|---|
+| `2:68:1` | `ان تَضْرِبُ اضرب` | conditional ان takes the **jussive** تَضْرِبْ |
+| `2:324:4` | `و یَعْلَمُ من ذلک` | **passive** یُعْلَمُ — "is known" |
+
+The common factor: یضرب / تضرب / نضرب are spelled identically in indicative, jussive **and**
+passive. A word-table cannot see syntax. Those three moved behind the drill-context rule —
+inside a paradigm list they are cited *as forms*, and the indicative reading is right;
+outside one they are now left bare. Reach fell 270 → 123 blocks, which is the correct
+trade. Both blocks now skip cleanly.
+
+**3. The safety rule that survived.** A form is only substituted when its segment contains
+two or more unambiguous forms of the same root — i.e. it is provably a drill, not a
+sentence. Ambiguous spellings (ضرب as 3ms or masdar; ضربت with four readings) are never
+applied outside that context.
+
+Verified on the page: default on, toggles both ways, Persian bare, and TOC / cite / pager /
+609-entry dropdown intact.
+
+**Pending: 2,103 blocks (93.7%).** What remains is mostly running نحو prose — شرح الانموذج
+(145k chars), شرح التصریف (152k), الهدایه (63k) — which the two errors above show cannot be
+mechanised safely. Extending the generator to the weak-verb and derived-form paradigms is
+the next automatable seam.
+
+---
+
 ## 2026-09-04 (session 8, part 11)
 
 ### Tashkīl round 3 — the derived أبواب, and the نصر drill
