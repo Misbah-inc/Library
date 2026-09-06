@@ -27,10 +27,16 @@ DIA = re.compile(r"[ً-ْٓ-ٰٕۖ-ۭ]")
 # inside it get marks. Two independent tells that a mark has leaked into Persian:
 # a word built from a Persian-only letter, or a Persian function word.
 PERSIAN_ONLY = set("پچژگ")
+TANWIN = re.compile(r"[ً-ٍ]")          # ً ٍ ٌ
 FA_WORDS = set("""است هست بود باشد باشند شود شوند کند کنند کرد کردن کرده شده شد
-می نمی که را از به این آن اینکه چون چنانکه هر یا نیز خود برای بر با تا هم
-گویند گفته دارد دارند داشت یعنی وقتی زیرا اگر پس آنکه بی همه دیگر بودن
-وجه باز چهارده شش سه دو یک مذکر مؤنث""".split())
+می نمی که را از به این آن اینکه چون چنانکه هر یا نیز خود برای بر با تا
+گویند گفته دارد دارند داشت وقتی زیرا اگر پس آنکه بی همه دیگر بودن
+باز چهارده شش سه دو یک مذکر مؤنث""".split())
+# Removed from the list above: یعنی, وجه and هم. All are Arabic words Persian
+# also uses, so inside an Arabic commentary they fire constantly on correct text
+# — یَعْنِی is the verb governing أنّ, and هُمُ is the pronoun "they" carrying its
+# linking damma, not the Persian "also". A tell that is wrong more often than
+# right is worse than no tell at all; the tanwīn rule below does the real work.
 
 # A few words are spelled identically in both languages, so the bare form cannot
 # settle which one it is — but the marks can. Persian بِه is "be"; Arabic بِهِ
@@ -50,6 +56,7 @@ ARABIC_HOMOGRAPHS = {
     "اِنْ", "اِنِ",   # in, the conditional particle
     "کَرَدَّ",    # kا + radda, "like radda"                (Persian کرد = "did")
     "کَانَ",     # kāna                                     (Persian کان = "mine")
+    "یَکُ",      # yaku, apocopated یکن in verse            (Persian یک = "one")
 }
 
 
@@ -105,6 +112,12 @@ def main():
                 continue
             clean = word.strip("─،.:؛()«»\"'")
             if clean in ARABIC_HOMOGRAPHS:
+                continue
+            # Tanwīn is Arabic inflection and nothing else — Persian has no case
+            # endings, so a word carrying ً ٍ ٌ is Arabic whatever its bare form
+            # looks like. This settles the whole homograph class (وَجْهٍ, حَالٍ,
+            # بَابٍ …) by rule instead of by an ever-growing allowlist.
+            if TANWIN.search(clean):
                 continue
             stem = bare(clean)
             if any(c in PERSIAN_ONLY for c in word) or stem in FA_WORDS:

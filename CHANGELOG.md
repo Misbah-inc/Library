@@ -4,6 +4,324 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-06 (session 8, part 27)
+
+### Tashḷīl rounds 32–36 — شرح التصریف: 259 / 511 (50.7%)
+
+**492 blocks · 63,961 marks · 492/492 text-preserving.** Half the treatise is done.
+
+Covered الادغام end to end — its definition, where it is واجب (مدّ يمدّ · أعدّ · انقدّ ·
+اعتدّ · اسودّ · اطمأنّ), where it is ممتنع (before the متحرّک pronoun endings, مددت …
+مددتنّ), and where it is جایز (after a جازم) — then فصل فی المعتلّ: the three حروف علة,
+مد vs لین, and the مثال in both its واوی and یائی forms down to یدع/یذر and their dead past
+tenses.
+
+The pair to check on this stretch is the جازم section, where the same verb takes three
+different endings depending on its عین:
+
+```
+1:346:0  لَمْ یَفِرَّ   (مکسور العين)      1:347:0  لَمْ یَفْرِرْ   بفكّ الإدغام
+1:346:0  لَمْ یَعَضَّ   (مفتوح العين)      1:347:0  لَمْ یَعْضَضْ   بفكّ الإدغام
+1:348:0  لَمْ یَمُدَّ   (مضموم العين, three vowels admissible)
+```
+
+### One warning, correctly raised, correctly dismissed
+
+The harness flagged `یَکُ` in `1:345:0` as marks on a Persian word. It is the apocopated
+يكن in a line of Arabic verse (وَ مَنْ یَکُ ذَا فَضْلٍ), and Persian یک is "one" — a real
+homograph, not a mistake. Added to `ARABIC_HOMOGRAPHS` in `jame_tashkil_check.py`, which
+is where the earlier کرد/کان collisions already live. The list stays deliberately short:
+each entry is a word the check must stop asking about, not a word the check was wrong to
+notice.
+
+### Seven refusals across the five rounds, five of them the same mistake
+
+| block | printed | I wrote |
+|---|---|---|
+| `1:338:0` | ادرجتها | ادرجت — dropped the pronoun |
+| `1:342:1` | یائه | یاؤه |
+| `1:350:1` | یذکر | یذکره — added a pronoun |
+| `1:357:0` | فائه | فاؤه |
+| `1:363:0` | ایجل | اوجل |
+| `1:366:0` | فائهما | فاءهما |
+
+The `ایجل` one is instructive. The sentence reads و تقول یا زید ایجل تلفظ بالواو —
+"say *āĩjal*, pronouncing the wāw" — and the next four lines explain at length *why* the
+word is spelled with yāʾ even though a wāw is heard. I rewrote it with the wāw, which
+would have deleted the paragraph's entire subject. Reading it and copying it are separate
+skills; only the applier tests the second one.
+
+Counting the hamza-seat cases from the previous rounds, `ء` → `ؤ` on a medial hamza is now
+eight refusals and by a wide margin the most frequent failure. It is a house spelling of
+this edition, not an error.
+
+**Pending in this treatise: 252 blocks.**
+
+---
+
+## 2026-09-06 (session 8, part 26)
+
+### Tashḷīl rounds 26–31 — شرح التصریف: 209 / 511 (40.9%)
+
+**442 blocks · 52,964 marks · 442/442 text-preserving.**
+
+Six rounds without stopping. Covered لام الأمر and لاء الناهیة, the two tāʾs of
+تفعّل/تفاعل, افتعل assimilation in full (اصطلح · اضطرب · اطّرد · اظطلم · ادّرأ · ازدجر),
+the two نون التأکید and التقاء الساکنین, the ناقص forms (لا تخشونّ · لا تخشینّ · لتبلونّ),
+اسم الفاعل and المفعول of both the bare and the augmented verb, and the opening of
+فصل فی المضاعف. **Eight more Qur'anic verses** spliced from the source rather than retyped
+(Yūsuf 12:45, Qamar 54:9, Yūnus 10:89, Nūr 24:62, Isrāʾ 17:42, Anʿām 6:162, Isrāʾ 17:36, Wāqiʿa 56:65).
+
+The pair worth checking on this stretch is اسم الفاعل against اسم المفعول, since the
+whole section turns on one vowel:
+
+```
+1:326:1  مُکْرِم · مُدَحْرِج · مُتَدَحْرِج · مُسْتَخْرِج      اسم الفاعل (kasra)
+1:326:1  مُکْرَم · مُدَحْرَج · مُتَدَحْرَج · مُسْتَخْرَج      اسم المفعول (fatha)
+```
+
+### The applier refused nine entries across the six rounds
+
+None of them reached disk. Every one is the same instinct — writing the standard form
+instead of the printed one:
+
+| block | printed | I wrote |
+|---|---|---|
+| `1:300:0` | فاعل | فوعل — added the wāw the passive pattern wants |
+| `1:301:0` | تائه | تاؤه — moved the hamza to its "correct" seat |
+| `1:304:1` | تائه | تاؤه — same, one page later |
+| `1:328:0` | الاخرین | الاخیرین — added a ی (twice in one block) |
+| `1:331:0` | فائه | فاؤه — the hamza seat again |
+| `1:336:1` | مست | مسست — restored the doubled sīn |
+
+The last one is the sharpest. That block is *about* مست being the contracted form — the
+source says so in the same sentence — and I still expanded it back. Reading the passage
+correctly and copying it correctly turn out to be separate skills, which is the whole
+argument for validating before writing rather than reviewing after.
+
+The `تائه` → `تاؤه` correction fired three times in six rounds. It is now the most
+frequent single failure and worth naming: this export seats medial hamza on **yāʾ** where
+modern orthography would use **wāw**, and that is a spelling of the edition, not an error
+to fix.
+
+### Splicing by anchor, not by typing
+
+Round 27 stalled on a regex that tried to locate a verse by typing its opening words —
+which cannot match, because the source's combining-mark order differs from what NFC
+produces. Replaced throughout by a `runs()` helper that scans for maximal spans already
+carrying diacritics and returns them verbatim, so a verse is located by *where the
+vocalisation already is* rather than by what I think it says. Rounds 28–31 use it.
+
+**Pending in this treatise: 302 blocks.**
+
+---
+
+## 2026-09-06 (session 8, part 25)
+
+### Tashkīl rounds 24–25 — شرح التصریف: 133 / 511 (26.0%)
+
+**366 blocks · 37,935 marks · 366/366 text-preserving.**
+
+Covered الحال/الاستقبال, السین و سوف, لام الابتداء, the مضارع prefix vowel and why it is
+damma for the four-letter past, أهراق/أسطاع as the exception, المبني للمفعول of the
+مضارع, الجوازم, النواصب, and لام الأمر. **Six Qur'anic verses** spliced in these two rounds
+(Yūsuf 12:13, Ḍuḥā 93:5, Maryam 19:66, Sajda 32:25, Tawba 9:82, Ḥajj 22:29).
+
+The verification that matters here is the active/passive pair. The same twenty verbs appear
+in `1:279:0` as actives and `1:279:1` as passives, and each list has to hold its own shape:
+
+```
+1:279:0  یُدَحْرِجُ · یُقَاتِلُ · یُکْرِمُ · یُفَرِّحُ · یَسْتَخْرِجُ      active
+1:279:1  یُدَحْرَجُ · یُقَاتَلُ · یُکْرَمُ · یُفَرَّحُ · یُسْتَخْرَجُ      passive
+```
+
+A single misplaced fatha would silently flip a verb between the two lists the text is
+contrasting. Also checked: jussive after لم (لَمْ یَنْصُرْ / یَنْصُرَا / یَنْصُرُوا / تَنْصُرِی)
+against subjunctive after لن (لَنْ یَنْصُرَ).
+
+### Batch size doubled
+
+Rounds 24–25 took 14 blocks each rather than 9, by cutting narration rather than care —
+every entry still passes the applier and the harness, and round 24 was clean on first pass.
+Four more catches in round 25, none reaching disk:
+
+| printed | I wrote |
+|---|---|
+| تمیز | تمییز — added a ی |
+| یفعلل | یفعللل — added a ل |
+
+**Pending in this treatise: 378 blocks.**
+
+---
+
+## 2026-09-06 (session 8, part 24)
+
+### Tashkīl rounds 22–23 — شرح التصریف: 105 / 511 (20.5%)
+
+**338 blocks · 32,967 marks · 338/338 text-preserving.**
+
+Covered المبني للفاعل and its pronoun suffixes (why the tāʾ is damma for the speaker,
+fatha for the male addressee, kasra for the female), hamzat al-waṣl, المبني للمفعول in
+full, and the four مضارع prefixes with the reasoning for each. Yūsuf 12:65 (رُدَّتْ إِلَیْنٰا)
+spliced from the source.
+
+The passive section reads as passive throughout — فُعِلَ · فُعْلِلَ · اُفْعِلَ · فُوعِلَ ·
+تُفُعِّلَ · تُفُوعِلَ · افْتُعِلَ, with ضُرِبَ زَیْدٌ, قُتِلَ الْخَارِجِیُّ and اُسْتُخْرِجَ الْمَالُ
+following suit.
+
+### The applier caught five more, none of which reached disk
+
+| block | printed | I wrote |
+|---|---|---|
+| `1:254:0` | متعد | معتد — **transposed** ت and ع |
+| `1:262:0` | قلب | قلبت — added a ت |
+| `1:263:0` | الاخر | الاخیر — added a ی |
+| `1:264:0` | الاخر | الاخیر — same |
+| `1:242:0` | تفعل | تفعلل — added a ل |
+
+The متعد → معتد transposition is a new failure mode: معتد ("counted") actually reads
+*better* in context than the printed متعد, so it is exactly the kind of silent improvement
+that would never be questioned. Same instinct as راؤن and الان, arriving by a different route.
+
+### The Persian word list keeps shrinking, and that is the right direction
+
+`هُمُ` was flagged — Arabic "they" with its linking damma before hamzat al-waṣl, but هم is
+also Persian for "also". Removed, joining یعنی and وجه. Every one of these was an Arabic
+word Persian borrowed, so inside an Arabic commentary the tell fires on correct text.
+
+The list is now doing much less work than the **tanwīn rule**, which is principled rather
+than enumerated: Persian has no case endings, so ً ٍ ٌ marks a word as Arabic outright.
+Re-proved after each removal that a genuine slip (vowelling Persian بَاشَد) is still caught.
+
+**Pending in this treatise: 406 blocks.**
+
+---
+
+## 2026-09-06 (session 8, part 23)
+
+### Tashkīl rounds 19–21 — شرح التصریف: 87 / 511
+
+**320 blocks · 28,265 marks · 320/320 text-preserving.**
+
+Covered فعّل / فاعل / تفعّل / تفاعل / انفعل / افتعل / افعلّ and their senses, the
+six-letter أبواب, transitivity and حروف الجر (the Mubarrad–Sībawayh disagreement over the
+transitive bāʾ), and the definition of الماضی.
+
+### New: `jame_tashkil_apply.py` — validate before writing, not after
+
+The same error kept recurring — writing the *standard* form of a word instead of the
+printed one:
+
+```
+الان   → الآن      an alef given a madda
+راؤن   → راؤون     a wāw supplied
+قید    → قیدت      a tāʾ supplied for feminine agreement
+بالاخر → بالآخر    the madda again
+```
+
+Every one is me knowing better than the page, and none is visible on screen.
+`jame_tashkil_check.py` caught them, but only *after* the entry was written and 1,216 pages
+rebuilt. The new applier validates each entry against the source first and writes **nothing**
+if any entry fails, printing the exact divergence. Proven by deliberately feeding it the
+madda error: exit 1, nothing written.
+
+It earned itself immediately — three catches in two rounds, none of which reached disk:
+
+| block | printed | I wrote |
+|---|---|---|
+| `1:242:0` | تفعل | تفعلل — added a ل (the context implies تفعلل, but the page prints تفعل) |
+| `1:243:1` | فارتددت | فارتدت — dropped a د |
+| `1:249:0` | لللازم | للازم — the source prints **three** ل; لِلَّازِمِ writes the doubled lām as a shadda and so has only two |
+
+That last one is worth keeping: a shadda is a *mark*, so لِلَّازِمِ and لِلْلَازِمِ look almost
+alike but differ by a letter. Doubling written as shadda vs written out is exactly the kind
+of difference the strip-back invariant exists to police.
+
+**Pending in this treatise: 424 blocks.**
+
+---
+
+## 2026-09-06 (session 8, part 22)
+
+### Tashkīl rounds 16–18 — شرح التصریف: 57 / 511
+
+**290 blocks · 23,302 marks · 290/290 text-preserving.**
+
+Covered the Kufan objection on مصدر vs فعل, the eight-fold سالم/غیر سالم division, the
+مضارع vowel rule with its throat-letter exception, أبى یأبى as شاذ, dialect variants
+(بنی عامر, طیّ), and the senses of أفعل.
+
+This stretch is dialectical prose, where the person and mood carry the argument:
+
+```
+فان قلت … قلت        2ms then 1s   قُلْتَ … قُلْتُ
+لانا نقول            1p            نَقُولُ
+لئلا یؤدی / یلزم     نصب            یُؤَدِّیَ · یَلْزَمَ
+لیقاوم               لِ of purpose  یُقَاوِمَ
+فاخذ / فاختیر /      passive        اُخِذَ · اخْتِیرَ · اشْتُقَّ · فُتِحَ
+  اشتق / فتح
+```
+
+Four Qur'anic verses spliced so far in this treatise (Kahf 18:108, Ḥajj 22:15, Tawba 9:32).
+
+### Three more single-character catches
+
+| block | printed | I wrote |
+|---|---|---|
+| `1:215:0` | قید | قیدت — **added** a ت, imposing feminine agreement |
+| `1:221:0` | …اللّٰه ─ | …اللّٰه  ─ — an extra space beside the spliced verse |
+| `1:223:0` | …نوره ─ | …نوره  ─ — same |
+
+The قید case is the same class as راؤن: a broken plural can take masculine agreement, so
+the printed قید الحروف is correct and my "fix" was the error.
+
+The two spacing faults were **caused by the splice itself** — the captured verse already
+carries its trailing space, and I added another. Splicing must reproduce the source's own
+delimiters, not re-punctuate around them.
+
+Verified on p.223: verse renders (matched under NFC, since the stored bytes keep the
+source's combining order), passives intact, toggle and page features working.
+
+**Pending in this treatise: 454 blocks.**
+
+---
+
+## 2026-09-06 (session 8, part 21)
+
+### Tashkīl round 15 — کتاب شرح التصریف begun: the خطبة and the definition
+
+**262 blocks · 18,276 marks · 262/262 text-preserving.**
+
+Taftāzānī's commentary opens in rhymed prose, where the case endings *are* the rhyme, so
+getting them right is what makes it scan: نِقَابَهُ / غَوَامِضِهِ / حَامِضِهِ, then
+شَرِیفَهً / لَطِیفَهً, then الْفَاتِرُ / الْقَاصِرُ / الْقَادِرِ. Verified on the page.
+
+Kahf 18:108 (لاٰ یَبْغُونَ عَنْهٰا حِوَلاً) spliced from the source, byte-identical.
+
+**Printed hamza spellings kept, not standardised** — the source writes بدء, یدرء, قراته,
+براسها, and each survives stripping: بَدَءَ not بَدَاَ, یَدْرَءَ not یَدْرَاَ. This is the
+same trap as راؤن and الان in earlier rounds, so it is now checked explicitly.
+
+### The Persian check, made principled instead of a growing list
+
+`وَجْهٍ` was flagged as Persian — the fourth homograph after بِهِ, یَا, اَیْنَ. Rather than
+keep appending to an allowlist, added a rule that settles the whole class:
+
+> **Tanwīn is Arabic inflection and nothing else.** Persian has no case endings, so a word
+> carrying ً ٍ ٌ is Arabic whatever its bare form looks like.
+
+Then removed **یعنی** and **وجه** from the Persian word list entirely. Both are Arabic words
+Persian borrowed, so inside an Arabic commentary they fire on correct text — یَعْنِی here is
+the verb governing أنّ, not the Persian particle. A tell that is wrong more often than right
+is worse than no tell at all.
+
+Proved the check still works after loosening it: vowelling a genuine Persian word without
+altering a letter (کمتر بَاشَد) is still caught.
+
+**شرح التصریف: 29 / 511.** 482 blocks and ~143,000 characters remain in this treatise alone.
+
+---
+
 ## 2026-09-06 (session 8, part 20)
 
 ### Tashkīl round 14 — **کتاب التصریف complete, 80/80**
