@@ -387,6 +387,19 @@
   var lastHits = null;
   var shown  = 20;
 
+  /* The advanced-search surah picker is static HTML, so its option labels do
+     not follow the language the way the cover grid does. Each option already
+     carries both spellings; an English reader who cannot read the script needs
+     the transliterated one, which is the whole reason data-tn is emitted. */
+  function paintSuraOpts() {
+    if (!qsura) return;
+    var en = lang() === 'en';
+    all('#qadv-sura option[data-nm]').forEach(function (o) {
+      var tn = o.getAttribute('data-tn');
+      o.textContent = o.value + '. ' + (en && tn ? tn : o.getAttribute('data-nm'));
+    });
+  }
+
   function advMode(sel, attr, dflt) {
     var b = document.querySelector(sel + ' button[aria-pressed="true"]');
     return b ? b.getAttribute(attr) : dflt;
@@ -548,6 +561,7 @@
       qadv.hidden = !qadv.hidden;
       qtog.setAttribute('aria-expanded', String(!qadv.hidden));
     });
+    paintSuraOpts();
     segWire('.qadv-in', 'data-in', runSearch);
     segWire('.qadv-match', 'data-match', runSearch);
     if (qsura) qsura.addEventListener('change', runSearch);
@@ -613,6 +627,7 @@
 
   function onLangChange() {
     fillTrPick();
+    paintSuraOpts();
     renderVotd();
     if (lastHits) runSearch();
   }

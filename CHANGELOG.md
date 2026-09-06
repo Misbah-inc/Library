@@ -4,6 +4,113 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-06 (session 8, part 35)
+
+### Pre-commit review — two bugs found and fixed
+
+Asked for a final check before committing. Verifiers, then a real browser over HTTP,
+then a static audit of every link in the tree.
+
+**The advanced-search surah picker never followed the language.** Its options carry both
+spellings — `data-nm="الفاتحة" data-tn="Al-Faatiha"` — but nothing read `data-tn`, so an
+English reader got a dropdown of 114 Arabic names while the cover grid beside it showed
+transliterations. That is precisely the gap the transliteration work existed to close.
+`paintSuraOpts()` in `qnav.js` now repaints the labels, wired into `onLangChange` and
+into the cover's startup. English gets Al-Faatiha; Arabic, Farsi and Urdu keep the script
+they read, and the "All Surahs" row was already localised.
+
+**The 404 page was unstyled and its Home button was dead.** `404.html` still pointed at
+`/Library/assets/reader.css`, `/Library/assets/reader.js` and `/Library/` — the old
+project-pages sub-path from before the custom domain served the repo at the root. Both
+assets 404'd, so the page rendered as bare unstyled text on white. Its absolute paths are
+correct in kind and must stay absolute, since GitHub Pages serves this file's *content*
+at whatever missing URL was requested and a relative path would resolve against that
+path; only the `/Library` prefix was wrong.
+
+**What passed.** `jame_tashkil_check` and `jame_tashkil_review` clean; all 764 overlay
+entries confirmed live in the built pages, including this session's two vowel corrections
+and the three repair batches; sitemap and disk agree exactly at 3,066 URLs in both
+directions; all 67 i18n keys the Qur'an references resolve in all four language tables
+(136 keys each); no console errors and no 404s on any page exercised. In the browser:
+localised placeholder, translator picker on cover and surah pages (4 English, 5 Persian,
+3 Urdu, swapping text and shared through `localStorage`), transliterated surah names,
+verse of the day linking to the right verse, advanced search returning 48 matches / 48
+verses / 18 surahs for الرحمن — matching the independent computation — and English
+`.tr-line` LTR in all six text-mode × layout combinations, the Mushaf case included.
+
+**Link audit: 0 broken targets across 3,067 HTML files.** A first pass reported 1,450;
+all were an artefact of matching `href` inside `data-href`, which JS resolves against the
+site root by design. Worth remembering before that number is ever trusted again.
+
+### مفاتیح الجنان — extraction built and verified; ids frozen
+
+Groundwork for the new book. `_translation-kit/mafatih_extract.py` turns the Ghaemiyeh
+export into `mafatih.json`; `_translation-kit/mafatih_verify.py` audits it independently
+and must print `VERDICT clean` before anything is generated from it.
+
+```
+sections 689 (614 carry text) · Arabic units 4,073 · 4,001 paired with a translation (98%)
+1  TEXT     1,534,402 source characters; 0 missing from the output
+2  IDS      689 section ids (0 duplicated), 4,073 unit ids (0 duplicated)
+3  STABLE   4,073/4,073 unit ids reproduce on a fresh extraction
+4  PAIR     4,001/4,073 carry a translation; 0 translations on a non-Arabic unit
+5  RUBRIC   832 instructions peeled; 0 cores still Persian, 0 rubrics empty
+6  AUDIO    38 reciter names known; 0 credit blocks survive
+```
+
+**The export pairs Arabic with Persian explicitly.** Every Arabic run is a
+`<SPAN class=content_text>`, and the `<A class=content_notelink>` right after it carries
+that run's own translation, in its `title` and again in a footnote `<DIV>`. So the
+alignment is given, not inferred, and the print edition's footnote numbering — the thing
+that cannot survive onto a screen — simply disappears: the number becomes the layout.
+The Arabic is already fully vocalised, so no tashkīl work is needed here.
+
+**Four faults found and fixed before any id was frozen.** Ids are the one thing that
+cannot be revised later, because English and Urdu will be keyed to them.
+
+- **Reciter credits were taking unit ids.** The edition ships alongside an app, so each
+  piece opens with `صوت`, then reciter names separated by `***` — 213 markers, 236
+  separators. `محَمد باقر الحکیم` carries one stray mark, read as Arabic, and held
+  `dua-kumayl:1`; every later id in the section was shifted by it. A few sections carry
+  the credits with the `صوت` marker missing, so the anchor alone does not catch them —
+  the 38 names are learned where the markup proves them and removed elsewhere only on an
+  exact match. Guessing by shape would eat real rubrics.
+- **32 of 73 section ids collided.** The unnamed-section fallback `f"s{len(taken)}"` only
+  incremented on *named* slugs, so every unnamed section collapsed to `s0` and دعای کمیل
+  came out as `s0/s0/s0/s0/dua-kumayl`.
+- **Ids are now derived from the section's title path and hashed, not from its
+  position.** A positional id looks stable and is not: fix a bug that merges two sections
+  and every id after it shifts, silently re-pointing whatever translation was keyed to
+  it. Three title paths genuinely repeat (`نماز حاجت`, `نماز دیگر`, `إشارَة:`), so the
+  nth occurrence folds into the hash.
+- **832 Arabic runs opened with the Persian instruction fused to them.** The export's
+  span boundaries follow the printed page, not the sense, so «پس سه مرتبه می گویی:
+  اَللّٰهُمَّ صَلِّ …» arrives as one run — the instruction telling the reader what to do,
+  glued to the words they are to say. Left fused it sets as duʿā body in Amiri, and the
+  footnote's translation, which covers only the Arabic, reads as a translation of the
+  instruction too.
+
+### Peeling the instruction — three restraints, each learned by getting it wrong
+
+1. **Head only, never the tail and never the middle.** One Arabic unit carries exactly
+   one translation, so cutting the core in two leaves half the duʿā translated and half
+   not. An aside left inline is a blemish; an orphaned translation is a wrong reading.
+   A tail rule was written, fired on 30 units, and was wrong on all 30.
+2. **The last qualifying boundary, not the first.** Kumayl's opening offers two — the
+   quote marks around «مصباح المتهجد» and the colon that actually introduces the duʿā.
+   Taking the first left a clause of Persian sitting at the head of the most-read duʿā
+   in the book.
+3. **The head must not itself end in Arabic**, or a colon inside the duʿā qualifies and
+   swallows its opening lines — but measured with parenthesised and quoted Arabic
+   discounted, since an instruction routinely names the words it introduces
+   («(اللّه أَكْبَرُ) گفته و سپس بگو:»). 36 units are genuinely Persian prose quoting
+   Arabic inline; those stay whole, flagged `mixed`.
+
+The 72 unpaired Arabic units are legitimate — Qur'anic quotations the print edition does
+not footnote. Nothing is generated from this yet; pages come next.
+
+---
+
 ## 2026-09-06 (session 8, part 34)
 
 ### Audit of the whole vocalisation — two wrong vowels and eleven blocks that were never done

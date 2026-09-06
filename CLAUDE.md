@@ -36,6 +36,8 @@ extract.py → [external translation] → merge_build.py → verify.py → commi
 | `bayt_extract.py` | Ghaemiyeh HTML export → batch JSON (Bayt al-Ahzan) |
 | `bayt_paginate.py` | splits Bayt al-Ahzan at its `[ صفحه ۷۷ ]` markers into printed pages |
 | `bayt_build.py` | Bayt al-Ahzan page builder, cover, and `toc.json` |
+| `mafatih_extract.py` | Ghaemiyeh Mafātīḥ export → `mafatih.json` (Arabic + Ansariyan Persian, paired) |
+| `mafatih_verify.py` | independent audit of `mafatih.json` — **must print `VERDICT clean`** |
 | `Fix-LibrarySeo.ps1` | one-off bulk `<head>` repair across the tree (PowerShell) |
 | `Set-AssetVersion.ps1` | stamps `?v=N` on `reader.css`/`reader.js` sitewide |
 
@@ -436,6 +438,29 @@ in `localStorage`, so the cover and every surah page share one setting.
 > **`ASSETS_V` in `quran_build.py` versions the Qur'an's pages alone.** The rest of
 > the tree carries whatever `Set-AssetVersion.ps1` last stamped. Bumping it here is
 > cheap (457 pages); bumping the whole site is the owner's call.
+
+**مفاتیح الجنان (2026-09-06, in progress).** Extraction only so far — no pages yet.
+`mafatih.json` holds 689 sections and 4,073 Arabic units, 98% of them paired with
+حسین انصاریان's Persian. The export *pairs* the two explicitly (a `content_notelink`
+after each Arabic span carries that span's own translation), so the print edition's
+footnote numbering never has to reach the screen. The Arabic arrives fully vocalised.
+
+> **Unit ids are frozen and are the one thing that must never be revised.** English and
+> Urdu will be keyed to `<section-id>:<n>` later, so an id that moves silently re-points
+> a translation. They are derived from the section's **title path, hashed** — never from
+> its position, because a positional id looks stable and is not: merge two sections and
+> every id after them shifts. `mafatih_verify.py` audit 3 re-extracts and compares.
+
+> **The Persian instruction is peeled off the head of an Arabic run, never the tail and
+> never the middle.** One Arabic unit carries exactly one translation, so cutting the core
+> in two would leave half a duʿā translated and half not. 832 runs are peeled into
+> `rub` + `ar`; 36 are Persian prose quoting Arabic inline and stay whole, flagged `mixed`.
+
+> **The edition ships with an app, so each piece opens with reciter credits** — `صوت`,
+> names, `***`. They must be stripped *before* ids are assigned: one reciter name reads as
+> Arabic and otherwise holds `dua-kumayl:1`. Some sections carry the credits without the
+> `صوت` marker, so the 38 names are learned where the markup proves them and removed
+> elsewhere only on an exact match.
 
 Bihar volumes 2–110 not started. The Qur'an is complete in all four languages.
 The remaining `catalog.json` entries are placeholders.
