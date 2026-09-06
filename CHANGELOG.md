@@ -4,6 +4,207 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-06 (session 8, part 33)
+
+### کتاب شرح التصریف is complete — 511 / 511
+
+**764 blocks · 110,532 marks · 764/764 text-preserving.**
+
+Eight rounds. The last 52 blocks of شرح التصریف closed the treatise — ایت, وای, اوی, نای,
+the hamza the Arabs dropped from یرى and never put back, أرى through every form down to
+its negative imperative, the end of المهموز, فصل فی اسمی الزمان و المکان, اسم الآلة,
+المرة and النوع — ending on the author's own وَ الْحَمْدُ لِلهِ رَبِّ الْعَالَمِینَ.
+
+```
+کتاب الامثله          2 / 2      ✓
+کتاب شرح الامثله      1 / 1      ✓
+کتاب التصریف          80 / 80    ✓
+کتاب شرح التصریف    511 / 511  ✓   ← the largest so far
+```
+
+With the two rounds left over, work started on **کتاب عوامل ملا محسن** (16 / 148): its
+opening, and the prepositions من · الى · الباء · فی · على · اللام with their Qur'anic
+evidence — thirteen verses spliced in one round, more than any round before it.
+
+### A Persian line that had to be left bare
+
+`1:496:1` lists the seventeen prepositions and says, in the author's own words,
+نَظَمْتُهَا بِالْفَارِسِیَّةِ — "I versified them in Persian." I vocalised the line anyway; the
+harness flagged `بَا` as a Persian word and was right to. The marks came off that line and
+the Arabic prose around it kept them. The check earned its keep here: nothing about the
+line *looks* Persian, and the only evidence is the sentence introducing it.
+
+### Refusals in this stretch
+
+`فائه` → `فاؤه` did **not** fire once — the first clean stretch for it. What did:
+
+| block | printed | I wrote |
+|---|---|---|
+| `1:460:0` | قه | ته — "fixed" the edition's own example |
+| `1:463:0` | سهو من الکاتب | سهوا من الکاتب |
+
+The first is worth keeping. The passage teaches the pausal هاء on one-letter imperatives,
+gives قِ → قِهْ, then discusses تِ and writes قِهْ again where تِهْ would be expected. I
+silently repaired it. That is exactly the class of change a vocalisation must never make:
+invisible on screen, and it would have quietly removed evidence of how this edition was
+set. And the second refusal is a scribal slip **inside a sentence about a scribal slip** —
+وَ کَانَ هٰذَا سَهْوٌ مِنَ الْکَاتِبِ.
+
+### Verification
+
+```
+harness            : 764 / 764 text-preserving, All clear
+splices            : 65 of 65 pre-vocalised source runs byte-identical
+page 480 (browser) : 2 blocks, strip-equal both ways, toggles and restores, 0 Persian marks
+```
+
+**Remaining across the book: 1,481 Arabic blocks in six treatises** — شرح الانموذج (686),
+الهدایه فی النحو (258), عوامل ملا محسن (132), and the rest.
+
+---
+
+## 2026-09-06 (session 8, part 32)
+
+### Tashḷīl rounds 49–56 — شرح التصریف: 459 / 511 (89.8%)
+
+**692 blocks · 99,483 marks · 692/692 text-preserving.**
+
+Eight rounds. Finished الناقص (اسم المفعول and the واو+یاء rule with all five of its
+conditions), then اللفیف المقرون (شوی · قوی · روی · حیی in full), اللفیف المفروق (وقی,
+whose imperative shrinks to the single letter قِ), the sixth and seventh types, and into
+فصل فی المهموز — two hamzas meeting, and the Sībawayh–Khalīl disagreement over ساء and جاء.
+
+The set to check on this stretch is the two استحیی dialects, since the whole point is that
+one letter's absence changes every form in the paradigm:
+
+```
+1:443:1  اسْتَحْیَی یَسْتَحْیِی · مُسْتَحْیٍ · اسْتَحْیِ      حجازیة, both yāʾ s kept
+1:444:0  اسْتَحَی یَسْتَحِی  · مُسْتَحٍ  · اسْتَحِ       تمیمیة, the عین dropped
+```
+
+### Twelve refusals, and one edition fact worth naming
+
+`فائه` → `فاؤه` fired **five more times**, four of them inside a single round (`1:446:2`,
+`1:447:0`, `1:448:4`, `1:449:0`), which is fourteen for the treatise. There is nothing
+subtle left to say about it: this edition seats medial hamza on yāʾ, always, and my hand
+reaches for the wāw seat every time the word is فاء or یاء plus a pronoun.
+
+The rest were ordinary: `اجرائه`→`اجراؤه`, `رضیا`→`رضی`, `اشتغل`→`اشتغلت`,
+`قلب المکانی`→`القلب المکانی`, and two dropped `─` separators — the applier compares the
+whole block, so a missing punctuation mark is caught as surely as a missing letter.
+
+### The browser check had to be fixed, not the data
+
+The page-456 spot check reported `stripEqual: false`, which looked alarming. It was the
+test that was wrong: that block contains the spliced فَلْیُؤَدِّ الَّذِی اؤْتُمِنَ, and the
+**printed** side legitimately carries its own diacritics — so stripping only the vocalised
+side and comparing against an unstripped printed side can never match. Stripping both, as
+the harness does:
+
+```
+blocks 3 · stripEqualBothSides true · toggles true · restores true
+source runs in printed: فَلْیُؤَدِّ الَّذِی اؤْتُمِنَ · وَ أْمُرْ أَهْلَکَ بِالصَّلاٰةِ
+all survive in vocalised: true
+```
+
+Bulk splice check across the whole overlay: **52 of 52** pre-vocalised source runs
+byte-identical.
+
+**Pending in this treatise: 52 blocks.**
+
+---
+
+## 2026-09-06 (session 8, part 31)
+
+### Tashḷīl rounds 44–48 — شرح التصریف: 379 / 511 (74.2%)
+
+**612 blocks · 85,921 marks · 612/612 text-preserving.** Three quarters of the treatise.
+
+Five rounds through الناقص end to end: when the لام turns into an alif and when the
+following ألف التثنیة stops it, the past paradigms with their three objections, the
+مضارع in رفع / نصب / جزم, the أمر with and without نون التأکید, and اسم الفاعل down
+to غوازٍ.
+
+The set to check here is where the vowel on the second radical is the *only* thing
+distinguishing three different verbs' plurals — the text spends a page on exactly this:
+
+```
+1:414:1  یَغْزُونَ · یَرْمُونَ · یَرْضَوْنَ        masculine plural, لام deleted
+1:414:1  یَغْزُونَ · یَرْمِینَ · یَرْضَیْنَ        feminine plural, لام kept
+```
+
+یَغْزُونَ is identical in both — which is the author's whole point, and it only shows
+once the vowels are on.
+
+### Three refusals, and two of them are new kinds
+
+| block | printed | I wrote |
+|---|---|---|
+| `1:412:0` | و یحکما | ویحکما — closed a space the edition leaves open |
+| `1:417:0` | یقبلوا | یقلبوا — **transposed** ل and ب |
+| `1:420:3` | الثلاثه | الثلثه |
+| `1:425:0` | لوجوب | لوجب |
+
+`یقبلوا` is the sharper one. The sentence reads و لم یقبلوا الواو الأولى ألفا and
+plainly *means* یقلبوا, "they did not turn the first wāw into an alif" — so I typed what
+it means rather than what it says. That is a printing error in this edition, and fixing
+it silently inside a vocalisation would misrepresent the page. It ships as printed.
+
+`الثلاثه` vs `الثلثه` is worth recording as a fact about the edition rather than a
+mistake: **it spells the word both ways, sometimes on the same page**. `1:420:3` has the
+full spelling and `1:422:1` the defective one. There is no rule to follow — only the
+copy in front of you.
+
+### Splices re-verified in bulk
+
+Every pre-vocalised run in the source — the Qur'anic verses and the few vocalised
+citations — was re-checked against the overlay, not just the new ones:
+
+```
+pre-vocalised source runs checked : 39
+runs that survive byte-identical  : 39
+```
+
+**Pending in this treatise: 132 blocks.**
+
+---
+
+## 2026-09-06 (session 8, part 30)
+
+### Tashḷīl rounds 39–43 — شرح التصریف: 329 / 511 (64.4%)
+
+**562 blocks · 76,898 marks · 562/562 text-preserving.**
+
+Five rounds through the أجوف and into the ناقص: the passive صِینَ / بِیعَ and the three
+readings of it (یاء, واو, and الإشمام), the جازم and الأمر paradigms, why the عین
+comes back before نون التأکید but not after a ضمیر بارز, the four augmented patterns
+that undergo إعلال (أفعل · استفعل · انفعل · افتعل) against everything that stays sound,
+and the Sībawayh–Akhfash dispute over which letter مَصُون loses.
+
+That dispute is the block to check, because the two positions differ by one vowel and
+the text states both:
+
+```
+1:397:0  فَمَصُونٌ مَفُعْلٌ وَ مَبِیعٌ مَفِعْلٌ     Sībawayh: the واو of مفعول goes
+1:397:0  فَأَصْلُ مَبِیعٍ مَبْیُوعٌ …                  Akhfash: the عین goes
+```
+
+Four of the five rounds were clean on first pass — the best run so far. The single
+refusal was `1:384:0`, where I wrote `أن تکون الإضافة` for the printed `أن یکون الإضافة`
+— correcting the author's gender agreement, which is editing, not vocalising.
+
+### One word deliberately left bare
+
+`1:396:0` quotes al-Zamakhsharī on شَفٰا جُرُفٍ هٰارٍ and says وزنه فعل قصر عن فاعل.
+Whether that pattern is فَعِلٌ or فَعٍ turns on which letter the alif of هار represents —
+the very question the surrounding page is arguing about — and the printed text does not
+settle it. Marking it would put an editorial answer into a citation, so that one word
+ships unvocalised. The same choice was made for فاعل in `1:300:0`.
+
+**Pending in this treatise: 182 blocks.**
+
+---
+
 ## 2026-09-06 (session 8, part 29)
 
 ### Tashḷīl rounds 37–38 — شرح التصریف: 279 / 511 (54.6%)
