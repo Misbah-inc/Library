@@ -4,6 +4,178 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-06 (session 8, part 38)
+
+### اعمال ایام هفته — today's observances, surfaced
+
+The last item from the original Mafātīḥ list. The cover now opens with what belongs to
+today, and every weekday row in a section listing carries an امروز badge on its day.
+
+```
+weekday map : 21 observances across 7 days (2 of them شب)
+```
+
+**Why this is safe when اعمال امروز was not.** A Hijri *date* has to be announced and can
+move by a day, which is why اعمال امروز stays deferred until there is a calendar. A
+*weekday* is not in dispute — Friday is Friday in every reckoning — so the weekly
+observances can be surfaced without ever being wrong.
+
+**The one thing that had to be right: the Islamic day begins at maghrib.** «اعمال شب
+جُمعه» is *Thursday* evening. Folding it into Friday's list — which is where its name
+puts it — would show it to a reader a full day after the time to act on it. Those rows
+are flagged `data-eve` at build time and surface a day early, labelled امشب, with a line
+saying the night begins at maghrib. Verified across all seven days: Thursday shows
+پنجشنبه's two duʿās plus **شب جمعه** for the evening, and Friday shows its five daytime
+observances and correctly does **not** repeat the شب ones.
+
+**Two detection traps, both handled at build time:**
+
+- **یکشنبه, سه شنبه and پنجشنبه all end in شنبه**, so a naive scan labels every one of
+  them Saturday. The table is matched longest-first.
+- **Not every mention of a weekday is a weekly observance.** «سوره جُمعه» is a sura of
+  the Qur'an, and «نماز روز یک شنبه» under ذی القعده belongs to that month. Detection is
+  gated on the section's ancestry, so only ایام هفته, شب و روز جُمعه and نمازهای مستحبه
+  qualify.
+
+### A CSS specificity bug the browser caught
+
+The امروز badge is inserted as the row's first child, which made it — not the title —
+match `.sec-list a>span:first-child{flex:1}`, so the little green pill stretched across
+half the row. Adding a competing `.sec-list a>.today-b{flex:0 0 auto}` did nothing:
+(0,2,1) loses to (0,2,2). Fixed at the source rule instead, which now says what it
+actually means — the title is the span that is neither the badge nor the count:
+
+```css
+.sec-list a>span:not(.today-b):not(.ch-n){flex:1}
+```
+
+Verified in RTL by position rather than by eye: badge rightmost, then the title, count at
+the far left.
+
+**Regression check:** 0 broken links across 3,757 files; all eight other-book pages 200
+with zero leaked classes; all 21 weekday links resolve.
+
+---
+
+## 2026-09-06 (session 8, part 37)
+
+### مفاتیح: search that finds the thing you half-remember
+
+The critical feature. Nobody opens Mafātīḥ knowing a section number — they know a name
+they half-remember, or a line they have heard recited. Those are two different searches
+and they are answered from two different indexes:
+
+```
+NAMES  689 rows,   0.19 MB raw / 0.02 MB gzipped — loaded when search opens,
+                   answered on every keystroke
+TEXT   5,750 rows, 5.25 MB raw / 1.30 MB gzipped — fetched only when asked
+```
+
+Splitting them is the point: looking up دعای کمیل by name must not cost a reader the
+whole book's text. The text index is offered as a button and kept once loaded.
+
+**Name search is ranked, not substring-matched**, because the query and the title rarely
+agree. `دعای خمس عشر` has to find **مناجات خمس عشره**: no substring of the query occurs
+in that title, but two of its three words do, and «خمس» and «عشره» are rare across the
+689 titles while «دعای» is in scores of them. Weighting each matched word by its rarity
+(IDF over the title corpus) is what makes that work.
+
+**Text search folds both sides.** A reader types `اللهم انی اسالک برحمتک` — no
+diacritics, Persian ک and ی — and the edition prints `اَللّٰهُمَّ إِنِّى أَسْأَلُكَ
+بِرَحْمَتِكَ`. Without folding, the single most likely search anyone will run returns
+nothing. The fold keeps an index map back to the original, so the snippet shown is the
+vocalised text with the match highlighted, not the stripped form that was matched.
+
+**A hit links to the unit, not the page.** `/mafatih/dua-kumayl/#u-dua-kumayl:1`, which
+scrolls to it and marks it. Landing on the right page and leaving the reader to scan 90
+units is barely better than not finding it.
+
+### Four ranking faults found by testing against real queries
+
+- **Persian ezafe was penalised.** `عاشورا` matched as a whole word in three short notes
+  *about* the ziyarat, while the ziyarat itself is titled `عاشورای` — so notes outranked
+  the text. A word that merely *starts with* the token now scores nearly as much as a
+  whole-word match, which is simply how Persian attaches the ezafe.
+- **Sections with no text outranked the text.** «خبر صفوان در فضیلت زیارت عاشورا» has
+  zero Arabic units; «متن زیارت عاشورای معروفه» has fifteen. The index now carries unit
+  counts and child counts so the ranker can tell a piece, a note and a heading apart.
+- **`غیر معروفه` beat `معروفه`** on the strength of starting with the query. A negation
+  the reader did not type is evidence this is the alternative reading, so it is penalised
+  — and only when the reader did not type it.
+- **92 sections are titled «إشارَة:»**, which says nothing. One of them *is* زیارت
+  اربعین — the only section whose title mentions اربعین is a different one, «روز اربعین».
+  Each section's opening line is now indexed as an alias for its name and shown as the
+  result's subtitle, so `زیارت اربعین` lands on the section that actually holds it.
+
+### Also
+
+- **The Qur'an signpost.** Mafātīḥ carries only Qummi's selected suras; the section and
+  its 31 suras now say so and link to the full Qur'an, so nobody concludes the library
+  lacks a sura the book simply does not include. 32 pages, resolving to `/quran/`.
+- Search opens from the header on every page, from the cover box, or with `/`.
+
+Still not built: the اعمال هفته weekday highlighting.
+
+---
+
+## 2026-09-06 (session 8, part 36)
+
+### مفاتیح الجنان is live — 689 pages, browse and read
+
+The book now exists as pages rather than only as data. `mafatih_build.py` turns
+`mafatih.json` into the tree; the catalog entry is no longer a placeholder, so the card
+on the home page is clickable for the first time.
+
+```
+pages written : 689  (+ cover)   with text 614   named slugs 26   cover tiles 11
+sitemap       : 3,756 URLs (mafatih 690)
+```
+
+**One page is one piece.** The owner chose item pagination over printed-page
+pagination, and the reason is what the book is for: it is recited, not consulted.
+دعای کمیل is one page, top to bottom. Paginating by the printed edition would have
+made it six pages and forced a reader to press Next in the middle of a supplication
+five times. The printed edition's 1,871 page breaks are not lost — they ride inline as
+«ص ۱۶۵» markers, the way جامع المقدمات shows them, so citing the physical book still
+works. دعای کمیل carries twelve of them.
+
+**Two doors, one text.** The cover is the app-style browse — eleven tiles that are the
+book's own أبواب (ادعیه / اعمال سال / زیارات / نمازهای مستحبه and the rest), not a
+scheme imposed on it. prev/next chains all 689 pages in document order, so the same
+pages read straight through. There is no second URL space to keep in sync.
+
+**Slugs.** The 26 famous pieces get their Latin alias (`/mafatih/dua-kumayl/`),
+everything else its ordinal (`/mafatih/137/`); a numeric slug can never collide with a
+Latin one. These are navigation only — translations key to the frozen UNIT ids, never to
+URLs, so renumbering a page can never re-point a translation. That is the whole reason
+the ids were made content-derived back in part 35.
+
+**The Arabic/Persian switch** (هر دو / عربی / ترجمه) lives in `mafatih/assets/mafatih.js`,
+not in `reader.js` — same arrangement as the Qur'an's `qnav.js`. `reader.js` is loaded by
+every one of the ~3,750 pages in the library, so anything put there has to be right for
+all of them; this is right for one book. The choice is stored once and applies to the
+whole book, because a reader who wants the Arabic alone wants it everywhere.
+
+### Three things the browser caught that reading the code would not have
+
+- **The cover's tile grid collapsed to a single 299px column.** `.cover` was nested in
+  `<main class="wrap">`, which is `display:flex`, so it shrank to its content. The Qur'an
+  cover uses `<main class="cover">` directly; this now does too.
+- **`pages.json` 404'd on every page.** `reader.js` fetches `<book>/assets/pages.json` to
+  populate a jump box. Mafātīḥ paginates by piece and its slugs are a mix of names and
+  ordinals, so there is no numeric page to jump to — it joins the Qur'an in that guard.
+- **The cover tiles were one level too high.** They came out as the two *bindings*,
+  «کتاب مفاتیح الجنان» and «باقیات الصالحات», which is not a choice any reader wants to
+  make. The builder now descends wherever a top-level division is merely a wrapper around
+  further divisions, which yields the eleven أبواب, and drops the four that are
+  bibliographic metadata or the print edition's own index.
+
+Qummi's instructions are set as prose in the UI face and the duʿā in Amiri, so what the
+reader *does* never looks like what they *say* — the distinction the 832 peeled rubrics
+from part 35 exist to make.
+
+---
+
 ## 2026-09-06 (session 8, part 35)
 
 ### Pre-commit review — two bugs found and fixed

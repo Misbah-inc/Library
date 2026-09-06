@@ -908,3 +908,139 @@ html[dir="rtl"] .votd-go .ic{transform:scaleX(-1)}
 /* the cover search field follows the reader's language, not always Arabic */
 .qsearch input{direction:inherit}
 html[data-lang="en"] .qsearch input{direction:ltr}
+
+
+/* ===================================================================
+   مفاتیح الجنان
+   One page is one piece — a duʿā whole, not a slice of a printed page —
+   so the printed folio numbers ride inline instead of breaking it, and
+   the Arabic/Persian pairing the export gives us is set as a pair.
+   =================================================================== */
+
+.piece-title{font-family:var(--display);font-size:1.5rem;line-height:1.4;
+  margin:.2rem 0 1rem;color:var(--ink);text-wrap:balance}
+
+/* Qummi's instruction: what the reader DOES, as against what they SAY.
+   Set as prose in the UI face so it never reads as part of the duʿā. */
+.body.mafatih .rub{font-family:var(--ui);font-size:.95rem;line-height:1.95;
+  color:var(--ink-2);margin:1rem 0;padding-inline-start:.75rem;
+  border-inline-start:2px solid var(--line)}
+
+.body.mafatih .unit{margin:1.15rem 0}
+.body.mafatih .u-ar{font-family:var(--ar);font-size:1.28rem;line-height:2.35;
+  color:var(--ink);margin:0 0 .35rem;text-align:justify}
+.body.mafatih .u-tr{font-family:var(--ui);font-size:.95rem;line-height:1.95;
+  color:var(--ink-2);margin:0;text-align:justify}
+/* Persian prose that quotes Arabic inline — one run, not a pairing */
+.body.mafatih .unit.mixed .u-ar{font-family:var(--ui);font-size:1rem;
+  line-height:2;color:var(--ink-2)}
+
+.body.mafatih.view-ar .u-tr{display:none}
+.body.mafatih.view-tr .u-ar{display:none}
+.body.mafatih.view-tr .unit.mixed .u-ar{display:block}
+
+/* the printed edition's page number, kept as a landmark rather than a break */
+.folio-mark{display:flex;align-items:center;gap:.6rem;margin:1.4rem 0;
+  color:var(--ink-3);font-family:var(--ui);font-size:.72rem;user-select:none}
+.folio-mark::before,.folio-mark::after{content:"";flex:1;height:1px;
+  background:var(--hair)}
+
+.view-bar{display:flex;gap:.35rem;margin:0 0 1.2rem;flex-wrap:wrap}
+.view-bar .vbtn{font-family:var(--ui);font-size:.8rem;cursor:pointer;
+  padding:.3rem .8rem;border-radius:999px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink-2)}
+.view-bar .vbtn[aria-pressed="true"]{background:var(--green);
+  color:var(--on-green);border-color:var(--green)}
+
+.sec-list{list-style:none;margin:1.5rem 0 0;padding:0;
+  border-top:1px solid var(--hair)}
+.sec-list li{border-bottom:1px solid var(--hair)}
+.sec-list a{display:flex;gap:.75rem;align-items:baseline;padding:.7rem .2rem;
+  font-family:var(--ui);font-size:.95rem;color:var(--ink);text-decoration:none}
+.sec-list a:hover{background:var(--tint)}
+.sec-list a>span:not(.today-b):not(.ch-n){flex:1}
+.sec-list .ch-n{color:var(--ink-3);font-size:.78rem;white-space:nowrap}
+
+/* the cover's division tiles reuse .chap-cell's box; these are its innards */
+.chap-cell .cc-t{display:block;font-family:var(--ui);font-size:.95rem;
+  line-height:1.6;color:var(--ink)}
+.chap-cell .cc-n{display:block;margin-top:.3rem;color:var(--ink-3);
+  font-size:.75rem}
+
+/* --- مفاتیح: search ------------------------------------------------------ */
+
+.mcover-search{display:flex;gap:.5rem;margin:1.6rem 0 .5rem;max-width:34rem}
+.mcover-search input{flex:1;font-family:var(--ui);font-size:.95rem;
+  padding:.65rem .9rem;border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--surface);color:var(--ink)}
+.mcover-search input:focus{outline:2px solid var(--gold);outline-offset:1px}
+.mcover-hint{font-family:var(--ui);font-size:.78rem;color:var(--ink-3);
+  margin:0 0 1.6rem;max-width:34rem}
+
+.msearch-panel{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.45);
+  display:flex;justify-content:center;align-items:flex-start;padding:4vh 1rem}
+.msearch-box{width:min(46rem,100%);max-height:88vh;display:flex;
+  flex-direction:column;background:var(--paper);border-radius:var(--radius);
+  box-shadow:var(--shadow);overflow:hidden}
+.msearch-head{display:flex;gap:.5rem;padding:.8rem;border-bottom:1px solid var(--hair)}
+.msearch-head input{flex:1;font-family:var(--ui);font-size:1rem;padding:.55rem .8rem;
+  border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--surface);color:var(--ink)}
+.msearch-x{border:0;background:none;color:var(--ink-3);font-size:1.1rem;
+  cursor:pointer;padding:0 .5rem}
+.msearch-note{font-family:var(--ui);font-size:.82rem;color:var(--ink-3);
+  margin:0;padding:.6rem .9rem;display:flex;gap:.7rem;align-items:center;flex-wrap:wrap}
+.msearch-note:empty{display:none}
+.msearch-more{font-family:var(--ui);font-size:.82rem;cursor:pointer;
+  padding:.35rem .85rem;border-radius:999px;border:1px solid var(--green);
+  background:var(--green);color:var(--on-green)}
+.msearch-hint{color:var(--ink-3)}
+.msearch-res{overflow-y:auto;padding:0 .4rem .9rem}
+.msearch-h{font-family:var(--ui);font-size:.72rem;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-3);margin:1rem .6rem .4rem}
+.msearch-h span{color:var(--gold)}
+.mhit{display:block;padding:.6rem .7rem;border-radius:var(--radius);
+  text-decoration:none;color:var(--ink)}
+.mhit:hover{background:var(--tint)}
+.mhit-t{display:block;font-family:var(--ui);font-size:.98rem;line-height:1.6}
+.mhit-b{display:block;font-family:var(--ui);font-size:.74rem;color:var(--ink-3);
+  margin-top:.15rem}
+.mhit-p{display:inline-block;font-family:var(--ui);font-size:.72rem;
+  color:var(--ink-3);margin-top:.2rem}
+.mhit-s{display:block;font-family:var(--ar);font-size:1.02rem;line-height:2;
+  color:var(--ink-2);margin-top:.3rem}
+.mhit-s mark,.mhit-t mark{background:var(--gold-2);color:inherit;
+  border-radius:3px;padding:0 .1em}
+.msearch-names,.msearch-text{display:flex;flex-direction:column}
+
+/* the unit a search result pointed at */
+.u-target{background:var(--tint);border-radius:var(--radius);
+  box-shadow:0 0 0 .55rem var(--tint)}
+@media (prefers-reduced-motion:reduce){.u-target{transition:none}}
+
+.xbook-note{font-family:var(--ui);font-size:.85rem;color:var(--ink-2);
+  margin:0 0 1.2rem;padding:.7rem .9rem;background:var(--tint);
+  border-radius:var(--radius)}
+.xbook-note a{color:var(--green);font-weight:600}
+
+/* --- مفاتیح: اعمال ایام هفته --------------------------------------------- */
+
+.mweek{margin:2rem 0 0}
+.mweek-day{font-family:var(--ui);font-size:.9rem;color:var(--ink-2);margin:0 0 1rem}
+.mweek-day b{color:var(--green)}
+.mweek-grp{margin:0 0 1rem}
+.mweek-grp h3{font-family:var(--ui);font-size:.72rem;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--gold);margin:0 0 .4rem}
+.mweek-i{display:flex;gap:.75rem;align-items:baseline;padding:.6rem .7rem;
+  font-family:var(--ui);font-size:.93rem;color:var(--ink);text-decoration:none;
+  border:1px solid var(--hair);border-radius:var(--radius);margin-bottom:.35rem;
+  background:var(--surface)}
+.mweek-i:hover{background:var(--tint)}
+.mweek-i>span:first-child{flex:1}
+.mweek-n{color:var(--ink-3);font-size:.76rem;white-space:nowrap}
+.mweek-note{font-family:var(--ui);font-size:.76rem;color:var(--ink-3);margin:.2rem 0 0}
+
+.today-b{display:inline-block;font-family:var(--ui);font-size:.68rem;
+  padding:.1rem .5rem;border-radius:999px;background:var(--green);
+  color:var(--on-green);margin-inline-end:.5rem;vertical-align:.1em}
+.sec-list li.is-today>a{background:var(--tint)}

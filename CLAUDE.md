@@ -38,6 +38,7 @@ extract.py → [external translation] → merge_build.py → verify.py → commi
 | `bayt_build.py` | Bayt al-Ahzan page builder, cover, and `toc.json` |
 | `mafatih_extract.py` | Ghaemiyeh Mafātīḥ export → `mafatih.json` (Arabic + Ansariyan Persian, paired) |
 | `mafatih_verify.py` | independent audit of `mafatih.json` — **must print `VERDICT clean`** |
+| `mafatih_build.py` | `mafatih.json` → the 689 مفاتیح pages, cover and `toc.json` |
 | `Fix-LibrarySeo.ps1` | one-off bulk `<head>` repair across the tree (PowerShell) |
 | `Set-AssetVersion.ps1` | stamps `?v=N` on `reader.css`/`reader.js` sitewide |
 
@@ -321,6 +322,7 @@ On top of the above, before the owner is asked to commit:
 | `jame-al-muqaddimat/` | 1 | Volume selector |
 | `jame-al-muqaddimat/1/` + `1/1–609/` | 610 | Vol 1 contents + pages, 9 treatises |
 | `jame-al-muqaddimat/2/` + `2/1–607/` | 608 | Vol 2 contents + pages, 6 treatises |
+| `mafatih/` + 689 pieces | 690 | Cover (11 tiles) + every piece, Arabic + انصاریان Persian |
 
 **جامع المقدمات (2026-09-03).** Multi-volume, Bihar-shaped: `/jame-al-muqaddimat/<vol>/<page>/`.
 Persian commentary around Arabic matn, so every block carries its own `lang` (`ar`/`fa`)
@@ -439,11 +441,46 @@ in `localStorage`, so the cover and every surah page share one setting.
 > the tree carries whatever `Set-AssetVersion.ps1` last stamped. Bumping it here is
 > cheap (457 pages); bumping the whole site is the owner's call.
 
-**مفاتیح الجنان (2026-09-06, in progress).** Extraction only so far — no pages yet.
+**مفاتیح الجنان (2026-09-06).** Live at `/mafatih/` — cover + 689 pages.
 `mafatih.json` holds 689 sections and 4,073 Arabic units, 98% of them paired with
 حسین انصاریان's Persian. The export *pairs* the two explicitly (a `content_notelink`
 after each Arabic span carries that span's own translation), so the print edition's
 footnote numbering never has to reach the screen. The Arabic arrives fully vocalised.
+
+> **Search is two indexes, not one.** Names (689 rows, 20 KB gzipped) load with the
+> search panel and answer per keystroke, ranked by IDF-weighted token overlap so
+> «دعای خمس عشر» finds «مناجات خمس عشره». Text (5,750 rows, 1.3 MB gzipped) is fetched
+> only on request. Both sides are folded (diacritics, ی/ي, ک/ك, ه/ة, ZWNJ, digits); the
+> fold keeps an index map back to the original so snippets show vocalised text. Hits link
+> to a UNIT — `/mafatih/<slug>/#u-<unit id>` — not just a page.
+
+> **92 sections are titled «إشارَة:».** One of them is زیارت اربعین. Each section's first
+> line is indexed as an alias for its name and shown as the result subtitle; without it
+> those sections are unfindable by name.
+
+> **اعمال هفته: the Islamic day begins at maghrib.** «اعمال شب جُمعه» is *Thursday*
+> evening. Those rows carry `data-eve` and surface a day before their name says, labelled
+> امشب. Weekday detection matches longest-first (یکشنبه/سه شنبه/پنجشنبه all end in شنبه)
+> and is gated on ancestry, or «سوره جُمعه» becomes a Friday devotion.
+
+> **One page is one piece, not one printed page.** دعای کمیل is a single page top to
+> bottom; the printed edition's 1,871 page breaks ride inline as «ص ۱۶۵» markers instead.
+> The book is recited, not consulted — printed-page pagination would interrupt a
+> supplication five times. Citation survives because the folio numbers are on the page.
+
+> **Slugs are navigation, ids are data.** 26 famous pieces carry a Latin alias
+> (`/mafatih/dua-kumayl/`), the rest an ordinal (`/mafatih/137/`). Renumbering a page is
+> survivable; renumbering a UNIT id is not, because translations key to those.
+
+> **The book's own script is `mafatih/assets/mafatih.js`,** not `reader.js` — same rule as
+> the Qur'an's `qnav.js`. `reader.js` is loaded by every page in the library.
+
+> **A cover must be `<main class="cover">`, never `<main class="wrap">`.** `.wrap` is
+> `display:flex`, so a cover nested inside it shrinks to its content and any tile grid
+> collapses to one narrow column. The Qur'an cover has always done this correctly.
+
+> `reader.js` skips the `pages.json` fetch for `quran` **and** `mafatih`; both paginate
+> through their own pager and ship none, so asking for one is a guaranteed 404.
 
 > **Unit ids are frozen and are the one thing that must never be revised.** English and
 > Urdu will be keyed to `<section-id>:<n>` later, so an id that moves silently re-points

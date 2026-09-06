@@ -178,8 +178,7 @@
     {
       "slug": "mafatih",
       "category": "dua",
-      "placeholder": true,
-      "volumes": 1,
+      "volumes": 11,
       "title": {
         "ar": "مفاتيح الجنان",
         "fa": "مفاتیح الجنان",
@@ -187,6 +186,9 @@
         "en": "Mafatih al-Jinan"
       },
       "subtitle": {
+        "ar": "الأدعية والزيارات والأعمال",
+        "fa": "ادعیه، زیارات و اعمال",
+        "ur": "ادعیہ، زیارات اور اعمال",
         "en": "Supplications, ziyarat and daily devotions"
       },
       "author": {
@@ -195,8 +197,10 @@
         "ur": "شیخ عباس قمی",
         "en": "Shaykh 'Abbas al-Qummi"
       },
-      "pages": 0,
-      "href": ""
+      "pages": 689,
+      "href": "mafatih/",
+      "unit": "chapters",
+      "srclang": "fa"
     },
     {
       "slug": "kafi",

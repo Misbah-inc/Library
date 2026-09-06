@@ -1073,8 +1073,10 @@
     /* Translated pages: fetch pages.json */
     /* The Qur'an paginates by surah through its own pager and ships no
        pages.json, so asking for one is a guaranteed 404 on every one of
-       its 342 translated pages. */
-    if (!FIXED || !_slug || _slug === 'quran') return;
+       its 342 translated pages. Mafatih is the same case: it paginates by
+       piece, and its slugs are a mix of names and ordinals, so there is no
+       numeric page for a jump box to select. */
+    if (!FIXED || !_slug || _slug === 'quran' || _slug === 'mafatih') return;
     var _jsonUrl = ROOT + '/' + _slug + '/assets/pages' + (_vol ? '-' + _vol : '') + '.json';
     /* A standalone book lives at its own top-level slug, not under /<lang>/,
        so prefixing the language here would point every option at a path that
