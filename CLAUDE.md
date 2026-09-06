@@ -32,7 +32,7 @@ extract.py → [external translation] → merge_build.py → verify.py → commi
 | `verify.py` | checks built page against Arabic source — **must report 0 failures before commit** |
 | `reextract.py` | built page → JSON, losslessly (for re-templating without retranslating) |
 | `gen_sitemap.py` | rewrites `sitemap.xml` and `robots.txt` from what is on disk |
-| `quran_build.py` | Tanzil XML → surah pages in all four languages |
+| `quran_build.py` | Tanzil text → surah pages, cover, and the Qur'an's JSON assets |
 | `bayt_extract.py` | Ghaemiyeh HTML export → batch JSON (Bayt al-Ahzan) |
 | `bayt_paginate.py` | splits Bayt al-Ahzan at its `[ صفحه ۷۷ ]` markers into printed pages |
 | `bayt_build.py` | Bayt al-Ahzan page builder, cover, and `toc.json` |
@@ -310,8 +310,8 @@ On top of the above, before the owner is asked to commit:
 | `ur/bihar/1/` | 231 | Complete, machine translation |
 | `bihar/`, `en|fa|ur/bihar/` | 4 | Volume selector pages |
 | `quran/` + `quran/1–114/` | 115 | Cover and all 114 surahs, Arabic |
-| `en|fa|ur/quran/1–114/` | 342 | Shakir · فولادوند · علامہ جوادی |
-| `quran/assets/` | — | `toc.json`, `qnav.json`, `qnav.js` (Contents, quick access, paging) |
+| `en|fa|ur/quran/1–114/` | 342 | 12 translations, reader-selectable; defaults Shakir · فولادوند · علامہ جوادی |
+| `quran/assets/` | — | `toc.json`, `qnav.json`, `qnav.js`, `tr/*.json` (12 translations), `votd.json` + `votd/*.json` |
 | `bayt-al-ahzan/` | 1 | Arabic cover (5 chapters, دار الحكمة edition, Bihar-style) |
 | `bayt-al-ahzan/1–189/` | 189 | Arabic original (Qummi), pages 1–189 |
 | `bayt-al-ahzan-fa/` | 1 | Farsi cover |
@@ -366,6 +366,33 @@ and `/ur/bayt-al-ahzan/<n>/` — `bayt_ar_build.py` then adds them to `hreflang`
 
 **Farsi page-number holes:** the Naser edition has 31 holes (5, 13, 14, 28–30, 55, …).
 Do not renumber — prev/next walk the ordered list, so holes are invisible to readers.
+
+**Qur'an translations (2026-09-06).** Twelve Tanzil translations, four English,
+five Persian, three Urdu. `TRANSLATIONS` in `quran_build.py` is the registry and
+**the first entry of each language is the default**: its text is written into the
+HTML, so it is what a reader without JavaScript sees and what Google indexes. The
+other eleven ship as `quran/assets/tr/<lang>.<id>.json` and are swapped in by
+`qnav.js` when the reader picks them. The reader's pick is stored as `qtr:<lang>`
+in `localStorage`, so the cover and every surah page share one setting.
+
+> Adding a translation is a data drop: put Tanzil's `sura|aya|text` file in
+> `_translation-kit/quran-source/tr/`, add an entry to `TRANSLATIONS`, then
+> `quran_build.py --lang ar --out <L>/quran --assets` and rebuild that language's
+> pages. Never insert one at position 0 — that silently changes the default
+> translation on 114 published pages.
+
+> **A `.tr-line` must carry its own `dir`.** The Mushaf layout puts `.body` in
+> `direction:rtl`; an English paragraph that inherits it reads correctly word by
+> word but lays its lines out right-to-left. `quran_build.py` writes the attribute
+> and `reader.css` pins it from `:lang()`.
+
+> `votd.json` carries only each language's **default** translation. A reader on a
+> non-default gets `votd/<lang>.<id>.json` (366 strings) instead — pulling a whole
+> 900 KB corpus to render one verse would be absurd.
+
+> **`ASSETS_V` in `quran_build.py` versions the Qur'an's pages alone.** The rest of
+> the tree carries whatever `Set-AssetVersion.ps1` last stamped. Bumping it here is
+> cheap (457 pages); bumping the whole site is the owner's call.
 
 Bihar volumes 2–110 not started. The Qur'an is complete in all four languages.
 The remaining `catalog.json` entries are placeholders.

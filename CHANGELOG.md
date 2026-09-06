@@ -4,6 +4,139 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-06 (session 8, part 29)
+
+### Tashḷīl rounds 37–38 — شرح التصریف: 279 / 511 (54.6%)
+
+**512 blocks · 68,212 marks · 512/512 text-preserving.**
+
+افتعل of the مثال (اتّعد · اتّسر and the un-assimilated ایتعد / یاتعد), ودّ یودّ,
+then the opening of المعتلّ العین — why صوَن becomes صان, and the نقل that moves فَعَلَ
+to فَعُلَ or فَعِلَ before a متحرّک ending. That last one is the block to check, because the
+whole point is that the vowel on the first radical is the only surviving trace of the
+letter that was deleted:
+
+```
+1:377:0  صُنْتَ صُنْتُمَا صُنْتُمْ … صُنَّا      damma, from the و of صَوَنَ
+1:377:0  بِعْتَ بِعْتُمَا بِعْتُمْ … بِعْنَا      kasra, from the ی of بَیَعَ
+1:377:1  خِفْتُ < خَوِفْتُ · هِبْتُ < هَیِبْتُ · طُلْتُ < طَوُلْتُ
+```
+
+Two refusals, both familiar: `فائه` → `فاؤه` again (the ninth), and `اذا کانا` written as
+`اذ کانا` — where the source itself goes on to discuss that exact variant two lines
+later, so I had quietly applied the correction the author is *about to argue against*.
+
+**Pending in this treatise: 232 blocks.**
+
+---
+
+## 2026-09-06 (session 8, part 28)
+
+### Qur'an: choosable translations, research search, verse of the day
+
+Six changes to the Qur'an, all verified in a browser against a local server.
+
+**1. The search placeholder follows the reader's language.** The cover hard-coded
+`placeholder="ابحث في آيات القرآن…"`, so an English reader was prompted in Arabic.
+It now uses `data-i18n-ph="searchVerse"` — a hook `reader.js` already had and this
+page was simply not using. The field's own text direction follows too.
+
+**2. and 3. A translator picker, on the cover and on every surah page.** Twelve
+translations, all from Tanzil, the same source the Arabic and the three existing
+translations come from:
+
+| | translations |
+|---|---|
+| English | **Shakir** (default) · Qarib · Sarwar · Yusuf Ali |
+| Persian | **فولادوند** (default) · الهی قمشه‌ای · انصاریان · مکارم شیرازی · خرم‌شاهی |
+| Urdu | **علامہ جوادی** (default) · محمد حسین نجفی · جالندھری |
+
+The choice is one setting, stored per language, so picking Yusuf Ali on the cover
+means every surah opens in Yusuf Ali — and the verse of the day speaks in it too.
+
+The default translation stays written into the HTML, which is what a reader without
+JavaScript sees and what Google indexes; the other eleven ship as
+`quran/assets/tr/<lang>.<id>.json` and are fetched only when chosen.
+
+> **The build now reads Tanzil's plain-text form instead of its XML.** Before
+> changing anything, the three existing translations were compared verse by verse
+> against the XML the build used until today: **6236/6236 identical for each**. No
+> reader's citation moved.
+
+**4. English translations no longer render right-to-left.** Not a general bug — it
+appeared only in the Mushaf-page layout, where `.body.m-mushaf` is `direction:rtl`
+and the translation paragraph *inherited* it. Every word read correctly, but the
+line boxes flowed right-to-left: the verse number landed at the right margin and
+the closing full stop wrapped to the front of the last line. Fixed at both ends —
+`quran_build.py` now writes `dir` on each `.tr-line`, and `reader.css` pins the
+direction from the element's own `lang` so no future container can override it.
+
+**5. Transliterated surah names for English readers.** The cover grid showed only
+الأنفال, which tells a reader who cannot read the script nothing at all. Each cell now
+carries `Al-Anfaal` under the Arabic, shown in English only. The same
+transliteration was added to `qnav.json`, so the jump dialog, the search results
+and the verse of the day all name surahs in a script the reader can read.
+
+**6. Research tools on the cover.**
+
+*Advanced search* turns the existing verse search into a concordance: how many times
+a word occurs, in how many verses, across how many surahs, with a ranked bar chart
+of the surahs it clusters in. It searches the Arabic **or** the chosen translation,
+matches on substring **or** whole word, and can be confined to one surah.
+
+The counts were checked against an independent computation over the same corpus:
+
+```
+الرحمن    48 occurrences / 48 verses / 18 surahs      page and script agree exactly
+صلوة     70 as substring, 3 as a whole word — because the Mushaf writes الصلوة
+```
+
+*Verse of the day* is one verse per day of the year, the same verse on that date
+every year, carrying the Arabic and all four languages so switching language needs
+no second request. Chosen with a fixed seed, so a rebuild never reshuffles what a
+reader saw yesterday.
+
+### What could not be delivered
+
+Two of the three Urdu translations named — **Maulana Maqbool Ahmed Dehlvi** and
+**Hafiz Syed Farman Ali** — are not in Tanzil's corpus, which is the only translation
+source this site uses. Shipped Jawadi (as asked) plus Najafi and Jalandhry in their
+place. If you have either text in a usable form, adding it is a data drop, not code.
+
+### Also
+
+- `reader.js` no longer requests `pages.json` on translated Qur'an pages. The Qur'an
+  paginates by surah and has never had one, so that was a guaranteed 404 on each of
+  342 pages.
+- Statistics counts read `1 verse` / `1 surah`, not `1 verses`.
+- **Asset version bumped 7 → 8 on the Qur'an's 457 pages only.** `reader.css` and
+  `reader.js` both changed, and a returning reader holding the cached `?v=7`
+  stylesheet would see the new controls unstyled. The rest of the tree stays at
+  `?v=7`: every change to those two files is additive, so nothing already published
+  renders differently, and this avoids the 3,000-file rewrite the repo guide warns
+  about. Say the word if you would rather stamp the whole site.
+
+### Verification
+
+Every one of the 456 surah pages was re-read after the build and compared to source:
+
+```
+arabic lines checked      : 24,944
+translation lines checked : 18,708
+problems                  : 0
+```
+
+Also exercised in the browser: all four languages, all twelve translations, both
+layouts, night mode, and a 375 px viewport (no horizontal overflow).
+
+### New files
+
+`quran/assets/tr/*.json` (12) · `quran/assets/votd.json` · `quran/assets/votd/*.json`
+(9) · `_translation-kit/quran-source/tr/*.txt` (12). Sitemap unchanged at 3,066 URLs
+— no page was added or removed.
+
+---
+
 ## 2026-09-06 (session 8, part 27)
 
 ### Tashḷīl rounds 32–36 — شرح التصریف: 259 / 511 (50.7%)

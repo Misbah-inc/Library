@@ -27,20 +27,54 @@ import argparse, html, json, os, pathlib, re, sys
 import xml.etree.ElementTree as ET
 
 SITE = "https://library.misbah-inc.com"
-ASSETS_V = "7"   # bump when reader.css/js change, to break browser caches
+ASSETS_V = "8"   # bump when reader.css/js change, to break browser caches
 SRC = pathlib.Path(__file__).parent / "quran-source"
 
-# translations available per language; a language may carry more than one
+# Translations available per language. THE FIRST ENTRY IS THE DEFAULT: its text
+# is written into the HTML, so it is what a reader without JavaScript sees and
+# what search engines index. The rest are shipped as JSON under
+# quran/assets/tr/ and swapped in by qnav.js when the reader picks them.
+#
+# All of these are Tanzil's, in Tanzil's own `sura|aya|text` plain-text form.
+# The three defaults were verified byte-identical to the XML this build used
+# before (6236/6236 verses each) — changing the loader changed no text.
 TRANSLATIONS = {
-    "en": [{"id": "shakir", "file": "en.shakir.xml", "name": "Shakir",
+    "en": [{"id": "shakir", "file": "tr/en.shakir.txt", "name": "Shakir",
             "translator": "Mohammad Habib Shakir",
-            "display": "Mohammad Habib Shakir"}],
-    "fa": [{"id": "fooladvand", "file": "fa.fooladvand.xml", "name": "فولادوند",
+            "display": "Mohammad Habib Shakir"},
+           {"id": "qaribullah", "file": "tr/en.qaribullah.txt", "name": "Qarib",
+            "translator": "Qaribullah & Darwish",
+            "display": "Hasan Qaribullah & Ahmad Darwish"},
+           {"id": "sarwar", "file": "tr/en.sarwar.txt", "name": "Sarwar",
+            "translator": "Muhammad Sarwar",
+            "display": "Muhammad Sarwar"},
+           {"id": "yusufali", "file": "tr/en.yusufali.txt", "name": "Yusuf Ali",
+            "translator": "Abdullah Yusuf Ali",
+            "display": "Abdullah Yusuf Ali"}],
+    "fa": [{"id": "fooladvand", "file": "tr/fa.fooladvand.txt", "name": "فولادوند",
             "translator": "Mohammad Mahdi Fooladvand",
-            "display": "محمد مهدی فولادوند"}],
-    "ur": [{"id": "jawadi", "file": "ur.jawadi.xml", "name": "علامہ جوادی",
+            "display": "محمد مهدی فولادوند"},
+           {"id": "ghomshei", "file": "tr/fa.ghomshei.txt", "name": "الهی قمشه‌ای",
+            "translator": "Mahdi Elahi Ghomshei",
+            "display": "مهدی الهی قمشه‌ای"},
+           {"id": "ansarian", "file": "tr/fa.ansarian.txt", "name": "انصاریان",
+            "translator": "Hussain Ansarian",
+            "display": "حسین انصاریان"},
+           {"id": "makarem", "file": "tr/fa.makarem.txt", "name": "مکارم شیرازی",
+            "translator": "Naser Makarem Shirazi",
+            "display": "ناصر مکارم شیرازی"},
+           {"id": "khorramshahi", "file": "tr/fa.khorramshahi.txt", "name": "خرم‌شاهی",
+            "translator": "Baha'oddin Khorramshahi",
+            "display": "بهاءالدین خرمشاهی"}],
+    "ur": [{"id": "jawadi", "file": "tr/ur.jawadi.txt", "name": "علامہ جوادی",
             "translator": "Syed Zeeshan Haider Jawadi",
-            "display": "علامہ سید ذیشان حیدر جوادی"}],
+            "display": "علامہ سید ذیشان حیدر جوادی"},
+           {"id": "najafi", "file": "tr/ur.najafi.txt", "name": "محمد حسین نجفی",
+            "translator": "Muhammad Hussain Najafi",
+            "display": "شیخ محمد حسین نجفی"},
+           {"id": "jalandhry", "file": "tr/ur.jalandhry.txt", "name": "جالندھری",
+            "translator": "Fateh Muhammad Jalandhry",
+            "display": "فتح محمد جالندھری"}],
 }
 
 LANGS = {
@@ -96,6 +130,27 @@ def read_text(root):
         si = int(s.get("index"))
         out[si] = {int(a.get("index")): a.get("text") for a in s.findall("aya")}
     return out
+
+
+def read_txt(path):
+    """Tanzil's plain-text form: `sura|aya|text`, with a `#` comment block at
+    the end. Same shape as read_text() so the two are interchangeable."""
+    out = {}
+    for line in pathlib.Path(path).read_text(encoding="utf-8-sig").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split("|", 2)
+        if len(parts) != 3:
+            continue
+        out.setdefault(int(parts[0]), {})[int(parts[1])] = parts[2]
+    return out
+
+
+def load_tr(src, t):
+    """Load one translation entry's text, by whichever form its file is in."""
+    p = pathlib.Path(src) / t["file"]
+    return read_txt(p) if p.suffix == ".txt" else read_text(load(p))
 
 
 def read_meta(root):
@@ -178,6 +233,17 @@ JUMP_MODAL = (
     '<button id="qjump-go" class="qjump-go" type="button" data-i18n="goVerse"></button>'
     '</div></div>')
 
+def tr_picker(translations, el_id="tr-pick"):
+    """The translator chooser. A <select> rather than segmented buttons because
+    Persian ships five and their names are long; it also degrades to the native
+    picker on a phone, which is the right control for a list this size."""
+    opts = "".join(f'<option value="{t["id"]}">{esc(t["name"])}</option>'
+                   for t in translations)
+    return ('<div class="tr-group"><span class="lbl" data-i18n="translator"></span>'
+            f'<select class="trpick" id="{el_id}" data-i18n-label="translator">'
+            f'{opts}</select></div>')
+
+
 GOTO_BUTTON = ('<button class="btn-goto" id="btn-qjump" type="button">'
                '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'
                '<path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg>'
@@ -211,7 +277,11 @@ def build_toc(meta, total=114):
 
 def build_qnav(meta, juz, pages, total=114):
     """Return JSON string for quran/assets/qnav.json (used by jump modal)."""
-    suras_arr = [None] + [[meta[i]["name"], meta[i]["ayas"]] for i in range(1, total + 1)]
+    # the third slot is the transliteration: qnav.js shows it in place of the
+    # Arabic name when the reader is in English, in the jump dialog, the search
+    # results and the verse of the day
+    suras_arr = [None] + [[meta[i]["name"], meta[i]["ayas"], meta[i]["tname"]]
+                          for i in range(1, total + 1)]
     juz_arr   = [None] + [[j[1], j[2]] for j in sorted(juz,   key=lambda x: x[0])]
     pages_arr = [None] + [[p[1], p[2]] for p in sorted(pages, key=lambda x: x[0])]
     return json.dumps({"suras": suras_arr, "juz": juz_arr, "pages": pages_arr},
@@ -259,9 +329,13 @@ def build(n, lang, meta, ar_text, translations, alts, juz=None, pages=None, tota
         pg_attr = f' data-page="{pg}"' if pg is not None else ''
         rows = [f'<p lang="ar" data-i="{a-1}">{ar_text[n][a]}'
                 f'<span class="aya-n">۝{ar_num(a)}</span></p>']
-        for t in translations:
+        # dir is written out rather than inherited: the Mushaf layout puts the
+        # whole .body in direction:rtl, and an English paragraph inheriting that
+        # renders its lines right-to-left — the sentence reads correctly but the
+        # verse number lands on the right and the last line is right-aligned.
+        for t in translations[:1]:
             rows.append(
-                f'<p class="tr-line" lang="{lang}" data-tr="{t["id"]}">'
+                f'<p class="tr-line" lang="{lang}" dir="{L["dir"]}" data-tr="{t["id"]}">'
                 f'<span class="aya-b">{a}</span>{t["text"][n][a]}</p>')
         parts.append(f'<div class="aya" id="a{a}" data-ref="{n}:{a}"{pg_attr}'
                      f' role="group" aria-label="{vl} {loc_num(a, lang)}">'
@@ -308,13 +382,14 @@ def build(n, lang, meta, ar_text, translations, alts, juz=None, pages=None, tota
                     '<button type="button" data-mode="side" data-i18n="viewSide" aria-pressed="false"></button>'
                     '<button type="button" data-mode="ar" data-i18n="viewAr" aria-pressed="false"></button>'
                     '</span></div>')
-        tr_who = ('<span class="tr-who">'
-                  + " · ".join(esc(t.get("display", t["translator"])) for t in translations)
+        tr_who = ('<span class="tr-who" id="tr-who">'
+                  + esc(translations[0].get("display", translations[0]["translator"]))
                   + '</span>')
+        tr_pick = tr_picker(translations)
     else:
-        tr_modes = tr_who = ""
+        tr_modes = tr_who = tr_pick = ""
     tr_bar = ('<div class="tr-bar" id="tr-bar">' + tr_modes + FONT_PICKER
-              + LAYOUT_PICKER + tr_who + '</div>')
+              + LAYOUT_PICKER + tr_pick + tr_who + '</div>')
 
     title = f'{m["name"]} — {L["title"]}' if not is_ar else f'{m["name"]} — القرآن الكريم'
     desc = esc(describe(m, ayas, lang))
@@ -353,9 +428,17 @@ def build(n, lang, meta, ar_text, translations, alts, juz=None, pages=None, tota
         '<button id="pgview-next" type="button"><span data-i18n="nextPage"></span></button>'
         '</div>')
 
-    # Inline script that passes the current surah number and asset base path to qnav.js
+    # Inline script that passes the current surah number and asset base path to
+    # qnav.js, plus the translator roster for this page's language. The roster is
+    # inlined rather than fetched: the picker has to be usable on first paint,
+    # and it is a few hundred bytes.
     qnav_cfg = json.dumps({"n": n, "base": qnav_base}, ensure_ascii=False, separators=(",", ":"))
-    qnav_inline = f'<script>window.QNAV={qnav_cfg};</script>'
+    qtr_cfg = json.dumps(
+        {"lang": lang, "def": translations[0]["id"] if translations else None,
+         "list": [{"id": t["id"], "name": t["name"],
+                   "display": t.get("display", t["translator"])} for t in translations]},
+        ensure_ascii=False, separators=(",", ":"))
+    qnav_inline = f'<script>window.QNAV={qnav_cfg};window.QTR={qtr_cfg};</script>'
 
     credit = ""
 
@@ -460,7 +543,7 @@ def build_verse_index(ar_text, meta, total=114):
                 pass
     return json.dumps(verses, ensure_ascii=False, separators=(",", ":"))
 
-
+
 def build_index(meta, published, total=114, ar_text=None):
     """The book cover at /quran/. Like /bihar/, there is ONE cover for every
     language: the strings carry data-ar/fa/ur/en and the reader swaps them,
@@ -468,8 +551,12 @@ def build_index(meta, published, total=114, ar_text=None):
     cells = []
     for n in range(1, total + 1):
         m = meta[n]
+        # The transliteration is emitted for every language but shown only in
+        # English (CSS keys off html[data-lang]): a reader who cannot read the
+        # Arabic script has no way to tell one cell from another without it.
         inner = (f'<b class="sn" data-num="{n}">{ar_num(n)}</b>'
-                 f'<span class="snm">{m["name"]}</span>'
+                 f'<span class="snm-wrap"><span class="snm">{m["name"]}</span>'
+                 f'<span class="snm-tr">{esc(m["tname"])}</span></span>'
                  f'<span class="sct"><span data-num="{m["ayas"]}">{ar_num(m["ayas"])}</span> '
                  f'<span data-i18n="ayat"></span></span>')
         if n in published:
@@ -477,8 +564,21 @@ def build_index(meta, published, total=114, ar_text=None):
         else:
             cells.append(f'<span class="sura-cell off" data-n="{n}">{inner}</span>')
 
-    snames_json = json.dumps({str(n): meta[n]["name"] for n in range(1, total+1)},
-                             ensure_ascii=False, separators=(',', ':'))
+    # Every language's translator roster, inlined: the cover switches language
+    # in place, so the picker has to be able to refill without a round trip.
+    qtr = json.dumps(
+        {"index": True,
+         "byLang": {lg: {"def": ts[0]["id"],
+                         "list": [{"id": t["id"], "name": t["name"],
+                                   "display": t.get("display", t["translator"])}
+                                  for t in ts]}
+                    for lg, ts in TRANSLATIONS.items()}},
+        ensure_ascii=False, separators=(",", ":"))
+
+    sura_opts = "".join(
+        f'<option value="{n}" data-nm="{esc(meta[n]["name"])}" '
+        f'data-tn="{esc(meta[n]["tname"])}">{n}. {esc(meta[n]["name"])}</option>'
+        for n in range(1, total + 1))
 
     return f'''<!DOCTYPE html>
 <html lang="ar" dir="rtl" data-root=".." data-book=".">
@@ -486,7 +586,7 @@ def build_index(meta, published, total=114, ar_text=None):
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>القرآن الكريم</title>
-<meta name="description" content="القرآن الكريم — {ar_num(total)} سورة، مع الترجمة.">
+<meta name="description" content="القرآن الكريم — {ar_num(total)} سورة، مع الترجمة والبحث في الآيات.">
 <link rel="canonical" href="{SITE}/quran/">
 <link rel="stylesheet" href="../assets/reader.css?v={ASSETS_V}">
 </head>
@@ -513,13 +613,49 @@ def build_index(meta, published, total=114, ar_text=None):
   <div class="qsearch-wrap">
     <div class="qsearch" id="qsearch" role="search">
       <input type="search" id="qsearch-q" autocomplete="off"
-             placeholder="ابحث في آيات القرآن…" aria-label="بحث في آيات القرآن">
+             data-i18n-ph="searchVerse" data-i18n-label="searchVerse">
       <button class="qsearch-clear" id="qsearch-clear" hidden aria-label="clear">✕</button>
-      <button class="qsearch-btn" id="qsearch-btn" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg> <span data-i18n="search">بحث</span></button>
+      <button class="qsearch-btn" id="qsearch-btn" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg> <span data-i18n="search"></span></button>
     </div>
+    <button class="qadv-toggle" id="qadv-toggle" type="button" aria-expanded="false">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+      <span data-i18n="advanced"></span></button>
+    <div class="qadv" id="qadv" hidden>
+      <div class="qadv-row"><span class="lbl" data-i18n="searchIn"></span>
+        <span class="segbtns qadv-in">
+          <button type="button" data-in="ar" aria-pressed="true" data-i18n="viewAr"></button>
+          <button type="button" data-in="tr" aria-pressed="false" data-i18n="viewTr"></button>
+        </span></div>
+      <div class="qadv-row"><span class="lbl" data-i18n="matchWord"></span>
+        <span class="segbtns qadv-match">
+          <button type="button" data-match="part" aria-pressed="true" data-i18n="matchPart"></button>
+          <button type="button" data-match="whole" aria-pressed="false" data-i18n="matchWhole"></button>
+        </span></div>
+      <div class="qadv-row"><span class="lbl" data-i18n="inSurah"></span>
+        <select class="qadv-sel" id="qadv-sura" data-i18n-label="inSurah">
+          <option value="0" data-i18n="allSurahs"></option>{sura_opts}</select></div>
+      <p class="qadv-hint" data-i18n="advHint"></p>
+    </div>
+    <div class="qstats" id="qstats" hidden aria-live="polite"></div>
     <ul class="qsearch-res" id="qsearch-res" hidden></ul>
   </div>
-  <div class="cover-go">{GOTO_BUTTON}</div>
+  <div class="cover-go">{GOTO_BUTTON}
+    <div class="tr-group cover-trpick" id="cover-trpick">
+      <span class="lbl" data-i18n="translator"></span>
+      <select class="trpick" id="tr-pick" data-i18n-label="translator"></select>
+    </div>
+  </div>
+  <section class="votd" id="votd" hidden>
+    <div class="votd-head">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.1 4.6 5 .6-3.7 3.4 1 4.9L12 14l-4.4 2.5 1-4.9L4.9 8.2l5-.6z"/></svg>
+      <span data-i18n="votd"></span>
+      <a class="votd-ref" id="votd-ref" href="#"></a>
+    </div>
+    <p class="votd-ar" lang="ar" dir="rtl" id="votd-ar"></p>
+    <p class="votd-tr" id="votd-tr"></p>
+    <a class="votd-go" id="votd-go" href="#"><span data-i18n="openSurah"></span>
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </section>
   <h2 data-i18n="pickSurah"></h2>
   <div class="suras" data-langpath="quran">{"".join(cells)}</div>
   <p class="note-msg" data-i18n="volsNote"></p>
@@ -538,57 +674,70 @@ def build_index(meta, published, total=114, ar_text=None):
   <div><h3 data-i18n="libName"></h3></div>
 </div></footer>
 {JUMP_MODAL}
-<script>window.QNAV={{"n":0,"base":"assets/","index":true}};</script>
+<script>window.QNAV={{"n":0,"base":"assets/","index":true}};window.QTR={qtr};</script>
 <script src="../assets/reader.js?v={ASSETS_V}" defer></script>
 <script src="assets/qnav.js?v={ASSETS_V}" defer></script>
-<script>(function(){{
-  var SN={snames_json};
-  var qi=document.getElementById('qsearch-q');
-  var res=document.getElementById('qsearch-res');
-  if(!qi)return;
-  var data=null,busy=false;
-  function lang(){{var b=document.querySelector('.langs button[aria-pressed="true"]');return b?b.dataset.lang:'ar';}}
-  function href(s,v){{var l=lang();return(l==='ar'?'':('../'+l+'/quran/'))+s+'/#a'+v;}}
-  /* Mirrors fold() in reader.js. Dropping tashkeel alone is not enough: Uthmani
-     spells الله with an alef wasla (U+0671), so an ordinary alef never matched. */
-  var FOLD={{'\\u0623':'\\u0627','\\u0625':'\\u0627','\\u0622':'\\u0627','\\u0671':'\\u0627',
-             '\\u0649':'\\u06CC','\\u064A':'\\u06CC','\\u0643':'\\u06A9','\\u0629':'\\u0647',
-             '\\u0624':'\\u0648','\\u0626':'\\u06CC'}};
-  function strip(s){{return s
-    .replace(/[\\u0610-\\u061A\\u064B-\\u0652\\u0670\\u06D6-\\u06ED\\u0640]/g,'')
-    .replace(/[\\u0623\\u0625\\u0622\\u0671\\u0649\\u064A\\u0643\\u0629\\u0624\\u0626]/g,
-             function(c){{return FOLD[c];}})
-    .toLowerCase();}}
-  function render(ms){{
-    if(!ms.length){{res.innerHTML='<li class="qsr-none">—</li>';}}
-    else{{res.innerHTML=ms.slice(0,20).map(function(m){{
-      return'<li><a href="'+href(m[0],m[1])+'" data-n="'+m[0]+'">'
-        +'<span class="qsr-ref">'+(SN[m[0]]||'')+'  '+m[0]+':'+m[1]+'</span>'
-        +'<span class="qsr-txt" lang="ar">'+m[2].slice(0,90)+'</span>'
-        +'</a></li>';
-    }}).join('');}}
-    res.hidden=false;
-  }}
-  var qbtn=document.getElementById('qsearch-btn');
-  var qclear=document.getElementById('qsearch-clear');
-  function search(q){{var nq=strip(q.trim());if(!nq){{res.hidden=true;return;}}render(data.filter(function(v){{return strip(v[2]).indexOf(nq)>=0;}}));}}
-  function doSearch(){{
-    var q=qi.value;
-    if(qclear)qclear.hidden=!q;
-    if(!q){{res.hidden=true;return;}}
-    if(data){{search(q);return;}}if(busy)return;busy=true;
-    fetch('verses.json').then(function(r){{return r.json();}}).then(function(d){{data=d;busy=false;search(qi.value);}}).catch(function(){{busy=false;}});
-  }}
-  if(qbtn)qbtn.addEventListener('click',doSearch);
-  qi.addEventListener('keydown',function(e){{if(e.key==='Enter'){{e.preventDefault();doSearch();}}}});
-  qi.addEventListener('input',function(){{if(qclear)qclear.hidden=!qi.value;}});
-  if(qclear)qclear.addEventListener('click',function(){{qi.value='';qclear.hidden=true;res.hidden=true;qi.focus();}});
-  document.addEventListener('click',function(e){{var w=document.getElementById('qsearch-res');if(w&&!w.parentElement.contains(e.target))w.hidden=true;}});
-}})();</script>
 </body>
 </html>
 '''
 
+
+def build_tr_json(src, total=114):
+    """quran/assets/tr/<lang>.<id>.json — one file per translation, shaped
+    [null, [null, "aya 1", ...], ...] so a surah page can take one slice and
+    the cover's word statistics can scan the whole thing.
+
+    One file per translation rather than one per surah: 12 files instead of
+    1,368, which this repo's git-over-Google-Drive setup cares about a great
+    deal, and it means the research search has the whole corpus in one fetch."""
+    out = {}
+    for lg, ts in TRANSLATIONS.items():
+        for t in ts:
+            txt = load_tr(src, t)
+            arr = [None] + [[None] + [txt[s][a] for a in sorted(txt[s])]
+                            for s in range(1, total + 1)]
+            out[f'{lg}.{t["id"]}'] = json.dumps(arr, ensure_ascii=False,
+                                                separators=(",", ":"))
+    return out
+
+
+def votd_days(meta, total=114, days=366):
+    """The 366 verses, one per day of the year — the same verse on that day
+    every year. A fixed seed keeps a rebuild from reshuffling what a reader
+    saw yesterday."""
+    import random
+    flat = [(s, a) for s in range(1, total + 1)
+            for a in range(1, meta[s]["ayas"] + 1)]
+    return random.Random(20260906).sample(flat, days)
+
+
+def build_votd(picked, ar_text, tr_default):
+    """quran/assets/votd.json — the Arabic plus each language's DEFAULT
+    translation, so the card is complete in one ~200 KB fetch and switching
+    the reader's language needs no second request."""
+    rows = []
+    for s, a in picked:
+        row = {"s": s, "a": a, "ar": ar_text[s][a]}
+        for lg, txt in tr_default.items():
+            row[lg] = txt[s][a]
+        rows.append(row)
+    return json.dumps(rows, ensure_ascii=False, separators=(",", ":"))
+
+
+def build_votd_extra(src, picked):
+    """quran/assets/votd/<lang>.<id>.json — 366 strings for one non-default
+    translation. A reader who has chosen, say, Yusuf Ali must see the verse of
+    the day in Yusuf Ali; pulling his whole 900 KB corpus to render one verse
+    would be absurd, and folding all twelve into votd.json would quadruple the
+    landing page's first fetch for text nobody has asked for."""
+    out = {}
+    for lg, ts in TRANSLATIONS.items():
+        for t in ts[1:]:
+            txt = load_tr(src, t)
+            out[f'{lg}.{t["id"]}'] = json.dumps(
+                [txt[s][a] for s, a in picked], ensure_ascii=False,
+                separators=(",", ":"))
+    return out
 
 def main():
     ap = argparse.ArgumentParser()
@@ -602,6 +751,9 @@ def main():
     ap.add_argument("--published", default="",
                     help="comma-separated surahs that are live; the rest render "
                          "as placeholders on the cover, as unpublished Bihar volumes do")
+    ap.add_argument("--assets", action="store_true",
+                    help="write quran/assets/tr/*.json and quran/assets/votd.json "
+                         "(the alternate translations and the verse of the day)")
     a = ap.parse_args()
 
     src = pathlib.Path(a.src)
@@ -626,11 +778,28 @@ def main():
         print(f"search index -> {out}/verses.json")
         return
 
-    translations = []
-    for t in TRANSLATIONS.get(a.lang, []):
-        t = dict(t)
-        t["text"] = read_text(load(src / t["file"]))
-        translations.append(t)
+    if a.assets:
+        out = pathlib.Path(a.out) / "assets"
+        (out / "tr").mkdir(parents=True, exist_ok=True)
+        for key, blob in build_tr_json(src).items():
+            (out / "tr" / f"{key}.json").write_text(blob, encoding="utf-8")
+            print(f"  tr -> {out}/tr/{key}.json  ({len(blob):,} bytes)")
+        picked = votd_days(meta)
+        defaults = {lg: load_tr(src, ts[0]) for lg, ts in TRANSLATIONS.items()}
+        votd = build_votd(picked, ar_text, defaults)
+        (out / "votd.json").write_text(votd, encoding="utf-8")
+        print(f"verse of the day -> {out}/votd.json  ({len(votd):,} bytes)")
+        (out / "votd").mkdir(parents=True, exist_ok=True)
+        for key, blob in build_votd_extra(src, picked).items():
+            (out / "votd" / f"{key}.json").write_text(blob, encoding="utf-8")
+            print(f"  votd -> {out}/votd/{key}.json  ({len(blob):,} bytes)")
+        return
+
+    # Only the default translation's text is needed to build pages — the rest
+    # ship as JSON and are named here purely so the picker can list them.
+    translations = [dict(t) for t in TRANSLATIONS.get(a.lang, [])]
+    if translations:
+        translations[0]["text"] = load_tr(src, translations[0])
 
     todo = a.surah if a.surah else range(1, 115)
     out = pathlib.Path(a.out)

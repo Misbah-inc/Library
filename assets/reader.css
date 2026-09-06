@@ -791,3 +791,120 @@ a.sura-cell:hover,a.chap-cell:hover{border-color:var(--gold);background:var(--ti
 @media (prefers-reduced-motion:reduce){
   .body[data-unit="aya"]:not(.m-mushaf) .aya{transition:none}
 }
+
+/* ── Qur'an: translation choice, research search, verse of the day ───────── */
+
+/* A translated line must state its own direction. Without this it inherits the
+   container's, and .body.m-mushaf is direction:rtl — which lays an English
+   paragraph out right-to-left: the verse number lands on the right and the
+   last line is right-aligned, even though every word reads correctly. */
+.tr-line:lang(en){direction:ltr;text-align:left}
+.tr-line:lang(fa),.tr-line:lang(ur),.tr-line:lang(ar){direction:rtl;text-align:right}
+.body.m-mushaf .aya > .tr-line:lang(en){direction:ltr}
+
+/* transliterated surah name — shown to English readers only, who otherwise
+   have nothing in the cell to tell one surah from another */
+.sura-cell .snm-wrap{flex:1;min-width:0}
+.sura-cell .snm-wrap .snm{display:block}
+.sura-cell .snm-tr{display:none}
+html[data-lang="en"] .sura-cell{align-items:center}
+html[data-lang="en"] .sura-cell .snm-tr{display:block;font-family:var(--ui);
+      font-size:.72rem;color:var(--ink-2);line-height:1.45;margin-top:.05rem}
+
+/* translator picker (surah bar and cover) */
+.trpick{font:inherit;font-size:.8rem;color:var(--ink);background:var(--surface);
+      border:1px solid var(--line);border-radius:999px;padding:.34rem .7rem;
+      cursor:pointer;max-width:12rem}
+.trpick:focus-visible{outline:2px solid var(--gold-2);outline-offset:1px}
+.cover-trpick{display:inline-flex;align-items:center;gap:.4rem;vertical-align:middle}
+.cover-trpick[hidden]{display:none!important}
+.cover-go{display:flex;align-items:center;justify-content:center;gap:.9rem;
+      flex-wrap:wrap}
+#tr-bar[data-loading] .trpick{opacity:.55;pointer-events:none}
+
+/* advanced search */
+.qadv-toggle{display:inline-flex;align-items:center;gap:.32rem;margin:.5rem auto 0;
+      background:transparent;border:0;color:var(--ink-2);font:inherit;font-size:.76rem;
+      cursor:pointer;padding:.25rem .4rem;border-radius:6px}
+.qadv-toggle:hover{color:var(--ink);background:var(--tint)}
+.qadv-toggle .ic{width:.85rem;height:.85rem;stroke:currentColor;fill:none;
+      stroke-width:2;stroke-linecap:round}
+.qadv{margin-top:.5rem;padding:.75rem .9rem;background:var(--tint);
+      border:1px solid var(--line);border-radius:8px;display:flex;
+      flex-direction:column;gap:.6rem;text-align:start}
+.qadv[hidden]{display:none!important}
+.qadv-row{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap}
+.qadv-row .lbl{font-size:.66rem;letter-spacing:.09em;text-transform:uppercase;
+      color:var(--ink-3);min-width:5.5rem}
+.qadv-sel{font:inherit;font-size:.8rem;color:var(--ink);background:var(--surface);
+      border:1px solid var(--line);border-radius:999px;padding:.34rem .7rem;
+      cursor:pointer;max-width:16rem}
+.qadv-hint{margin:0;font-size:.72rem;color:var(--ink-3);line-height:1.7}
+
+/* word statistics */
+.qstats{margin-top:.7rem;padding:.85rem .95rem;background:var(--leaf);
+      border:1px solid var(--line);border-radius:8px;text-align:start}
+.qstats[hidden]{display:none!important}
+.qstat-nums{display:flex;gap:1.3rem;flex-wrap:wrap;padding-bottom:.7rem;
+      border-bottom:1px solid var(--hair);margin-bottom:.7rem}
+.qstat-n{font-size:.74rem;color:var(--ink-2)}
+.qstat-n b{display:block;font-family:var(--latin-display);font-size:1.35rem;
+      font-weight:600;color:var(--gold-2);line-height:1.2;
+      font-variant-numeric:tabular-nums}
+.qstat-cap{display:block;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;
+      color:var(--ink-3);margin-bottom:.45rem}
+.qstat-top ul{list-style:none;margin:0;padding:0;display:flex;
+      flex-direction:column;gap:.24rem}
+.qstat-top li a{display:grid;grid-template-columns:9rem 1fr 2.2rem;align-items:center;
+      gap:.5rem;text-decoration:none;color:inherit;padding:.16rem .25rem;
+      border-radius:4px}
+.qstat-top li a:hover{background:var(--tint)}
+.qs-nm{font-size:.78rem;color:var(--ink);overflow:hidden;text-overflow:ellipsis;
+      white-space:nowrap}
+.qs-bar{display:block;height:.42rem;background:var(--hair);border-radius:999px;
+      overflow:hidden}
+.qs-bar i{display:block;height:100%;background:var(--gold);border-radius:999px}
+.qs-ct{font-size:.74rem;color:var(--ink-2);text-align:end;
+      font-variant-numeric:tabular-nums}
+@media (max-width:34rem){
+  .qstat-top li a{grid-template-columns:6.5rem 1fr 2rem}
+}
+
+/* result list: the text can now be a translation, so it takes its direction
+   from the dir attribute the renderer sets rather than assuming Arabic */
+.qsr-txt{direction:inherit;text-align:start}
+.qsr-txt[lang="ar"]{font-family:var(--ar);direction:rtl;text-align:right}
+.qsr-txt:not([lang="ar"]){font-family:var(--ui);font-size:.85rem;line-height:1.8}
+.qsr-more{padding:.45rem .9rem;text-align:center}
+.qsr-more button{background:transparent;border:1px solid var(--line);
+      border-radius:999px;padding:.28rem .8rem;font:inherit;font-size:.75rem;
+      color:var(--ink-2);cursor:pointer}
+.qsr-more button:hover{border-color:var(--gold);color:var(--ink)}
+
+/* verse of the day */
+.votd{max-width:38rem;margin:0 auto 2rem;padding:1.05rem 1.2rem 1.1rem;
+      background:var(--leaf);border:1px solid var(--line);
+      border-inline-start:3px solid var(--gold);border-radius:8px;text-align:start}
+.votd[hidden]{display:none!important}
+.votd-head{display:flex;align-items:center;gap:.4rem;font-size:.68rem;
+      letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+      margin-bottom:.7rem}
+.votd-head .ic{width:.95rem;height:.95rem;fill:var(--gold);stroke:none;flex:none}
+.votd-ref{margin-inline-start:auto;font-size:.72rem;letter-spacing:0;
+      text-transform:none;color:var(--gold-2);text-decoration:none}
+.votd-ref:hover{text-decoration:underline}
+.votd-ar{margin:0 0 .7rem;font-family:var(--ar);font-size:1.35rem;line-height:2.1;
+      color:var(--ink);text-align:right}
+.votd-tr{margin:0;font-family:var(--ui);font-size:.9rem;line-height:1.95;
+      color:var(--ink-2)}
+.votd-tr[hidden]{display:none!important}
+.votd-go{display:inline-flex;align-items:center;gap:.3rem;margin-top:.8rem;
+      font-size:.76rem;color:var(--gold-2);text-decoration:none;font-weight:500}
+.votd-go .ic{width:.85rem;height:.85rem;stroke:currentColor;fill:none;
+      stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+html[dir="rtl"] .votd-go .ic{transform:scaleX(-1)}
+.votd-go:hover{color:var(--ink)}
+
+/* the cover search field follows the reader's language, not always Arabic */
+.qsearch input{direction:inherit}
+html[data-lang="en"] .qsearch input{direction:ltr}
