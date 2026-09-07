@@ -93,7 +93,8 @@ def has_text(node):
 
 
 def assign_slugs(pages):
-    taken, n = set(), 0
+    # the category slugs are reserved so a numbered page can never take one
+    taken, n = set(c["id"] for c in CATEGORIES), 0
     for p in pages:
         if p["slug_named"]:
             p["slug"] = p["slug_named"]
@@ -108,29 +109,138 @@ def assign_slugs(pages):
     return pages
 
 
+# ------------------------------------------------------------- categories
+
+# TWO different ways into the same book, which is the point.
+#
+# «شروع خواندن» follows the edition's own order, cover to cover. That order is
+# the author's and is not touched.
+#
+# These CATEGORIES are the other way in — how a reader actually arrives: they
+# want a ziyarat, or today's اعمال, or a mustahabb prayer. That is not how the
+# book is bound; ادعیه is split across four أبواب and the weekly acts sit
+# inside باب اول. So the mapping below is editorial, matched on section title
+# rather than position so that re-running the extractor cannot silently
+# re-point it. A section may appear under two categories — اعمال هفته belongs
+# to both اعمال and ادعیه — exactly as it does in print.
+
+CATEGORIES = [
+    {"id": "amal", "name": "اعمال", "sub": "اعمال روز و شب، هفته، ماه و مناسبات",
+     "icon": "M12 3l2.4 5 5.6.8-4 3.9 1 5.5L12 15.6 6.9 18.2l1-5.5-4-3.9L9.6 8z",
+     "titles": ["فصل سوم: دعاهای ایام هفته نقل از ملحقات صحیفه سجادیه",
+                "فصل چهارم: فضیلت و اعمام شب و روز جُمعه",
+                "فصل پنجم: زیارات معصومین (عَلَيهِم السَّلَامُ) در ایام هفته",
+                "باب اول: اعمال شب و روز",
+                "باب دوم: اعمال سال"]},
+    {"id": "ziyarat", "name": "زیارت", "sub": "زیارات معصومین، اولیاء و عتبات",
+     "icon": "M12 2l7 4v6c0 4.4-3 8.3-7 10-4-1.7-7-5.6-7-10V6z",
+     "titles": ["باب سوم: زیارات"]},
+    {"id": "namaz", "name": "نماز", "sub": "نمازهای مستحبی و تعقیبات",
+     "icon": "M4 20h16M6 20V9l6-5 6 5v11M10 20v-5h4v5",
+     "titles": ["باب دوم: نمازهای مستحبه",
+                "فصل اول: تعقیبات مشترک",
+                "فصل دوم: تعقیبات هر یک از نماز ها",
+                "نمازهای ایام هفته"]},
+    {"id": "adiya", "name": "ادعیه", "sub": "دعاهای مشهور، احراز و عوذات",
+     "icon": "M8 21c0-4 1.5-6 4-6s4 2 4 6M9 3v6a3 3 0 0 0 6 0V3",
+     "titles": ["باب اول: ادعیه",
+                "باب سوم: ادعیه وعوذات آلام و اسقام",
+                "باب چهارم: ادعیه منتخبه از کتاب کافی",
+                "باب پنجم: ذکر بعض احراز و ادعیه موجزه",
+                "فهرست ملحقات مفاتیح الجنان"]},
+    {"id": "quran", "name": "قرآن", "sub": "سوره‌های برگزیده و خواص آیات",
+     "icon": "M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2zM8 3v18",
+     "titles": ["سوره های قرآن در مفاتیح الجنان",
+                "باب ششم:خواص بعضی سوره و آیات وغیره"]},
+]
+
+
+def resolve_categories(pages):
+    """Bind each category to real pages, and say loudly if a title stops
+    matching — a silently empty category is worse than a build failure."""
+    # matched on the FOLDED title: these titles carry honorifics whose exact
+    # diacritics are impossible to retype reliably, and a single wrong mark
+    # would silently empty a category
+    by_title = {}
+    for p in pages:
+        by_title.setdefault(foldtxt(p["title"]), p)
+    out, missing = [], []
+    for c in CATEGORIES:
+        items = []
+        for t in c["titles"]:
+            p = by_title.get(foldtxt(t))
+            if p is None:
+                missing.append(t); continue
+            items.append(p)
+        out.append(dict(c, items=items))
+    return out, missing
+
+
 # ------------------------------------------------------------------ rendering
 
 def body_html(node):
     """Arabic with its Persian beneath, Qummi's instructions as prose, and the
-    printed page numbers inline rather than as breaks."""
-    rows = []
-    for u in node["units"]:
-        k = u["k"]
-        if k == "page":
-            rows.append(f'<div class="folio-mark" aria-hidden="true">'
-                        f'<span>ص {loc(u["n"])}</span></div>')
-        elif k == "note":
-            rows.append(f'<p class="rub" lang="fa">{esc(u["fa"])}</p>')
-        elif k == "ar":
-            if u.get("rub"):
-                rows.append(f'<p class="rub" lang="fa">{esc(u["rub"])}</p>')
-            tr = (u.get("tr") or {}).get("fa", "")
-            cls = "unit mixed" if u.get("mixed") else "unit"
-            inner = f'<p class="u-ar" lang="ar">{esc(u["ar"])}</p>'
-            if tr:
-                inner += f'<p class="u-tr" lang="fa">{esc(tr)}</p>'
-            rows.append(f'<div class="{cls}" id="u-{esc(u["id"])}" '
-                        f'data-p="{u.get("p","")}">{inner}</div>')
+    printed page numbers inline rather than as breaks.
+
+    ONE PAIRING MAY SPAN TWO UNITS. Where the print edition breaks a phrase
+    across a page, the export splits it in two and hangs the footnote — the
+    whole phrase's translation — on the SECOND half. Rendered naively the first
+    half appears untranslated, which is how the opening of مناجات ششم came to
+    sit on the page with nothing under it. 41 of the 72 untranslated units are
+    this, including one split at «وَ كُلَّ / شَيْءٍ أَحْصَيْنَاهُ».
+
+    They are joined here, at render time, and deliberately NOT in the data:
+    merging units would renumber every unit id after them in the section, and
+    those ids are frozen because English and Urdu will be keyed to them. Each
+    half keeps its own id and stays independently linkable.
+    """
+    rows, i, us = [], 0, node["units"]
+
+    def page_mark(u):
+        return (f'<div class="folio-mark" aria-hidden="true">'
+                f'<span>ص {loc(u["n"])}</span></div>')
+
+    while i < len(us):
+        u = us[i]
+        if u["k"] == "page":
+            rows.append(page_mark(u)); i += 1; continue
+        if u["k"] == "note":
+            rows.append(f'<p class="rub" lang="fa">{esc(u["fa"])}</p>'); i += 1; continue
+
+        if u.get("rub"):
+            rows.append(f'<p class="rub" lang="fa">{esc(u["rub"])}</p>')
+
+        tr = (u.get("tr") or {}).get("fa", "")
+        parts = [u]
+        j = i + 1
+        if not tr:
+            # look past any page markers for the half that carries the footnote
+            between, k = [], j
+            while k < len(us) and us[k]["k"] == "page":
+                between.append(us[k]); k += 1
+            if k < len(us) and us[k]["k"] == "ar" and not us[k].get("rub")                and (us[k].get("tr") or {}).get("fa"):
+                parts.append(("page", between))
+                parts.append(us[k])
+                tr = (us[k]["tr"] or {}).get("fa", "")
+                j = k + 1
+
+        inner = ""
+        for part in parts:
+            if isinstance(part, tuple):
+                inner += "".join(page_mark(p) for p in part[1])
+                continue
+            cls = "unit mixed" if part.get("mixed") else "unit"
+            inner += (f'<p class="u-ar" lang="ar" id="u-{esc(part["id"])}" '
+                      f'data-p="{part.get("p","")}">{esc(part["ar"])}</p>')
+        if tr:
+            inner += f'<p class="u-tr" lang="fa">{esc(tr)}</p>'
+        # the id lives on the paragraph, not the wrapper: a joined pairing has
+        # two Arabic halves and each must stay independently addressable, and
+        # two elements cannot share one id
+        cls = "unit mixed" if u.get("mixed") else "unit"
+        rows.append(f'<div class="{cls}" data-p="{u.get("p","")}">{inner}</div>')
+        i = j
+
     return "".join(rows)
 
 
@@ -333,68 +443,140 @@ def build_page(rec, order, idx, pages_by_id):
 '''
 
 
+def category_page(cat, order):
+    """One category: the sections mapped into it, as cards.
+
+    Deliberately one level only. A reader picking «زیارت» wants the handful of
+    divisions under it, not 15 sections x their children flattened into 200
+    links — the tap that follows is what narrows it. That is also how the
+    printed book and the apps present it.
+    """
+    R = "../.."
+    # When a category is one section — زیارت is all of باب سوم — that single
+    # card is not a choice. Its children are the level the reader wants, and
+    # they are the four divisions the printed book itself offers. Categories
+    # that already map to several sections are left at that level.
+    items = cat["items"]
+    if len(items) == 1 and items[0]["children"]:
+        items = items[0]["children"]
+    cards = []
+    for it in items:
+        kids = len(it["children"])
+        n = kids or sum(1 for u in it["node"]["units"] if u["k"] == "ar")
+        unit = "بخش" if kids else "بند"
+        cards.append(
+            '<a class="mcat-card" href="../' + esc(it["slug"]) + '/">'
+            '<span class="mcat-t">' + esc(it["title"]) + '</span>'
+            '<span class="mcat-n">' + loc(n) + ' ' + unit + '</span></a>')
+    desc = esc(cat["name"] + " — " + cat["sub"] + ". " + TITLE_FA + "، " + AUTHOR_FA + ".")
+    url = SITE + "/" + SLUG + "/" + cat["id"] + "/"
+    title = esc(cat["name"]) + " — " + esc(TITLE_FA)
+    return (
+        '<!DOCTYPE html>\n'
+        '<html lang="fa" dir="rtl" data-root="' + R + '" data-book=".." '
+        'data-sitelang="fa" data-standalone="1" data-srclang="fa">\n'
+        '<head>\n<meta charset="utf-8">\n'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+        '<title>' + title + '</title>\n'
+        '<meta name="description" content="' + desc + '">\n'
+        '<meta property="og:title" content="' + title + '">\n'
+        '<meta property="og:description" content="' + desc + '">\n'
+        '<link rel="canonical" href="' + url + '">\n'
+        '<link rel="alternate" hreflang="fa" href="' + url + '">\n'
+        '<link rel="alternate" hreflang="x-default" href="' + url + '">\n'
+        '<link rel="stylesheet" href="' + R + '/assets/reader.css?v=' + ASSETS_V + '">\n'
+        '</head>\n<body>\n'
+        '<a class="skip" href="#text">&rarr;</a>\n'
+        + HEAD_BAR.format(R=R) +
+        '\n<main class="cover mcat" id="text">\n'
+        '  <p class="mcat-up"><a href="../">' + esc(TITLE_FA) + '</a></p>\n'
+        '  <h1>' + esc(cat["name"]) + '</h1>\n'
+        '  <div class="rule"></div>\n'
+        '  <p class="book-credit">' + esc(cat["sub"]) + '</p>\n'
+        '  <div class="mcat-grid">' + "".join(cards) + '</div>\n'
+        '</main>\n'
+        '<div id="page-meta" hidden data-slug="' + SLUG + '"></div>\n'
+        + TAIL.format(R=R, SLUG=SLUG) +
+        '\n<script src="' + R + '/assets/reader.js?v=' + ASSETS_V + '" defer></script>\n'
+        '<script src="' + R + '/' + SLUG + '/assets/mafatih.js?v=' + ASSETS_V + '" defer></script>\n'
+        '</body>\n</html>\n')
+
+
 # ---------------------------------------------------------------------- cover
 
-def cover(tiles, order):
-    R = ".."
-    cards = []
-    for t in tiles:
-        n = len(t["children"]) or sum(1 for u in t["node"]["units"] if u["k"] == "ar")
-        cards.append(
-            f'<a class="chap-cell" href="{esc(t["slug"])}/">'
-            f'<span class="cc-t">{esc(t["title"])}</span>'
-            f'<span class="cc-n">{loc(n)}</span></a>')
-    desc = esc(f'{TITLE_FA} — {AUTHOR_FA}. مجموعهٔ ادعیه، زیارات و اعمال، با {TRANSLATOR_FA}.')
-    return f'''<!DOCTYPE html>
-<html lang="fa" dir="rtl" data-root="{R}" data-book="." data-sitelang="fa"
-      data-standalone="1" data-srclang="fa">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{esc(TITLE_FA)}</title>
-<meta name="description" content="{desc}">
-<meta property="og:title" content="{esc(TITLE_FA)}">
-<meta property="og:description" content="{desc}">
-<link rel="canonical" href="{SITE}/{SLUG}/">
-<link rel="alternate" hreflang="fa" href="{SITE}/{SLUG}/">
-<link rel="alternate" hreflang="x-default" href="{SITE}/{SLUG}/">
-<link rel="stylesheet" href="{R}/assets/reader.css?v={ASSETS_V}">
-</head>
-<body>
-<a class="skip" href="#text">&rarr;</a>
-{HEAD_BAR.format(R=R)}
-<main class="cover" id="text">
-    <h1>{esc(TITLE_FA)}</h1>
-    <div class="rule"></div>
-    <p class="book-credit">{esc(AUTHOR_FA)} · {esc(TRANSLATOR_FA)}</p>
-    <div class="mcover-search">
-      <input id="mcover-q" type="search" autocomplete="off" spellcheck="false"
-             placeholder="نام دعا، زیارت یا بخشی از متن…" aria-label="جستجو در مفاتیح">
-      <button class="btn solid" id="mcover-go" type="button">جستجو</button>
-    </div>
-    <p class="mcover-hint">نام دعا («دعای کمیل»)، عنوان بخش («اعمال ماه رمضان») یا جمله‌ای از متن را بنویسید.</p>
-    <div class="start">
-      <a class="btn solid" href="{esc(order[0]["slug"])}/">شروع خواندن</a>
-    </div>
-    <section id="mweek" class="mweek" hidden></section>
-    <h2 class="sec-h">بخش‌های کتاب</h2>
-    <div class="chaps">{"".join(cards)}</div>
-</main>
-<div id="page-meta" hidden data-slug="{SLUG}"></div>
-{TAIL.format(R=R, SLUG=SLUG)}
-<script src="{R}/assets/reader.js?v={ASSETS_V}" defer></script>
-<script src="{R}/{SLUG}/assets/mafatih.js?v={ASSETS_V}" defer></script>
-</body>
-</html>
-'''
+def cover(cats, order):
+    """The landing page is a chooser, not a table of contents.
 
+    The book's own order lives behind «شروع خواندن» and in the contents
+    drawer; nobody arriving at Mafatih is looking for «باب پنجم». They want a
+    ziyarat, a mustahabb prayer, or today's acts — so the page leads with those
+    five, then with what today actually is, and keeps the linear edition as a
+    quiet second door.
+    """
+    R = ".."
+    tiles = []
+    for c in cats:
+        tiles.append(
+            '<a class="mtile" href="' + esc(c["id"]) + '/">'
+            '<span class="mtile-ic" aria-hidden="true">'
+            '<svg viewBox="0 0 24 24"><path d="' + c["icon"] + '"/></svg></span>'
+            '<span class="mtile-t">' + esc(c["name"]) + '</span>'
+            '<span class="mtile-s">' + esc(c["sub"]) + '</span></a>')
+    desc = esc(TITLE_FA + " — " + AUTHOR_FA
+               + ". مجموعهٔ ادعیه، زیارات و اعمال، با " + TRANSLATOR_FA + ".")
+    home = SITE + "/" + SLUG + "/"
+    return (
+        '<!DOCTYPE html>\n'
+        '<html lang="fa" dir="rtl" data-root="' + R + '" data-book="." '
+        'data-sitelang="fa" data-standalone="1" data-srclang="fa">\n'
+        '<head>\n<meta charset="utf-8">\n'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+        '<title>' + esc(TITLE_FA) + '</title>\n'
+        '<meta name="description" content="' + desc + '">\n'
+        '<meta property="og:title" content="' + esc(TITLE_FA) + '">\n'
+        '<meta property="og:description" content="' + desc + '">\n'
+        '<link rel="canonical" href="' + home + '">\n'
+        '<link rel="alternate" hreflang="fa" href="' + home + '">\n'
+        '<link rel="alternate" hreflang="x-default" href="' + home + '">\n'
+        '<link rel="stylesheet" href="' + R + '/assets/reader.css?v=' + ASSETS_V + '">\n'
+        '</head>\n<body>\n'
+        '<a class="skip" href="#text">&rarr;</a>\n'
+        + HEAD_BAR.format(R=R) +
+        '\n<main class="mhome" id="text">\n'
+        '  <header class="mhero">\n'
+        '    <h1>' + esc(TITLE_FA) + '</h1>\n'
+        '    <p class="mhero-by">' + esc(AUTHOR_FA) + ' <span>·</span> '
+        + esc(TRANSLATOR_FA) + '</p>\n'
+        '    <div class="mhero-search">\n'
+        '      <svg class="mhero-ic" viewBox="0 0 24 24" aria-hidden="true">'
+        '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>\n'
+        '      <input id="mcover-q" type="search" autocomplete="off" spellcheck="false" '
+        'placeholder="نام دعا، زیارت یا جمله‌ای از متن…" aria-label="جستجو در مفاتیح">\n'
+        '      <button class="btn solid" id="mcover-go" type="button">جستجو</button>\n'
+        '    </div>\n'
+        '    <p class="mhero-hint">مثال: «دعای کمیل» · «اعمال ماه رمضان» · «من لی غیرک»</p>\n'
+        '  </header>\n'
+        '  <nav class="mtiles" aria-label="بخش‌ها">' + "".join(tiles) + '</nav>\n'
+        '  <section id="mweek" class="mweek" hidden></section>\n'
+        '  <section class="mread">\n'
+        '    <div><h2>خواندن پیوستهٔ کتاب</h2>\n'
+        '    <p>متن کامل، به ترتیب خودِ کتاب، از آغاز تا پایان.</p></div>\n'
+        '    <a class="btn solid" href="' + esc(order[0]["slug"]) + '/">شروع خواندن</a>\n'
+        '  </section>\n'
+        '</main>\n'
+        '<div id="page-meta" hidden data-slug="' + SLUG + '"></div>\n'
+        + TAIL.format(R=R, SLUG=SLUG) +
+        '\n<script src="' + R + '/assets/reader.js?v=' + ASSETS_V + '" defer></script>\n'
+        '<script src="' + R + '/' + SLUG + '/assets/mafatih.js?v=' + ASSETS_V + '" defer></script>\n'
+        '</body>\n</html>\n')
 
 
 # ------------------------------------------------------------------- search
 
-FOLD_MAP = {"أ": "ا", "إ": "ا", "آ": "ا", "ٱ": "ا", "ى": "ی", "ي": "ی",
-            "ك": "ک", "ة": "ه", "ؤ": "و", "ئ": "ی"}
-DROP_RE = re.compile("[ؐ-ًؚ-ْٰۖ-ۭـ‌]")
+FOLD_MAP = {"أ": "ا", "إ": "ا", "آ": "ا", "ٱ": "ا",
+            "ى": "ی", "ي": "ی", "ك": "ک", "ة": "ه",
+            "ؤ": "و", "ئ": "ی"}
+DROP_RE = re.compile("[\u0610-\u061A\u064B-\u0652\u0670\u06D6-\u06ED\u0640\u200c]")
 FA_AR_DIGITS = {ord(c): str(i) for i, c in enumerate("۰۱۲۳۴۵۶۷۸۹")}
 FA_AR_DIGITS.update({ord(c): str(i) for i, c in enumerate("٠١٢٣٤٥٦٧٨٩")})
 
@@ -404,8 +586,8 @@ def foldtxt(t):
 
     Everything a reader types differs from what the edition prints: they type
     ی where the text has ي, ک for ك, and no diacritics at all. Without this a
-    search for «اللهم انی اسالك» finds nothing in «اَللّٰهُمَّ إِنِّى أَسْأَلُكَ»,
-    which is the single most likely thing anyone will search for."""
+    search for the opening of دعای کمیل finds nothing, which is the single
+    most likely thing anyone will search for."""
     t = DROP_RE.sub("", t.translate(FA_AR_DIGITS))
     return re.sub(r"\s+", " ", "".join(FOLD_MAP.get(c, c) for c in t)).strip().lower()
 
@@ -413,30 +595,24 @@ def foldtxt(t):
 def build_search(pages, out):
     """Two indexes, because there are two kinds of search.
 
-    NAMES are what someone reaches for first — «دعای کمیل», «اعمال ماه رمضان»
-    — and there are only 689 of them, so that index is small enough to load on
-    every page and answer as the reader types.
-
-    TEXT is the half-remembered line, and it is 4,073 Arabic units plus their
-    Persian. That one is fetched only when a name search has not already
-    answered the question, so nobody downloads it to look up دعای کمیل."""
+    NAMES are what someone reaches for first, and there are only 689 of them,
+    so that index is small enough to answer as the reader types. TEXT is the
+    half-remembered line: 4,073 Arabic units plus their Persian, fetched only
+    when a name search has not already answered the question."""
     titles, body = [], []
     for p in pages:
         trail, q = [], p["parent"]
         while q is not None:
-            trail.append(q["title"])
+            trail.append(q["title"] or "")
             q = q["parent"]
         trail.reverse()
         first = next((u.get("p") for u in p["node"]["units"] if u.get("p")), None)
         n_ar = sum(1 for u in p["node"]["units"] if u["k"] == "ar")
         n_note = sum(1 for u in p["node"]["units"] if u["k"] == "note")
-        # n / x / c let the ranker tell three things apart that a title alone
-        # cannot: a piece with actual text, a short editorial note with none,
-        # and a heading whose value is the list of what sits under it.
-        # 92 sections are titled «إشارَة:» or «اشاره» — headings that say
-        # nothing. The زیارت اربعین is one of them: its title is useless, but
-        # its opening line names it exactly. Indexing that line as an alias is
-        # what lets «زیارت اربعین» find the section that actually holds it.
+        # 92 sections are titled «إشارَة:» — headings that say nothing. The
+        # زیارت اربعین is one of them: its title is useless, but its opening
+        # line names it exactly. Indexing that line as an alias is what lets a
+        # search by name find the section that actually holds it.
         opener = ""
         for u in p["node"]["units"]:
             t = u.get("rub") or (u.get("fa") if u["k"] == "note" else "")
@@ -489,18 +665,15 @@ def main():
                                       encoding="utf-8")
 
     # the cover's tiles are the book's own top-level divisions
-    # The tiles are the book's own ابواب, not the two bindings that contain
-    # them. «کتاب مفاتیح الجنان» and «باقیات الصالحات» are covers; what a
-    # reader actually chooses between is ادعیه / اعمال سال / زیارات / نمازهای
-    # مستحبه. So descend one level wherever a top-level division is merely a
-    # wrapper around further divisions, and stop where it is not.
-    tiles = []
-    for d1 in [q for q in pages if q["depth"] == 1]:
-        if any(c["children"] for c in d1["children"]):
-            tiles += [c for c in d1["children"] if c["children"]]
-        elif d1["children"]:
-            tiles.append(d1)
-    (out / "index.html").write_text(cover(tiles, pages), encoding="utf-8")
+    cats, missing = resolve_categories(pages)
+    if missing:
+        raise SystemExit("category titles no longer match the book: " + repr(missing))
+    for c in cats:
+        d = out / c["id"]
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "index.html").write_text(category_page(c, pages), encoding="utf-8")
+
+    (out / "index.html").write_text(cover(cats, pages), encoding="utf-8")
 
     # contents drawer: reader.js fetches <book>/assets/toc.json
     (out / "assets").mkdir(exist_ok=True)
@@ -542,7 +715,8 @@ def main():
           f" ({sum(1 for w in week if w['e'])} of them شب)")
     print(f"  with text   : {sum(1 for p in pages if p['text']):,}")
     print(f"  named slugs : {sum(1 for p in pages if p['slug_named'])}")
-    print(f"  cover tiles : {len(tiles)}")
+    print(f"  categories  : {len(cats)} landing pages, "
+          f"{sum(len(c['items']) for c in cats)} sections mapped")
     print(f"-> {out}")
 
 

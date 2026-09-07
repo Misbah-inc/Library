@@ -410,16 +410,46 @@
 
   /* ------------------------------------------------- landing on a text hit */
 
+  function aim(el) {
+    /* behavior:'instant' is not a nicety — reader.css sets
+       html{scroll-behavior:smooth} for the whole site, and scrollIntoView
+       inherits it. The animation is then still running when the Arabic and
+       Persian faces finish loading and reflow the page by thousands of
+       pixels, at which point the browser abandons it and the reader is left
+       at the top of a duʿā they searched into the middle of. */
+    try { el.scrollIntoView({ block: 'center', behavior: 'instant' }); }
+    catch (e) { el.scrollIntoView(); }
+  }
+
   function markTarget() {
     if (location.hash.indexOf('#u-') !== 0) return;
     var id = decodeURIComponent(location.hash.slice(1));
     var el = document.getElementById(id);
     if (!el) return;
+    var prev = document.querySelector('.u-target');
+    if (prev && prev !== el) prev.classList.remove('u-target');
     el.classList.add('u-target');
-    setTimeout(function () {
-      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    }, 60);
+
+    /* Aim more than once, and never smoothly.
+     *
+     * Amiri and Vazirmatn load AFTER this runs, and when they land the page
+     * reflows by thousands of pixels — a duʿā is long. A single scroll fired
+     * at DOMContentLoaded is therefore aimed at a layout that no longer
+     * exists by the time the reader sees it, which is why a search result
+     * appeared to open the right page at the wrong place. A smooth scroll
+     * makes it worse: it is still animating when the reflow happens, and the
+     * browser abandons it. */
+    aim(el);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () { aim(el); });
+    }
+    window.addEventListener('load', function () { aim(el); });
+    setTimeout(function () { aim(el); }, 700);
   }
+
+  /* Clicking a result for a unit on the page you are already reading is a
+     same-document navigation: nothing reloads, so nothing would re-aim. */
+  window.addEventListener('hashchange', markTarget);
 
   /* -------------------------------------------------------- view switching */
 

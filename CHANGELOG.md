@@ -4,6 +4,67 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-06 (session 8, part 39)
+
+### مفاتیح: a landing page that is a chooser, two real bugs fixed
+
+Four things reported from the live site. All four are addressed.
+
+**The landing page is now the app-shaped chooser that was asked for.** The old page
+showed the book's own eleven أبواب as a flat grid — «باب پنجم: ذکر بعض احراز» is not a
+choice anyone arrives wanting to make. It now opens with a search field, then five
+categories — **اعمال · زیارت · نماز · ادعیه · قرآن** — each its own page, then today's
+اعمال, and keeps the linear edition as a quiet second door.
+
+**Two ways in, deliberately.** «شروع خواندن» and the contents drawer follow the edition's
+own order, which is the author's and is untouched. The categories are editorial: ادعیه is
+split across four أبواب in the binding and the weekly acts sit inside باب اول, so the
+mapping is by hand. It is matched on the **folded** section title, not on position and
+not on the raw title — these headings carry honorifics whose exact diacritics cannot be
+retyped reliably, and one wrong mark would silently empty a category. The build now fails
+loudly if a title stops matching rather than shipping an empty page.
+
+> A category that maps to a single section expands one level. زیارت is all of باب سوم,
+> and one card is not a choice; its fifteen divisions are. Categories that already map to
+> several sections stay at that level, which is what the app does too.
+
+### The search result that opened the right page at the wrong place
+
+`من لی غیرک` found the right unit and linked to `#u-dua-kumayl:8`, the anchor existed,
+the highlight applied — and the page sat at the top. Two causes, both invisible in the
+code:
+
+- **`reader.css` sets `html{scroll-behavior:smooth}` for the whole site**, so
+  `scrollIntoView` inherited it. The animation was still running when Amiri and Vazirmatn
+  finished loading and reflowed the page by thousands of pixels, at which point the
+  browser abandoned it. `behavior:'instant'` is now passed explicitly, and the scroll is
+  re-aimed on `fonts.ready`, on `load`, and once more at 700 ms.
+- **A same-page hash click never re-ran anything.** Clicking a result for a unit on the
+  page you are already reading is a same-document navigation, so `markTarget` is now also
+  bound to `hashchange`.
+
+Measured before and after on `#u-dua-kumayl:8`: `scrollY 0 → 2622`, element at
+`top 3049 → 427`, on screen, highlighted.
+
+### The Arabic with no translation under it
+
+The opening of مناجات ششم sat on the page with nothing beneath it. The print edition
+breaks that phrase across ص ۳۰۹, so the export splits it in two and hangs the footnote —
+the whole phrase's translation — on the **second** half. **41 of the 72** untranslated
+units are this, one of them split at «وَ كُلَّ / شَيْءٍ أَحْصَيْنَاهُ».
+
+They are joined at **render time**, not in the data. Merging units would renumber every
+unit id after them in the section, and those ids are frozen because English and Urdu will
+be keyed to them. Each half keeps its own id and stays independently linkable; all 4,073
+Arabic paragraphs still render, and 98% now sit in a block that shows a translation.
+
+```
+sitemap : 3,761 URLs (mafatih 695)
+links   : 0 broken targets across 3,762 HTML files
+```
+
+---
+
 ## 2026-09-06 (session 8, part 38)
 
 ### اعمال ایام هفته — today's observances, surfaced

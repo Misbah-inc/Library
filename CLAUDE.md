@@ -447,6 +447,23 @@ in `localStorage`, so the cover and every surah page share one setting.
 after each Arabic span carries that span's own translation), so the print edition's
 footnote numbering never has to reach the screen. The Arabic arrives fully vocalised.
 
+> **The landing page and the reading order are two different things.** `/mafatih/` is a
+> chooser — five editorial categories (اعمال/زیارت/نماز/ادعیه/قرآن), each its own page.
+> The edition's own order lives behind «شروع خواندن» and the contents drawer and is never
+> reordered. Categories are matched on the FOLDED section title (honorific diacritics
+> cannot be retyped reliably) and the build fails loudly if one stops matching.
+
+> **`html{scroll-behavior:smooth}` is set site-wide in reader.css.** Any programmatic
+> `scrollIntoView` must pass `behavior:'instant'` or it inherits the animation, which the
+> webfont reflow then abandons — the reader lands at the top of the page they searched
+> into the middle of. Re-aim on `fonts.ready` and `load` as well, and bind to
+> `hashchange` for same-page links.
+
+> **One pairing may span two units.** Where the print edition breaks a phrase across a
+> page, the export splits it and hangs the footnote on the SECOND half; 41 units look
+> untranslated because of it. They are joined in `body_html` at render time and never in
+> the data — merging would renumber the frozen unit ids.
+
 > **Search is two indexes, not one.** Names (689 rows, 20 KB gzipped) load with the
 > search panel and answer per keystroke, ranked by IDF-weighted token overlap so
 > «دعای خمس عشر» finds «مناجات خمس عشره». Text (5,750 rows, 1.3 MB gzipped) is fetched

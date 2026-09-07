@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl" data-root=".." data-book="." data-sitelang="fa"
-      data-standalone="1" data-srclang="fa">
+<html lang="fa" dir="rtl" data-root=".." data-book="." data-sitelang="fa" data-standalone="1" data-srclang="fa">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -31,22 +30,24 @@
   </div>
   <button class="tbtn" id="btn-theme" aria-pressed="false"></button>
 </div></header>
-<main class="cover" id="text">
+<main class="mhome" id="text">
+  <header class="mhero">
     <h1>مفاتیح الجنان</h1>
-    <div class="rule"></div>
-    <p class="book-credit">شیخ عبّاس قمی · ترجمهٔ حسین انصاریان</p>
-    <div class="mcover-search">
-      <input id="mcover-q" type="search" autocomplete="off" spellcheck="false"
-             placeholder="نام دعا، زیارت یا بخشی از متن…" aria-label="جستجو در مفاتیح">
+    <p class="mhero-by">شیخ عبّاس قمی <span>·</span> ترجمهٔ حسین انصاریان</p>
+    <div class="mhero-search">
+      <svg class="mhero-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="mcover-q" type="search" autocomplete="off" spellcheck="false" placeholder="نام دعا، زیارت یا جمله‌ای از متن…" aria-label="جستجو در مفاتیح">
       <button class="btn solid" id="mcover-go" type="button">جستجو</button>
     </div>
-    <p class="mcover-hint">نام دعا («دعای کمیل»)، عنوان بخش («اعمال ماه رمضان») یا جمله‌ای از متن را بنویسید.</p>
-    <div class="start">
-      <a class="btn solid" href="1/">شروع خواندن</a>
-    </div>
-    <section id="mweek" class="mweek" hidden></section>
-    <h2 class="sec-h">بخش‌های کتاب</h2>
-    <div class="chaps"><a class="chap-cell" href="5/"><span class="cc-t">سوره های قرآن در مفاتیح الجنان</span><span class="cc-n">۳۱</span></a><a class="chap-cell" href="39/"><span class="cc-t">باب اول: ادعیه</span><span class="cc-n">۹</span></a><a class="chap-cell" href="126/"><span class="cc-t">باب دوم: اعمال سال</span><span class="cc-n">۱۱</span></a><a class="chap-cell" href="240/"><span class="cc-t">باب سوم: زیارات</span><span class="cc-n">۱۵</span></a><a class="chap-cell" href="387/"><span class="cc-t">فهرست ملحقات مفاتیح الجنان</span><span class="cc-n">۸</span></a><a class="chap-cell" href="397/"><span class="cc-t">باب اول: اعمال شب و روز</span><span class="cc-n">۶</span></a><a class="chap-cell" href="469/"><span class="cc-t">باب دوم: نمازهای مستحبه</span><span class="cc-n">۳۸</span></a><a class="chap-cell" href="508/"><span class="cc-t">باب سوم: ادعیه وعوذات آلام و اسقام</span><span class="cc-n">۳۵</span></a><a class="chap-cell" href="544/"><span class="cc-t">باب چهارم: ادعیه منتخبه از کتاب کافی</span><span class="cc-n">۱۸</span></a><a class="chap-cell" href="563/"><span class="cc-t">باب پنجم: ذکر بعض احراز و ادعیه موجزه</span><span class="cc-n">۳۵</span></a><a class="chap-cell" href="599/"><span class="cc-t">باب ششم:خواص بعضی سوره و آیات وغیره</span><span class="cc-n">۶۱</span></a></div>
+    <p class="mhero-hint">مثال: «دعای کمیل» · «اعمال ماه رمضان» · «من لی غیرک»</p>
+  </header>
+  <nav class="mtiles" aria-label="بخش‌ها"><a class="mtile" href="amal/"><span class="mtile-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l2.4 5 5.6.8-4 3.9 1 5.5L12 15.6 6.9 18.2l1-5.5-4-3.9L9.6 8z"/></svg></span><span class="mtile-t">اعمال</span><span class="mtile-s">اعمال روز و شب، هفته، ماه و مناسبات</span></a><a class="mtile" href="ziyarat/"><span class="mtile-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2l7 4v6c0 4.4-3 8.3-7 10-4-1.7-7-5.6-7-10V6z"/></svg></span><span class="mtile-t">زیارت</span><span class="mtile-s">زیارات معصومین، اولیاء و عتبات</span></a><a class="mtile" href="namaz/"><span class="mtile-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20h16M6 20V9l6-5 6 5v11M10 20v-5h4v5"/></svg></span><span class="mtile-t">نماز</span><span class="mtile-s">نمازهای مستحبی و تعقیبات</span></a><a class="mtile" href="adiya/"><span class="mtile-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 21c0-4 1.5-6 4-6s4 2 4 6M9 3v6a3 3 0 0 0 6 0V3"/></svg></span><span class="mtile-t">ادعیه</span><span class="mtile-s">دعاهای مشهور، احراز و عوذات</span></a><a class="mtile" href="quran/"><span class="mtile-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2zM8 3v18"/></svg></span><span class="mtile-t">قرآن</span><span class="mtile-s">سوره‌های برگزیده و خواص آیات</span></a></nav>
+  <section id="mweek" class="mweek" hidden></section>
+  <section class="mread">
+    <div><h2>خواندن پیوستهٔ کتاب</h2>
+    <p>متن کامل، به ترتیب خودِ کتاب، از آغاز تا پایان.</p></div>
+    <a class="btn solid" href="1/">شروع خواندن</a>
+  </section>
 </main>
 <div id="page-meta" hidden data-slug="mafatih"></div>
 <div class="scrim" id="scrim"></div>
