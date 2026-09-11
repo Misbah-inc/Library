@@ -166,6 +166,12 @@ Then open `http://localhost:8080`. This avoids CORS issues that block `catalog.j
   the *first* translated line, so re-running it over a page that opens with a heading
   shortens that page's meta description to the heading alone. Diff before overwriting;
   repair links surgically when that is the only fault.
+- **`verify.py` compares Arabic text, not Arabic markup.** An Arabic page wraps some
+  headings in `<span data-ar= data-fa= data-ur= data-en=>` so `reader.js` can swap them
+  in place; a translated page prints the translation on the next line instead and carries
+  the bare heading. `unwrap_heading()` drops that wrapper before comparing — but only when
+  the span's own `data-ar` equals the text it wraps, so a genuinely altered heading still
+  fails. Do not "simplify" it into an unconditional strip.
 - **`reextract.py` does not reconfigure stdout.** On Windows it dies with
   `UnicodeEncodeError: 'charmap'` on the first Arabic character — run it as
   `PYTHONIOENCODING=utf-8 python reextract.py …`.

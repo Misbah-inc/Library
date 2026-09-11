@@ -91,6 +91,46 @@ numeric neighbours. Following the links is both stricter and general:
 
 ---
 
+### `verify.py` was crying wolf on nine headings
+
+Chasing the pager bug turned up nine "arabic altered" failures per language, on pages
+nobody had touched. The Arabic was **byte-identical on both sides**. The difference was
+markup: an Arabic page wraps some headings so `reader.js` can swap them into the reader's
+language in place —
+
+```html
+<h3 lang="ar" data-i="0"><span data-ar="كتاب العقل…" data-fa="کتاب عقل…"
+     data-ur="…" data-en="…">كتاب العقل…</span></h3>
+```
+
+— because the Arabic page prints no translation line. A translated page does print one on
+the very next line, so the builder emits the bare heading there. `verify.py` compared raw
+inner HTML and called the wrapper a change to the Arabic.
+
+Twenty-six body headings in the source carry that wrapper and seventeen are in the
+translated pages, so this has the same fingerprint as the pager fault: **a partial rebuild
+left a few pages stale.** The two lists overlap at pages 48 and 81. No reader ever saw
+anything wrong — the Farsi and Urdu headings are printed on those pages already.
+
+**Only the comparison changed; no page content was touched.** `unwrap_heading()` drops the
+wrapper before comparing, and only where it is provably cosmetic — the span is removed
+*only* when its own `data-ar` equals the text it wraps. If those ever disagree the Arabic
+really has been altered, so the span is left in place and the comparison still fails.
+
+```
+fa 231 pages — 0 failures     ur 231 pages — 0 failures     en 231 pages — 0 failures
+```
+
+Proved it did not go blind, rather than assuming: a scratch copy with one letter changed
+inside a span-wrapped heading (الجهل → الجهد) and another with twelve characters cut from
+an ordinary paragraph are both still caught, and a span whose `data-ar` disagrees with its
+own text is left unwrapped so it still fails.
+
+Nine standing false alarms are worse than none: a check people have learned to ignore is
+how seven broken pager links survived for months.
+
+---
+
 ## 2026-09-06 (session 8, part 39)
 
 ### مفاتیح: a landing page that is a chooser, two real bugs fixed

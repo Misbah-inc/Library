@@ -5,17 +5,50 @@
             [--total 231] [--alts ar,en,fa,ur] [--no-draft] <page ...>
 
 Must report 0 failures before anything is committed. It checks that the Arabic
-is byte-identical to source, that data-i is contiguous, that every node has
+is byte-identical to source (ignoring only the multilingual heading wrapper the
+Arabic pages carry and the translated ones do not — see unwrap_heading), that data-i is contiguous, that every node has
 exactly one translation line, that footnote refs and note blocks agree, that
 every note carries a translation, that the page/volume numbers are right, that
 the SEO head is correct, and that Arabic-only chrome has not leaked in.
 """
-import argparse, os, pathlib, re, sys
+import argparse, html, os, pathlib, re, sys
 import extract as E
 import build as B
 
 SITE = B.SITE
 FAIL = 0
+
+# A heading on an ARABIC page may be wrapped so reader.js can swap it into the
+# reader's language in place:
+#
+#   <span data-ar="كتاب العقل…" data-fa="کتاب عقل…" data-ur="…" data-en="…"
+#        >كتاب العقل…</span>
+#
+# The Arabic page needs that because it prints no translation line. A TRANSLATED
+# page does not — it prints the translation on the next line — so the builder
+# emits the bare heading there. Comparing raw markup therefore reported nine
+# headings as "arabic altered" when the Arabic text was byte-identical on both
+# sides; the wrapper was the only difference. Nine standing false alarms are
+# worse than none at all: a check people have learned to ignore is how seven
+# broken pager links survived for months.
+MLSPAN = re.compile(
+    r'<span((?:\s+data-(?:ar|fa|ur|en)="[^"]*")+)\s*>([^<]*)</span>', re.S)
+
+
+def unwrap_heading(s):
+    """Drop the multilingual wrapper, but ONLY where it is provably cosmetic.
+
+    The span is removed only when its own data-ar equals the text it wraps. If
+    those two ever disagree the Arabic really has been altered, and the span is
+    left in place so the comparison still fails and still reports it.
+    """
+    def rep(m):
+        da = re.search(r'data-ar="([^"]*)"', m.group(1))
+        if da and html.unescape(da.group(1)) == html.unescape(m.group(2)):
+            return m.group(2)
+        return m.group(0)
+
+    return MLSPAN.sub(rep, s)
 
 
 def bad(msg):
@@ -48,7 +81,7 @@ def check(ar_path, out_path, lang, vol, total, alts):
         bad(f"p{n}: data-i not contiguous")
 
     for (tag, i, txt), s in zip(ar_nodes, src["nodes"]):
-        if txt != s["ar"]:
+        if unwrap_heading(txt) != unwrap_heading(s["ar"]):
             bad(f"p{n}: arabic altered at data-i={i}")
         if tag != s["tag"]:
             bad(f"p{n}: tag mismatch at data-i={i} ({tag} vs {s['tag']})")
