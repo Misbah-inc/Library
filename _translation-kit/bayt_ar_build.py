@@ -263,6 +263,15 @@ def build_reading_page(page, order, idx):
 </html>"""
 
 
+CHAPTERS_EN = {
+    1:   "Introduction",
+    18:  "Chapter One — her birth, her names and her kunyas",
+    30:  "Chapter Two — her merit, her majesty, her asceticism and her knowledge",
+    55:  "Chapter Three — the reports of the Saqifa and what befell her",
+    163: "Chapter Four — the abundance of her grief and her weeping for her father",
+}
+
+
 def build_toc_json(data):
     pages  = data['pages']
     nums   = [p['n'] for p in pages]
@@ -281,8 +290,16 @@ def build_toc_json(data):
         first_page = starts.get(cstart, cstart)
         # count pages in this chapter
         count = sum(1 for n in nums if cstart <= n <= cend)
+        # reader.js's Contents drawer reads `title` (with optional per-language
+        # overrides) and `p`. This emitted `ar` and `pages`, so every row in the
+        # drawer rendered the literal word "undefined" with a dash for its page
+        # — on the Arabic book and on every language. Keep `ar`/`pages` too:
+        # the cover builder reads them.
         chapters.append({
             'n':    i + 1,
+            'title': CHAPTERS[cstart],
+            'en':   CHAPTERS_EN.get(cstart, ''),
+            'p':    first_page,
             'ar':   CHAPTERS[cstart],
             'href': f'{SLUG}/{first_page}/',
             'pages': count,
@@ -399,6 +416,11 @@ def main():
                     help='Language of the pages to write. ar is the source of record.')
     ap.add_argument('--tr',    help='Translation JSON for --lang: '
                                '{"<page>:<block>": "...", "<page>:n<note>": "..."}')
+    ap.add_argument('--upto', type=int,
+                    help='Publish only pages 1..N. A translation lands a chapter at a '
+                         'time, and half a book of empty translation lines is worse '
+                         'than none; this publishes the finished run and makes page N '
+                         'the last page, so prev/next stays a valid chain.')
     ap.add_argument('--alts',  default='ar',
                     help='Languages that actually HAVE pages, for hreflang. '
                          'Listing one that is not published points the cluster '
@@ -421,6 +443,8 @@ def main():
 
     data  = json.loads(pathlib.Path(args.json).read_text(encoding='utf-8'))
     pages = data['pages']
+    if getattr(args, 'upto', None):
+        pages = [p for p in pages if p['n'] <= args.upto]
     order = [p['n'] for p in pages]
 
     out_dir = pathlib.Path(args.out)

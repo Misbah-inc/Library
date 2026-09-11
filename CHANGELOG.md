@@ -4,6 +4,40 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-11 (part 4)
+
+### Contents showed "undefined", and the first nine English pages are live on disk
+
+**The Contents drawer was broken on Bayt al-Ahzan, in every language.** Five rows, each
+reading the literal word `undefined` with a dash for its page. reader.js renders a toc row
+as `x[lang] || x.title` with `x.p` for the number; `bayt_ar_build.py` emitted `ar` and
+`pages` instead. Nothing read those, so every row came out undefined. The generator now
+emits `title` and `p` (keeping `ar`/`pages`, which the cover builder does read) and adds
+English chapter titles. Drawer now reads: Introduction · Chapter One — her birth, her
+names and her kunyas · Chapter Two — her merit, her majesty, her asceticism and her
+knowledge · Chapter Three — the reports of the Saqifa and what befell her · Chapter Four —
+the abundance of her grief and her weeping for her father.
+
+**Pages 1–9 of the English translation are built and on disk**, at `/en/bayt-al-ahzan/`.
+Zero empty translation lines.
+
+```
+blocks translated : 37/814     pages published : 9/189
+```
+
+> **`--upto N` publishes a contiguous prefix.** Last session's English tree was deleted
+> because 810 of 814 blocks were empty, which left nothing to look at. Building all 189
+> and deleting the untranslated ones is not an option either: page 9's next would point at
+> a page that does not exist and the chain would break. `--upto` makes page N genuinely
+> the last page, so `verify_pagers.py` passes and the finished run can ship while the rest
+> is still being translated — a reader on an untranslated Arabic page sees the existing
+> "not translated yet" notice, which is correct and already implemented.
+
+Verified: `14 paginated book(s); every prev/next chain is a single unbroken path`, now
+including `en/bayt-al-ahzan 9 pages OK`.
+
+---
+
 ## 2026-09-11 (part 3)
 
 ### بيت الأحزان: Arabic re-segmented, and the English pipeline built

@@ -1,30 +1,45 @@
 [
   {
     "n": 1,
+    "title": "المقدمة",
+    "en": "Introduction",
+    "p": 1,
     "ar": "المقدمة",
     "href": "bayt-al-ahzan/1/",
     "pages": 17
   },
   {
     "n": 2,
+    "title": "الباب الأول — في ولادتها وأسمائها وكناها",
+    "en": "Chapter One — her birth, her names and her kunyas",
+    "p": 18,
     "ar": "الباب الأول — في ولادتها وأسمائها وكناها",
     "href": "bayt-al-ahzan/18/",
     "pages": 12
   },
   {
     "n": 3,
+    "title": "الباب الثاني — في فضلها وجلالها وزهدها وعلمها",
+    "en": "Chapter Two — her merit, her majesty, her asceticism and her knowledge",
+    "p": 30,
     "ar": "الباب الثاني — في فضلها وجلالها وزهدها وعلمها",
     "href": "bayt-al-ahzan/30/",
     "pages": 25
   },
   {
     "n": 4,
+    "title": "الباب الثالث — في أخبار السقيفة وما جرى عليها",
+    "en": "Chapter Three — the reports of the Saqifa and what befell her",
+    "p": 55,
     "ar": "الباب الثالث — في أخبار السقيفة وما جرى عليها",
     "href": "bayt-al-ahzan/55/",
     "pages": 108
   },
   {
     "n": 5,
+    "title": "الباب الرابع — في كثرة حزنها وبكائها على أبيها",
+    "en": "Chapter Four — the abundance of her grief and her weeping for her father",
+    "p": 163,
     "ar": "الباب الرابع — في كثرة حزنها وبكائها على أبيها",
     "href": "bayt-al-ahzan/163/",
     "pages": 27

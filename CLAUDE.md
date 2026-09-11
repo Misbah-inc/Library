@@ -162,6 +162,13 @@ Then open `http://localhost:8080`. This avoids CORS issues that block `catalog.j
   fork a second builder, or the Arabic and English pages drift apart.
 - **Every Arabic block gets a translation line, even an empty one.** `verify.py` aligns the
   two lists by position, so a skipped line shifts every translation after it.
+- **Publish the translation as a contiguous prefix with `--upto N`.** Never build all 189
+  pages with most translations empty, and never build a scattered subset — page N's `next`
+  would point at a page nobody created. `--upto` makes N the last page so the chain stays
+  valid, and readers on the untranslated Arabic pages get the existing "not translated
+  yet" notice.
+- **A toc.json row needs `title` and `p`.** reader.js reads `x[lang] || x.title` and `x.p`;
+  emitting `ar`/`pages` instead renders every Contents row as the word `undefined`.
 - **After any change to that builder, rebuild the Arabic and diff it against what is live.**
   It must come out byte-identical. A stray newline in the template put a blank line on all
   189 Arabic pages and only the diff caught it.
