@@ -16,6 +16,10 @@ Usage:
 
 import argparse, html, json, pathlib, re, sys
 
+# Windows defaults stdout to cp1252 and this script prints Arabic and an
+# arrow; without this it dies on its own progress output.
+sys.stdout.reconfigure(encoding='utf-8')
+
 SITE  = "https://library.misbah-inc.com"
 ASSETS_V = "7"   # bump when reader.css/js change, to break browser caches.
                  # Without it a returning reader keeps a stale stylesheet and
@@ -36,7 +40,25 @@ CHAPTERS = {
 }
 
 # Depth for reading pages: /bayt-al-ahzan/<n>/ → R = "../.."
+# A translated page sits one level deeper, at /<lang>/bayt-al-ahzan/<n>/.
 R = "../.."
+
+# Set from --lang / --tr in main(). The Arabic build is the default and is
+# unchanged by any of this; a translated build reuses every part of the same
+# template, which is the only way the two stay in step. Bihar learned that the
+# hard way — one template, four languages.
+LANG = "ar"
+TR = {}          # "<page>:<block i>" -> text, and "<page>:n<note>" -> text
+DIR = {"ar": "rtl", "fa": "rtl", "ur": "rtl", "en": "ltr"}
+TITLES = {"ar": "بيت الأحزان في مصائب سيدة النسوان",
+          "en": "The Sorrows of Fatima (Bayt al-Ahzan)",
+          "fa": "رنج‌ها و فریادهای فاطمه سلام‌الله‌علیها",
+          "ur": "رنج ہا و فریادہای فاطمہ سلام اللہ علیہا"}
+PAGEWORD = {"ar": "ص", "fa": "ص", "ur": "ص", "en": "p."}
+
+
+def tr_of(page_n, key):
+    return TR.get(f"{page_n}:{key}", "")
 
 REF = re.compile(r'\[(\d+)\]')
 
@@ -45,20 +67,25 @@ def esc(s):
     return html.escape(s, quote=True)
 
 
-def abs_url(n=None):
-    base = f"{SITE}/{SLUG}/"
+def abs_url(n=None, lang=None):
+    lang = lang or LANG
+    pre = "" if lang == "ar" else f"{lang}/"
+    base = f"{SITE}/{pre}{SLUG}/"
     return base if n is None else f"{base}{n}/"
 
 
 def note_html(page):
     if not page['notes']:
         return ''
-    items = ''.join(
-        f'<div class="note" lang="ar" id="fn-{page["n"]}-{note["n"]}">'
-        f'<span class="note-n">({esc(str(note["n"]))})</span>'
-        f'<span>{esc(note["ar"])}</span></div>'
-        for note in page['notes']
-    )
+    def one(note):
+        body = (f'<span>{esc(note["ar"])}</span>')
+        if LANG != "ar":
+            t = tr_of(page["n"], f'n{note["n"]}')
+            body += f'<span class="tr-line" lang="{LANG}">{esc(t)}</span>'
+        return (f'<div class="note" lang="ar" id="fn-{page["n"]}-{note["n"]}">'
+                f'<span class="note-n">({esc(str(note["n"]))})</span>{body}</div>')
+
+    items = ''.join(one(note) for note in page['notes'])
     return f'<div class="notes">{items}</div>'
 
 
@@ -73,12 +100,41 @@ def body_html(page):
             return f'<a class="fnref" href="#fn-{page["n"]}-{k}">{k}</a>'
         ar = REF.sub(ref_sub, esc(block['ar']))
         parts.append(f'<p lang="ar" data-i="{block["i"]}">{ar}</p>')
+        if LANG != "ar":
+            # Every Arabic block gets a line, even an empty one: verify.py
+            # aligns the two lists by position, and a missing line would shift
+            # every translation after it onto the wrong Arabic.
+            t = tr_of(page["n"], block["i"])
+            parts.append(f'<p class="tr-line" lang="{LANG}">{esc(t)}</p>')
     return ''.join(parts)
 
 
 def excerpt(page):
     t = page['blocks'][0]['ar'] if page['blocks'] else TITLE
     return t[:157].rsplit(' ', 1)[0] + '…' if len(t) > 160 else t
+
+
+PUB_LANGS = ["ar"]      # languages that actually have pages; set in main()
+
+
+def tr_bar():
+    """The mode switch and the machine-translation badge, exactly as Bihar's
+    translated pages carry them — same classes, so the shared CSS and JS apply
+    with nothing added. The badge is not optional: readers are told to cite the
+    Arabic."""
+    if LANG == "ar":
+        return ""
+    return ('<div class="tr-bar" id="tr-bar">'
+            '<div class="tr-modes">'
+            '<button data-mode="tr" data-i18n="viewTr" aria-pressed="true"></button>'
+            '<button data-mode="both" data-i18n="viewBoth" aria-pressed="false"></button>'
+            '<button data-mode="ar" data-i18n="viewAr" aria-pressed="false"></button>'
+            '</div>'
+            '<span class="tr-note machine">'
+            '<svg class="ic" viewBox="0 0 24 24"><path d="M12 3v2M5 8h14v11H5z"/>'
+            '<circle cx="9" cy="13" r="1.2"/><circle cx="15" cy="13" r="1.2"/></svg>'
+            '<span data-i18n="machineTr"></span></span>'
+            '</div>')
 
 
 def build_reading_page(page, order, idx):
@@ -88,9 +144,15 @@ def build_reading_page(page, order, idx):
     total  = len(order)
 
     canonical = f'<link rel="canonical" href="{abs_url(n)}">'
-    alts = (f'<link rel="alternate" hreflang="ar" href="{abs_url(n)}">'
-            f'<link rel="alternate" hreflang="fa" href="{SITE}/bayt-al-ahzan-fa/">'
-            f'<link rel="alternate" hreflang="x-default" href="{abs_url(n)}">')
+    # Farsi is NOT a translation of this book — it is a different edition
+    # (Ishtihardi) living at its own slug, and the two share no pagination, so
+    # it is linked at cover level only. Everything else is page-for-page.
+    alts = f'<link rel="alternate" hreflang="ar" href="{abs_url(n, "ar")}">'
+    for L in PUB_LANGS:
+        if L != "ar":
+            alts += f'<link rel="alternate" hreflang="{L}" href="{abs_url(n, L)}">'
+    alts += (f'<link rel="alternate" hreflang="fa" href="{SITE}/bayt-al-ahzan-fa/">'
+             f'<link rel="alternate" hreflang="x-default" href="{abs_url(n, "ar")}">')
     prev_l = f'<link rel="prev" href="{abs_url(prev_n)}">' if prev_n else ''
     next_l = f'<link rel="next" href="{abs_url(next_n)}">' if next_n else ''
 
@@ -107,11 +169,16 @@ def build_reading_page(page, order, idx):
         '<span class="btn" aria-disabled="true"><span data-i18n="next"></span></span>'
     )
 
-    title_str = f'{TITLE} — ص {n}'
+    title_str = f'{TITLES[LANG]} — {PAGEWORD[LANG]} {n}'
+    SITELANG = "" if LANG == "ar" else f' data-sitelang="{LANG}"'
+    TRSTATIC = "" if LANG == "ar" else ' data-tr-static="1"'
+    ALT_AR = "" if LANG == "ar" else f'\n     data-alt-ar="{R}/{SLUG}/{n}/"'
+    FA_EDITION = ("../../bayt-al-ahzan-fa/" if LANG == "ar"
+                  else f"{R}/bayt-al-ahzan-fa/")
     desc      = esc(excerpt(page))
 
     return f"""<!DOCTYPE html>
-<html lang="ar" dir="rtl" data-root="{R}" data-book="{R}/{SLUG}">
+<html lang="{LANG}" dir="{DIR[LANG]}" data-root="{R}" data-book="{R}/{SLUG}"{SITELANG}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -144,7 +211,7 @@ def build_reading_page(page, order, idx):
       <div class="part-label"><span>{esc(AUTH)}</span>
         <span class="folio"><span data-i18n="page"></span> <span data-num="{n}">{n}</span></span>
       </div>
-      <div class="body">{body_html(page)}</div>
+      {tr_bar()}<div class="body"{TRSTATIC}>{body_html(page)}</div>
       {note_html(page)}
     </div>
     <nav class="pager">
@@ -157,8 +224,8 @@ def build_reading_page(page, order, idx):
     </nav>
   </article>
 </main>
-<div id="page-meta" hidden
-     data-alt-fa="../../bayt-al-ahzan-fa/"
+<div id="page-meta" hidden{ALT_AR}
+     data-alt-fa="{FA_EDITION}"
      data-slug="{SLUG}" data-pagenum="{n}"
      data-pos="{idx}" data-total="{total}"
      data-title-ar="{esc(TITLE)}"
@@ -328,7 +395,29 @@ def main():
     ap.add_argument('--pages', action='store_true', help='Write assets/pages.json + toc.json only')
     ap.add_argument('--cover', action='store_true', help='Write index.html only')
     ap.add_argument('--page',  type=int,            help='Write one reading page only')
+    ap.add_argument('--lang',  default='ar', choices=['ar', 'en', 'fa', 'ur'],
+                    help='Language of the pages to write. ar is the source of record.')
+    ap.add_argument('--tr',    help='Translation JSON for --lang: '
+                               '{"<page>:<block>": "...", "<page>:n<note>": "..."}')
+    ap.add_argument('--alts',  default='ar',
+                    help='Languages that actually HAVE pages, for hreflang. '
+                         'Listing one that is not published points the cluster '
+                         'at a 404 and invalidates all of it.')
     args = ap.parse_args()
+
+    global LANG, TR, R, PUB_LANGS
+    LANG = args.lang
+    PUB_LANGS = [x.strip() for x in args.alts.split(',') if x.strip()]
+    if LANG not in PUB_LANGS:
+        sys.exit(f'--alts must include --lang ({LANG}); hreflang sets are self-referential')
+    if LANG != 'ar':
+        # /<lang>/bayt-al-ahzan/<n>/ is one level deeper than /bayt-al-ahzan/<n>/
+        R = '../../..'
+        if not args.tr:
+            sys.exit('--tr is required when --lang is not ar')
+        TR = {k: v for k, v in
+              json.loads(pathlib.Path(args.tr).read_text(encoding='utf-8')).items()}
+        print(f'  translation: {len(TR):,} strings for {LANG}')
 
     data  = json.loads(pathlib.Path(args.json).read_text(encoding='utf-8'))
     pages = data['pages']
@@ -338,7 +427,7 @@ def main():
     enc     = 'utf-8'
 
     # ── assets ──────────────────────────────────────────────────────────────
-    if args.pages or not (args.cover or args.page):
+    if (args.pages or not (args.cover or args.page)) and LANG == 'ar':
         assets = out_dir / 'assets'
         assets.mkdir(parents=True, exist_ok=True)
 
@@ -354,7 +443,7 @@ def main():
         print(f'  toc.json → {tj}  ({len(toc)} chapters)')
 
     # ── Arabic cover ─────────────────────────────────────────────────────────
-    if args.cover or not (args.pages or args.page):
+    if (args.cover or not (args.pages or args.page)) and LANG == 'ar':
         build_arabic_cover(data, out_dir)
 
     # ── reading pages ────────────────────────────────────────────────────────

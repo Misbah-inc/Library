@@ -37,6 +37,7 @@ extract.py → [external translation] → merge_build.py → verify.py → commi
 | `bayt_extract.py` | Ghaemiyeh HTML export → batch JSON (Bayt al-Ahzan) |
 | `bayt_paginate.py` | splits Bayt al-Ahzan at its `[ صفحه ۷۷ ]` markers into printed pages |
 | `bayt_build.py` | Bayt al-Ahzan page builder, cover, and `toc.json` |
+| `bayt_ar_split.py` | segments the Arabic into sentence blocks — **run once, then treat `bayt_ar_blocks.json` as data** |
 | `mafatih_extract.py` | Ghaemiyeh Mafātīḥ export → `mafatih.json` (Arabic + Ansariyan Persian, paired) |
 | `mafatih_verify.py` | independent audit of `mafatih.json` — **must print `VERDICT clean`** |
 | `mafatih_build.py` | `mafatih.json` → the 689 مفاتیح pages, cover and `toc.json` |
@@ -144,6 +145,26 @@ Then open `http://localhost:8080`. This avoids CORS issues that block `catalog.j
 - **`.cite` is `display:none` on `en`, `fa` and `ur`** by the owner's request. A book's
   credit or attribution line must use `.book-credit`, or it disappears in three of the
   four languages.
+
+---
+
+## بيت الأحزان — translation invariants
+
+- **The Arabic is segmented once, into `bayt_ar_blocks.json`, and never re-segmented.**
+  English keys to `data-i`; recomputing the split at build time would renumber every block
+  and silently re-point each translated line onto the wrong Arabic. Re-run
+  `bayt_ar_split.py` only on a book that has no translations yet.
+- **Farsi is not a translation of this book.** رنج‌ها و فریادهای فاطمه at
+  `/bayt-al-ahzan-fa/` is a different edition with unrelated pagination — Arabic chapters
+  begin at 1, 18, 30, 55, 163; the Persian at 3, 6, 10, 12, 15, 31, 56… Link the two at
+  **cover level only** (`hreflang="fa"` and `data-alt-fa`). Never build `/fa/bayt-al-ahzan/`.
+- **One template builds both languages.** `bayt_ar_build.py --lang en --tr <json>`; do not
+  fork a second builder, or the Arabic and English pages drift apart.
+- **Every Arabic block gets a translation line, even an empty one.** `verify.py` aligns the
+  two lists by position, so a skipped line shifts every translation after it.
+- **After any change to that builder, rebuild the Arabic and diff it against what is live.**
+  It must come out byte-identical. A stray newline in the template put a blank line on all
+  189 Arabic pages and only the diff caught it.
 
 ---
 

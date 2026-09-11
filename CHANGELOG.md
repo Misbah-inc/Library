@@ -4,6 +4,58 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-11 (part 3)
+
+### بيت الأحزان: Arabic re-segmented, and the English pipeline built
+
+Groundwork for translating the Arabic book. English only — Farsi is not a translation of
+this book but a different edition, so a Farsi reader is routed to it rather than given a
+second Persian version.
+
+**The Arabic had one paragraph per page.** The AB Library export carries a single
+`<p class="page-text">` per printed page, so every page was one block of median 1,141
+characters (max 2,016). Bihar averages eight blocks a page, and that is exactly why Bihar
+reads well: each Arabic paragraph is followed by its own English. At one block per page a
+translated page would be a wall of Arabic followed by a wall of English, and `verify.py`
+would have nothing to align.
+
+`bayt_ar_split.py` segments the Arabic into sentences — **189 blocks → 814**, 4.3 a page,
+median 210 characters. The text is not touched: the source is single-spaced throughout
+(checked, zero exceptions across all 189 pages), so rejoining the parts with one space
+reproduces the original character for character. That is asserted per page and the script
+refuses to write if it ever fails. 166 of the 189 Arabic pages changed; the other 23 were
+single-sentence pages and came out byte-identical.
+
+> **The segmentation is a committed file, not a build-time step.** English keys to
+> `data-i`. Were the split recomputed at build time, one later tweak to the rule — another
+> punctuation mark, a different minimum length — would renumber every block and silently
+> re-point each translated line onto the wrong Arabic. Same trap as مفاتیح's unit ids.
+> `bayt_ar_blocks.json` is computed once and from then on treated as data.
+
+**`bayt_ar_build.py` now builds translated pages from the same template** — `--lang en
+--tr <json> --alts ar,en`. One template for both languages, which is the only thing that
+keeps them in step; Bihar learned that the hard way. Translated pages carry the mode
+switch, the machine-translation badge, `data-tr-static`, the hreflang cluster, and
+`data-alt-fa` pointing at the Persian edition, so choosing Farsi opens رنج‌ها و فریادهای
+فاطمه rather than a page that does not exist.
+
+**Checked at every step that the Arabic did not move.** After the split, after the builder
+was rewritten, and after the template gained the translation bar: rebuild all 189 Arabic
+pages and diff against what is live. The first attempt at the bar left one blank line on
+every Arabic page — caught by that diff, fixed by making it inline. Final state: **0 of
+189 Arabic pages differ**.
+
+```
+blocks translated : 4/814        notes translated : 0/336
+```
+
+The pipeline is proven end to end and the first three pages read correctly in the browser.
+The bulk of the translation — about 44,000 Arabic words — remains. The generated English
+tree was removed rather than left on disk half-empty; it rebuilds in one command once the
+translation file is filled.
+
+---
+
 ## 2026-09-11 (part 2)
 
 ### بيت الأحزان 404s, a raw i18n key, and two missing page dropdowns
