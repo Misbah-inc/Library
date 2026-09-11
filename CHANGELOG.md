@@ -4,6 +4,86 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-11 (part 8)
+
+### بيت الأحزان English: batch 3 — pages 16–21, and the first footnotes
+
+The front matter ends and the book proper begins: al-Qummi's own preface, then **Chapter
+One — on her birth, her names and her kunyas**. Her birth in Jumada al-Akhira; the tradition
+that the Prophet ate of the fruits of the Garden on the ascension, so that «Fatima is a
+human houri»; the objection that the night journey predates her birth and the author's
+answer from al-Sadiq that the ascension happened a hundred and twenty times; and the
+account of the Prophet's forty-day withdrawal from Khadija, which the author reads as a
+preparation for «the salutation of the Lord of the Worlds and His gift» — Fatima herself.
+
+**The first translated footnotes.** Ten of them, of two kinds the conventions treat
+differently: source citations (`بحار ج 43 ص 7 ح - 8` → `Bihar, vol. 43, p. 7, hadith 8`)
+and the author's own glosses on difficult words, which are explanations rather than
+references and are rendered as such — `al-wamiq: one who loves`.
+
+```
+blocks translated : 111/814    notes translated : 10/336
+pages published   : 21/189     sitemap : 3,782 URLs
+```
+
+A page now only joins the published prefix when its footnotes are translated too, not just
+its body — a page whose text is English but whose notes are still Arabic is half-done, and
+the prefix should not advance past it.
+
+### Checked after building
+
+```
+english pages on disk                          21 (1..21), all in sitemap
+hreflang correct on all 189 arabic pages       en claimed for 1..21, and no further
+ar/en clusters reciprocal on every translated page   True
+footnotes rendered with their translation      10, with 5 in-text refs on p19 alone
+empty translation lines                        0
+english pages with an arabic description       0
+console errors / 404s on a clean load          none
+```
+
+The boundary was tested directly rather than inferred: Arabic p21 carries
+`data-alt-en`, p22 does not, and `/en/bayt-al-ahzan/22/` is a 404 that nothing links to.
+
+> The console in a long-lived tab keeps errors from every earlier navigation, so it showed
+> six 404s that had nothing to do with this build. A fresh tab is the only honest check —
+> it logs nothing and fetches the language-specific `pages.json`.
+
+---
+
+## 2026-09-11 (part 7)
+
+### بيت الأحزان English: batch 2 — pages 10–15
+
+The remainder of al-Qummi's bibliography (entries 15–63, arranged by Arabic letter) and the
+closing section on his death, burial beside his teacher al-Nuri in the Amir al-Mu'minin
+courtyard, and his children.
+
+```
+blocks translated : 85/814     pages published : 15/189     sitemap : 3,776 URLs
+```
+
+All three builds run together, which is the rule for this book — English pages, Arabic
+rebuild with the new `--tr-upto`, then `gen_sitemap.py`. Skipping any one leaves the
+switcher, the hreflang cluster or the crawler out of step with the translation.
+
+Checked after building, not assumed:
+
+```
+english pages on disk                         : 15 (1..15), all in sitemap
+hreflang correct on all 189 arabic pages      : True   (en claimed for 1..15, and no further)
+ar/en clusters reciprocal on every translated page : True
+empty translation lines                       : 0
+english pages carrying an arabic description  : 0
+prev/next                                     : 14 books, every chain a single unbroken path
+console errors / 404s on a clean page load    : none
+```
+
+Page 15's next is correctly disabled — it is the last published page — and the jump
+dropdown offers 15 entries, not 189.
+
+---
+
 ## 2026-09-11 (part 6)
 
 ### SEO: unique URLs per page per language, and an Arabic snippet under an English result
