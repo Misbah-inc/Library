@@ -4,6 +4,154 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-11 (part 13)
+
+### بيت الأحزان English: batch 8 — pages 64–75, the Saqifa poems
+
+Abu Dhu'ayb al-Hudhali's night: the long night whose «darkness would not lift», the unseen
+caller announcing the Prophet's death, the omen read from Sa'd al-Dhabih and from a
+porcupine devouring a snake, and his arrival at a Medina clamouring with weeping «like the
+clamour of the pilgrims when they raise the cry of consecration» — to find the mosque empty
+and the people at the portico.
+
+Then the body of the chapter turns to verse: al-Nabigha al-Ja'di, al-Nu'man b. Zayd,
+al-'Abbas b. 'Abd al-Muttalib, 'Utba b. Abi Lahab, 'Ubada b. al-Samit, Khuzayma b. Thabit
+«he of the two testimonies», Hassan b. Thabit's recantation after 'Amr b. al-'As disparaged
+the Ansar, and Abu Sufyan's agitation. The batch closes with Abu Bakr's letter to Usama b.
+Zayd and Usama's reply — «a letter whose end undoes its beginning».
+
+```
+blocks translated : 352/814    notes translated : 92/336
+pages published   : 75/189     sitemap : 3,836 URLs
+```
+
+**Verse is the difficulty in this stretch, and it is a typographic problem as much as a
+translation one.** The edition runs the poems into the prose as continuous text, with no
+line breaks — the metre is what separates the lines for an Arabic reader, and that
+signal does not survive translation. So each verse is set off with an em dash, the same
+convention used since Ibn 'Unayn's ode on page 28. Without it an English reader meets a
+paragraph that lurches between images with no indication that these are distinct lines by
+distinct poets. Verified on the built page: 8 verse separators on page 70 alone.
+
+Two lines are genuinely obscure in the source and are rendered literally rather than
+smoothed: Khuzayma's "إنما أنت والدة وصي رسول الله من دون أهله" and al-Nu'man's line ending
+"لقد حللت أرومها". A confident paraphrase would be inventing a reading the Arabic does not
+clearly support.
+
+### Checked after building
+
+```
+english pages on disk                        75 (1..75), all in sitemap
+hreflang correct on all 189 arabic pages     en claimed for 1..75, and no further
+ar/en clusters reciprocal                    True
+footnotes rendered with their translation    92
+empty translation lines                      0
+english pages with an arabic description     0
+prev/next                                    14 books, every chain unbroken
+console errors on a fresh tab                none
+```
+
+Boundary confirmed: Arabic p75 carries `data-alt-en`, p76 does not.
+
+---
+
+## 2026-09-11 (part 12)
+
+### بيت الأحزان English: batch 7 — pages 52–63, into the Saqifa
+
+The wedding night closes Chapter Two — the Prophet warming his feet between them on a cold
+morning, his counsel to his daughter that «your father is no poor man, nor is your husband
+poor», and the tasbīḥ given a second time in answer to her asking for a servant.
+
+Then **Chapter Three opens at page 55**: the longest chapter in the book, 108 pages, and its
+subject is the Saqifa of Banu Sa'ida and what followed for Fatima. This batch carries the
+gathering of the Ansar, «from us an emir and from you an emir», al-Hubab b. al-Mundhir's
+speech and 'Umar's answer that «two swords do not come together in one scabbard», the
+pledge to Abu Bakr, the crushing of Sa'd b. 'Ubada on his sickbed and his refusal to pledge
+to the end of his life, al-Baladhuri's report of how he died, al-Mufid's account from the
+Irshad of 'Ali levelling the Prophet's grave when the news reached him, Abu Sufyan at the
+door, and Asadabadi's report of the document deposited with Abu 'Ubayda.
+
+```
+blocks translated : 328/814    notes translated : 83/336
+pages published   : 63/189     sitemap : 3,824 URLs
+```
+
+**A note on how this chapter is handled.** It is polemical, and it names people. The
+project's standing rule is literal and fidelity-first, so it is translated as the author
+wrote it — including the insults, the disputed reports and the curses — without softening,
+sharpening or adding a gloss of my own. Where the edition itself marks a variant reading
+(«a variant in Ibn Abi al-Hadid»), that marking is carried into the English rather than
+silently resolved. A reader is owed al-Qummi's argument as al-Qummi made it; and the
+machine-translation badge on every page already tells them to cite the Arabic.
+
+Al-Hubab's boast «أنا جذيلها المحكك وعذيقها المرجب» is rendered literally — «I am the
+rubbing-post and the propped palm» — because the edition devotes four of its own footnotes
+to unpacking exactly that image, and an idiomatic English equivalent would leave those
+notes explaining something no longer on the page.
+
+### Checked after building
+
+```
+english pages on disk                        63 (1..63), all in sitemap
+hreflang correct on all 189 arabic pages     en claimed for 1..63, and no further
+ar/en clusters reciprocal                    True
+footnotes rendered with their translation    83
+empty translation lines                      0
+english pages with an arabic description     0
+console errors on a fresh tab                none
+```
+
+Boundary confirmed: Arabic p63 carries `data-alt-en`, p64 does not. The Contents drawer
+shows Chapter Three correctly at p55 in both languages.
+
+---
+
+## 2026-09-11 (part 11)
+
+### بيت الأحزان English: batch 6 — pages 40–51
+
+Twelve more. The Prophet refusing Fatima a servant because «there are in the mosque four
+hundred men who have neither food nor clothing»; **Fidda**, her servant, who for twenty
+years spoke nothing but Qur'an, answering a lost traveller entirely in verses; the
+description of **Tasnim**, the spring given to Fatima, and the four pillars of her dome;
+Salman weeping at her patched woollen mantle while «the daughters of Caesar and Chosroes
+are in fine silk»; the Prophet's foretelling of what would be done to her after him — «her
+side broken, and her unborn child miscarried» — and then the **marriage**: the coat of mail
+sold for her dower, the household goods bought item by item, and the wedding feast at which
+more than four thousand ate and nothing was diminished.
+
+```
+blocks translated : 268/814    notes translated : 66/336
+pages published   : 51/189     sitemap : 3,812 URLs
+```
+
+**Page 41 is the hardest page in the book so far, and for an unusual reason.** Fidda answers
+every question with a Qur'anic verse, so the page is seventeen quotations in succession. The
+convention here is that Qur'anic quotations are translated fresh and set in double quotes
+rather than lifted from an existing English Qur'an, and that is what has been done — but it
+matters more than usual here, because the point of the passage is that each verse is being
+*repurposed* as ordinary conversation. A rendering that reads as scripture rather than as
+an answer would lose the whole conceit. They are kept plain and conversational, and the
+quotation marks are what carries the fact that they are verses. Verified on the built page:
+17 opening quotation marks on page 41 alone.
+
+### Checked after building
+
+```
+english pages on disk                        51 (1..51), all in sitemap
+hreflang correct on all 189 arabic pages     en claimed for 1..51, and no further
+ar/en clusters reciprocal                    True
+footnotes rendered with their translation    66
+empty translation lines                      0
+english pages with an arabic description     0
+console errors on a fresh tab                none
+```
+
+Boundary confirmed: Arabic p51 carries `data-alt-en`, p52 does not.
+
+---
+
 ## 2026-09-11 (part 10)
 
 ### بيت الأحزان English: batch 5 — pages 28–39, at double the pace
