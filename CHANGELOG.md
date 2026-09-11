@@ -4,6 +4,92 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-11 (part 6)
+
+### SEO: unique URLs per page per language, and an Arabic snippet under an English result
+
+Checked whether the new English pages are actually indexable, the way Bihar's are.
+
+**The URL shape is right and matches Bihar.** Every page of every language is its own URL
+with its own self-referential canonical:
+
+```
+/bayt-al-ahzan/5/        canonical -> itself   hreflang ar, en, fa, x-default
+/en/bayt-al-ahzan/5/     canonical -> itself   hreflang ar, en, fa, x-default
+```
+
+Verified mechanically rather than by eye: 189 Arabic + 9 English pages all present in the
+sitemap, **0 duplicate `<loc>` entries**, the ar and en clusters advertise an identical set
+and each is self-referential, `x-default` points at the Arabic, and page 10 — untranslated
+— correctly does **not** advertise English. A one-directional cluster is ignored wholesale
+by Google, so that reciprocity is the load-bearing part.
+
+**One real defect found and fixed: the English pages carried ARABIC meta descriptions.**
+`excerpt()` read `blocks[0]['ar']` regardless of the language being built, so Google would
+have shown an Arabic snippet under an English result — wrong for the reader and wasted
+relevance for the query that found it. Bihar has always done this correctly; this builder
+did not. It now takes the first translated block, falling back to the Arabic only when no
+translation exists.
+
+```
+en p1: Bayt al-Ahzan: on the circumstances of the Mistress of the Women of the Worlds…
+en p5: In the name of God, the Most Merciful, the Most Compassionate. Praise belongs…
+```
+
+Sitemap regenerated: **3,770 URLs** (was 3,761 — the nine English pages).
+
+---
+
+## 2026-09-11 (part 5)
+
+### Two bugs that would have shipped: the switcher could not reach the translation
+
+Asked to prove the work functions before committing. Exercising it end to end found two
+faults that no amount of reading would have shown.
+
+**1 — The Arabic pages did not know the English pages existed.** They were built with the
+default `--alts ar`, so they carried no `data-alt-en`. The language switcher follows
+`data-alt-<lang>`; with none present, a reader clicking EN on the Arabic page would have
+been told "This page has not been translated yet" while the translation sat right beside
+it. Every page of the book, permanently.
+
+Fixed with `langs_for(n)` and a `--tr-upto N` flag: the Arabic build now claims English —
+in `hreflang` and in `data-alt-en` — for pages 1..N and for no others. Claiming it for all
+189 would point the switcher at pages nobody has built.
+
+```
+ar page   1: data-alt {en, fa}  hreflang [ar, en, fa, x-default]
+ar page   9: data-alt {en, fa}  hreflang [ar, en, fa, x-default]
+ar page  10: data-alt {fa}      hreflang [ar, fa, x-default]
+```
+
+**2 — The English dropdown offered 180 pages that do not exist.** reader.js builds the jump
+list from `<slug>/assets/pages.json` with no language prefix. Bihar is fully translated in
+every language so that has always been correct; a partially translated book breaks it —
+the Arabic list has 189 entries, `/en/` has nine, and picking page 50 was a 404.
+
+reader.js now prefers `<lang>/<slug>/assets/pages.json` when the translation ships one and
+falls back to the book's own list otherwise, and the builder emits that file for a
+translated build. Verified across the library: en/bayt-al-ahzan 9, en/bihar 231 via the
+fallback, fa/ur bihar 231, Arabic Bayt al-Ahzan 189, Farsi edition 262, جامع 609 — the
+Qur'an and مفاتیح use their own pagers and are untouched.
+
+### Verified end to end, by clicking
+
+- Arabic p1 → **EN** → lands on `/en/bayt-al-ahzan/1/`, English text, `lang=en dir=ltr`
+- English p1 → **فا** → lands on `/bayt-al-ahzan-fa/`, the Persian edition
+- English p9 → **ع** → back to `/bayt-al-ahzan/9/`
+- Arabic p10 → **EN** → correctly stays put and shows the "not translated yet" notice
+- p9's next is disabled — it is the last published page; 12 translation lines, 0 empty
+- Contents drawer reads real chapter titles in both languages
+
+```
+blocks translated : 37/814     pages published : 9/189
+14 paginated book(s); every prev/next chain is a single unbroken path
+```
+
+---
+
 ## 2026-09-11 (part 4)
 
 ### Contents showed "undefined", and the first nine English pages are live on disk

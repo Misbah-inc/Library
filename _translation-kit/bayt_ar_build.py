@@ -110,11 +110,41 @@ def body_html(page):
 
 
 def excerpt(page):
-    t = page['blocks'][0]['ar'] if page['blocks'] else TITLE
+    """The meta description, in the page's OWN language.
+
+    Taking the Arabic here for an English page would put an Arabic snippet
+    under an English result in Google, which is both wrong for the reader and
+    wasted relevance for the query that found it. Bihar has always done this
+    correctly; this builder did not."""
+    t = ""
+    if LANG != "ar":
+        for b in page['blocks']:
+            t = tr_of(page['n'], b['i'])
+            if t:
+                break
+    if not t:
+        t = page['blocks'][0]['ar'] if page['blocks'] else TITLES.get(LANG, TITLE)
     return t[:157].rsplit(' ', 1)[0] + '…' if len(t) > 160 else t
 
 
 PUB_LANGS = ["ar"]      # languages that actually have pages; set in main()
+TR_UPTO = 0             # the translation exists for pages 1..TR_UPTO
+
+
+def langs_for(n):
+    """Which languages actually have THIS page.
+
+    The translation lands a prefix at a time, so English exists for pages
+    1..TR_UPTO and not beyond. Claiming it for every page points hreflang and
+    the language switcher at pages nobody built; claiming it for none — which
+    is what the first Arabic build did — leaves the switcher unable to reach
+    the English pages that DO exist, so a reader clicking EN is told the page
+    is untranslated while the translation sits right beside it."""
+    out = ["ar"]
+    for L in PUB_LANGS:
+        if L != "ar" and n <= TR_UPTO:
+            out.append(L)
+    return out
 
 
 def tr_bar():
@@ -147,8 +177,9 @@ def build_reading_page(page, order, idx):
     # Farsi is NOT a translation of this book — it is a different edition
     # (Ishtihardi) living at its own slug, and the two share no pagination, so
     # it is linked at cover level only. Everything else is page-for-page.
+    here = langs_for(n)
     alts = f'<link rel="alternate" hreflang="ar" href="{abs_url(n, "ar")}">'
-    for L in PUB_LANGS:
+    for L in here:
         if L != "ar":
             alts += f'<link rel="alternate" hreflang="{L}" href="{abs_url(n, L)}">'
     alts += (f'<link rel="alternate" hreflang="fa" href="{SITE}/bayt-al-ahzan-fa/">'
@@ -173,6 +204,9 @@ def build_reading_page(page, order, idx):
     SITELANG = "" if LANG == "ar" else f' data-sitelang="{LANG}"'
     TRSTATIC = "" if LANG == "ar" else ' data-tr-static="1"'
     ALT_AR = "" if LANG == "ar" else f'\n     data-alt-ar="{R}/{SLUG}/{n}/"'
+    for _L in here:
+        if _L not in ("ar", LANG):
+            ALT_AR += f'\n     data-alt-{_L}="{R}/{_L}/{SLUG}/{n}/"'
     FA_EDITION = ("../../bayt-al-ahzan-fa/" if LANG == "ar"
                   else f"{R}/bayt-al-ahzan-fa/")
     desc      = esc(excerpt(page))
@@ -416,6 +450,10 @@ def main():
                     help='Language of the pages to write. ar is the source of record.')
     ap.add_argument('--tr',    help='Translation JSON for --lang: '
                                '{"<page>:<block>": "...", "<page>:n<note>": "..."}')
+    ap.add_argument('--tr-upto', type=int, default=0, dest='tr_upto',
+                    help='Pages 1..N also exist in the translated language. Used by the '
+                         'ARABIC build so its switcher and hreflang reach the English '
+                         'pages that exist, and only those.')
     ap.add_argument('--upto', type=int,
                     help='Publish only pages 1..N. A translation lands a chapter at a '
                          'time, and half a book of empty translation lines is worse '
@@ -427,9 +465,10 @@ def main():
                          'at a 404 and invalidates all of it.')
     args = ap.parse_args()
 
-    global LANG, TR, R, PUB_LANGS
+    global LANG, TR, R, PUB_LANGS, TR_UPTO
     LANG = args.lang
     PUB_LANGS = [x.strip() for x in args.alts.split(',') if x.strip()]
+    TR_UPTO = args.tr_upto if args.tr_upto else (args.upto or 0)
     if LANG not in PUB_LANGS:
         sys.exit(f'--alts must include --lang ({LANG}); hreflang sets are self-referential')
     if LANG != 'ar':
@@ -451,6 +490,17 @@ def main():
     enc     = 'utf-8'
 
     # ── assets ──────────────────────────────────────────────────────────────
+    # A partially translated language ships its OWN pages.json, listing only the
+    # pages that exist, so the jump dropdown cannot offer a page that 404s.
+    # toc.json is not duplicated: data-book points translated pages at the
+    # Arabic book root, which is where reader.js fetches it from.
+    if LANG != 'ar' and (args.pages or not (args.cover or args.page)):
+        a = out_dir / 'assets'
+        a.mkdir(parents=True, exist_ok=True)
+        (a / 'pages.json').write_text(json.dumps(order, ensure_ascii=False),
+                                      encoding='utf-8')
+        print(f'  pages.json ({len(order)} pages) -> {a / "pages.json"}')
+
     if (args.pages or not (args.cover or args.page)) and LANG == 'ar':
         assets = out_dir / 'assets'
         assets.mkdir(parents=True, exist_ok=True)

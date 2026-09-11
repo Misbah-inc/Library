@@ -1090,9 +1090,34 @@
        does not exist — the same rule the TOC links already follow. */
     var _langBase = (FIXED && !STANDALONE ? FIXED + '/' : '') +
                     _slug + (_vol ? '/' + _vol : '');
-    fetch(_jsonUrl).then(function (r) { return r.ok ? r.json() : null; }).then(function (pages) {
-      if (!pages || !pages.length) return;
-      install(makeSelect(pages, function (p) { return ROOT + '/' + _langBase + '/' + p + '/'; }));
+    /* A translation may cover only part of a book. Bayt al-Ahzan is published
+       in English a chapter at a time, so the Arabic pages.json lists 189 pages
+       while /en/ has nine — and a dropdown built from the Arabic list offers
+       180 English pages that 404. So prefer a language-specific pages.json
+       when the translation ships one, and fall back to the book's own list for
+       every fully translated book, which is all of them today. */
+    var _langJson = (FIXED && !STANDALONE)
+      ? ROOT + '/' + FIXED + '/' + _slug + '/assets/pages'
+        + (_vol ? '-' + _vol : '') + '.json'
+      : null;
+
+    function useList(pages) {
+      if (!pages || !pages.length) return false;
+      install(makeSelect(pages, function (p) {
+        return ROOT + '/' + _langBase + '/' + p + '/';
+      }));
+      return true;
+    }
+
+    function loadJson(u) {
+      return u ? fetch(u).then(function (r) { return r.ok ? r.json() : null; })
+                   .catch(function () { return null; })
+               : Promise.resolve(null);
+    }
+
+    loadJson(_langJson).then(function (pages) {
+      if (useList(pages)) return;
+      return loadJson(_jsonUrl).then(useList);
     }).catch(function () {});
   })();
 

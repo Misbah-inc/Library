@@ -162,6 +162,20 @@ Then open `http://localhost:8080`. This avoids CORS issues that block `catalog.j
   fork a second builder, or the Arabic and English pages drift apart.
 - **Every Arabic block gets a translation line, even an empty one.** `verify.py` aligns the
   two lists by position, so a skipped line shifts every translation after it.
+- **The ARABIC build must be told which pages have a translation, with `--tr-upto N`.**
+  The switcher follows `data-alt-<lang>`; without it a reader clicking EN on the Arabic
+  page is told the page is untranslated while the English page sits beside it. Claiming it
+  for every page is equally wrong — it points at pages nobody built. Rebuild the Arabic
+  side every time the prefix grows.
+- **A translated page's meta description must be in that page's language.** Taking the
+  Arabic excerpt for an English page puts an Arabic snippet under an English search result.
+  `excerpt()` uses the first translated block and falls back to the Arabic only when there
+  is none.
+- **Run `gen_sitemap.py` after every batch.** A page not in the sitemap is a page Google
+  has no reason to crawl, and the translated prefix grows batch by batch.
+- **A partially translated language ships its own `assets/pages.json`.** reader.js prefers
+  `<lang>/<slug>/assets/pages.json` and falls back to `<slug>/assets/pages.json`; without
+  the language file the jump dropdown offers every page of the original, most of them 404.
 - **Publish the translation as a contiguous prefix with `--upto N`.** Never build all 189
   pages with most translations empty, and never build a scattered subset — page N's `next`
   would point at a page nobody created. `--upto` makes N the last page so the chain stays
