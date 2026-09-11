@@ -4,6 +4,59 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-11 (part 2)
+
+### بيت الأحزان 404s, a raw i18n key, and two missing page dropdowns
+
+Four faults, all confirmed live before touching anything.
+
+**1 — The Arabic book 404'd, but only in Farsi.** In Arabic its chapter links returned
+200; in Farsi every one returned 404. The cover declared
+
+```html
+<div class="chaps" data-langpath="bayt-al-ahzan" data-langs="ar,fa">
+```
+
+and reader.js builds `<lang>/<slug>/<n>/` from that, so Farsi produced
+`/fa/bayt-al-ahzan/1/`. This book's Farsi edition is **not** a language-prefixed
+translation — it is a separate edition (Ishtihardi) at `/bayt-al-ahzan-fa/`, and
+`fa/bayt-al-ahzan/` was deliberately deleted on 2026-09-03. `data-langs` promised a tree
+that does not exist.
+
+> **The obvious fix is wrong.** Pointing those links at `bayt-al-ahzan-fa` would send the
+> reader to an unrelated page: the Arabic chapters begin at pages 1, 18, 30, 55, 163 and
+> the Persian edition's seventeen sections at 3, 6, 10, 12, 15, 31, 56 … The two editions
+> share no pagination. `data-langs="ar"` is the correct fix — chapter links stay Arabic in
+> every language, and a Farsi reader reaches the Persian edition through the language
+> switcher, which already carries `hreflang="fa" → /bayt-al-ahzan-fa/` on the cover and
+> `data-alt-fa` on every reading page. The cover is the only level at which the two
+> editions correspond.
+
+**2 — The cover's button read `startReading`.** The key was used in the HTML and defined
+in none of the four language tables, so `t()` returned the key itself — the exact trap the
+checklist warns about. Added to ar/fa/ur/en: ابدأ القراءة · شروع خواندن · پڑھنا شروع کریں ·
+Start reading.
+
+**3 — رنج‌ها و فریادهای فاطمه had no page dropdown.** reader.js fetches
+`<slug>/assets/pages.json`; `bayt-al-ahzan-fa/assets/pages.json` had never been generated.
+Written: 262 pages.
+
+**4 — Nor did the Arabic Bayt al-Ahzan, for a different reason.** Its `pages.json` has
+always existed, but the fetch was gated on `FIXED`, which is falsy on an Arabic page, so it
+returned before asking. Bihar's Arabic pages hide this by shipping hardcoded `.edgewrap`
+tick links, which return earlier still; Bayt al-Ahzan ships neither. The guard now gates on
+`_slug` alone — with `FIXED` falsy, `_langBase` is already exactly the Arabic path. Scoped
+first: **189 pages** in the whole library change behaviour, all of them this book's.
+
+Verified in a browser: Farsi chapter links 5/5 → 200, the button renders in all four
+languages, and both editions show their dropdown (262 options on the Persian, 189 on the
+Arabic, correct page preselected).
+
+> A 404 remains on the Arabic pages — `bayt-al-ahzan/assets/tr/en.json`, the in-page
+> translation layer. It is pre-existing and expected: the book has no translation yet.
+
+---
+
 ## 2026-09-11
 
 ### Bihar: seven broken pager links, and a check that would have caught them
