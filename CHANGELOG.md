@@ -4,6 +4,112 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-11 (part 15)
+
+### بيت الأحزان English: batch 10 — pages 88–99
+
+The Prophet's parting counsel to 'Ali («الصبر الصبر حتى ينزل الأمر»), then the
+**Shiqshiqiyya sermon** entire (89–91) with Ibn Abi al-Hadid's note on Ibn al-Khashshab,
+Ibn 'Abbas's night conversation with 'Ali in Kufa (91–93), the twelve objectors from the
+Muhajirun and the Ansar (94–96), and 'Ali's sermon from the Rawda of al-Kafi (97–99).
+
+```
+blocks translated : 445/814     notes translated : 137/336
+pages published   : 99/189      sitemap : 3,860 URLs
+```
+
+**The Shiqshiqiyya is rendered literally, not idiomatically.** «محل القطب من الرحى»,
+«كراكب الصعبة», «شقشقة هدرت ثم قرت» stay as the axle and the mill, the rider of a
+difficult mount, the camel's froth that bubbled and subsided — because the edition's own
+footnotes gloss those images, and an idiomatic English that dissolves the image leaves the
+footnote below it explaining something no longer on the page. Same rule already applied to
+al-Hubab's proverb in an earlier batch.
+
+Two terms held fixed against their earlier occurrences: «ابن آكلة الأكباد» as *the son of
+the eater of livers*, and «ابن آكلة الذبان» as *the son of the eater of flies* with the
+edition's own footnote left to explain it. Qur'anic quotations are translated in place
+rather than substituted from a published version.
+
+**One build-command error, caught by the verification block and not by reading.** The
+Arabic rebuild was first run with `--alts ar`, which is what `langs_for()` reads for
+`PUB_LANGS` — so `--tr-upto 99` had nothing to add and all 189 Arabic pages came out
+claiming no English at all. The check caught it immediately (`arabic hreflang correct:
+False [1,2,3,4,5]`); the rebuild is `--alts ar,en --tr-upto 99`.
+
+> For future batches: the Arabic rebuild needs **both** flags. `--tr-upto N` says how far
+> the translation reaches; `--alts ar,en` says the language exists at all. Either one alone
+> silently produces an Arabic tree whose switcher cannot reach the English pages sitting
+> right beside it.
+
+Checked after building, not assumed:
+
+```
+english pages on disk                              : 99 (1..99), contiguous
+all en pages in sitemap                            : True
+arabic hreflang correct on all 189                 : True  (en claimed for 1..99, no further)
+data-alt-en on arabic 1..99 / absent on 100+       : True
+ar/en clusters reciprocal on every translated page : True
+x-default → arabic on all 189                      : True
+en pager chain 1..99 exact (prev/next walked)      : True
+en assets/pages.json                               : 99 entries, dropdown offers 1..99 only
+unique canonicals on en pages                      : 99, no duplicates
+empty translation lines                            : 0
+english pages carrying an arabic description       : 0
+footnote refs resolving to a note on the same page : all
+arabic blocks still present verbatim on their page : all 814
+/en/bayt-al-ahzan/100/                             : 404, and nothing links to it
+console errors / 404s on a clean load (fresh tab)  : none
+```
+
+---
+
+## 2026-09-11 (part 14)
+
+### بيت الأحزان English: batch 9 — pages 76–87
+
+The most contested material in the book. Al-Bara' b. 'Azib's account of the general pledge;
+the report that most of the people were not present at the Prophet's burial, and Ibn Tawus's
+grief over it; 'Ali's argument that «you took this affair from the Ansar and argued against
+them by kinship to the Prophet — and you take it from us by force»; Fatima carried by night
+among the assemblies of the Ansar asking for help; the reports of the threat at the door;
+Fatima's adjuration «the good pleasure of Fatima is of my good pleasure»; and Abu Bakr's
+«release me from my pledge».
+
+```
+blocks translated : 404/814    notes translated : 118/336
+pages published   : 87/189     sitemap : 3,848 URLs
+```
+
+**How this was handled, since it is the part of the book that most invites editorialising.**
+Al-Qummi's method here is to argue from sources his opponents accept — he quotes **Ibn
+Qutayba** (al-Imama wa'l-Siyasa), **Ibn 'Abd Rabbih** (al-'Iqd al-Farid), **al-Baladhuri**
+and **al-Mas'udi**, and al-Murtada's point that «the remarkable thing is that the shaykhs of
+the traditionists of the generality should relate it». That structure is the argument, so
+the attributions are carried exactly, including every page reference.
+
+The honorifics are left as each quoted source gives them, not normalised: 'Ali appears as
+«كرم الله وجهه» inside the Ibn Qutayba passages and «عليه السلام» in the Shi'i ones, and Abu
+Bakr keeps «رضي الله عنه» where his source wrote it. Flattening them to one house style
+would erase the visible seam between the quoted works — which is precisely what the
+author's argument rests on. Nothing is softened and nothing is sharpened; the variant
+readings the edition marks («a variant in the source») are carried across as variants.
+
+### Checked after building
+
+```
+english pages on disk                        87 (1..87), all in sitemap
+hreflang correct on all 189 arabic pages     en claimed for 1..87, and no further
+ar/en clusters reciprocal                    True
+footnotes rendered with their translation    118
+empty translation lines                      0
+english pages with an arabic description     0
+console errors on a fresh tab                none
+```
+
+Boundary confirmed: Arabic p87 carries `data-alt-en`, p88 does not.
+
+---
+
 ## 2026-09-11 (part 13)
 
 ### بيت الأحزان English: batch 8 — pages 64–75, the Saqifa poems
