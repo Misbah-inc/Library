@@ -4,6 +4,99 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-11 (part 10)
+
+### بيت الأحزان English: batch 5 — pages 28–39, at double the pace
+
+Twelve pages, roughly twice the previous batches, as asked.
+
+Ibn 'Unayn's ode against the Sharifs who robbed him and the dream in which al-Zahra
+answers him in verse — «Far be it from the sons of Fatima… it is only the days that have
+done ill by us» — and his repentance. Then **Chapter Two** opens: her likeness to her
+father in speech and in walk, «Fatima is a part of me», and the theological aside that the
+love of those brought near is never from appetite, illustrated from Ya'qub's love of Yusuf.
+
+Then the weighty material: al-Kulayni's report that God «was ever alone in His oneness,
+then created Muhammad, 'Ali and Fatima»; Abu Basir's questioning of al-Sadiq about
+**al-Jami'a, al-Jafr and the Mushaf of Fatima** — each answered «It is knowledge, yet it is
+not that» until the last; the she-camel al-'Adba' asking to whom she is entrusted; Fatima
+being told to say «father» rather than «O Messenger of God»; and the household narratives —
+the yellowed face from hunger, Salman at the hand-mill with blood on its handle, the mill
+turning with no hand upon it, and the origin of the **tasbīḥ** given in place of a servant.
+
+```
+blocks translated : 217/814    notes translated : 48/336
+pages published   : 39/189     sitemap : 3,800 URLs
+```
+
+Two renderings worth recording. The refrain «إنه لعلم وما هو بذلك» is kept identical each
+time it recurs — «It is knowledge, yet it is not that» — because the passage is built as a
+ladder and varying it would flatten the ascent. And «مصحف فاطمة» is left as *Mushaf of
+Fatima* rather than translated, since the report turns precisely on its NOT being a Qur'an:
+rendering it «book» or «scripture» would beg the question the hadith exists to answer.
+
+### Checked after building
+
+```
+english pages on disk                        39 (1..39), all in sitemap
+hreflang correct on all 189 arabic pages     en claimed for 1..39, and no further
+ar/en clusters reciprocal                    True
+footnotes rendered with their translation    48
+empty translation lines                      0
+english pages with an arabic description     0
+console errors on a fresh tab                none
+```
+
+Boundary confirmed: Arabic p39 carries `data-alt-en`, p40 does not.
+
+---
+
+## 2026-09-11 (part 9)
+
+### بيت الأحزان English: batch 4 — pages 22–27
+
+Chapter One continues, and this is the substance of it. Al-Mufaddal's question to al-Sadiq
+about how Fatima was born; the women of Mecca shunning Khadija for marrying «the orphan of
+Abu Talib, a poor man with no wealth», and the child speaking to her mother from within to
+comfort her; the four women who came when Quraysh refused — Sara, Asiya bint Muzahim,
+Maryam bint 'Imran and Kulthum the sister of Musa — and the light that filled the houses of
+Mecca at her birth.
+
+Then the **nine names** and the reasons given for each: «she was weaned away from evil»;
+al-Tahira for her purity; al-Zahra because her face shone for the Commander of the Faithful
+«at the beginning of the day like the sun in its brightness, at midday like the shining
+moon, and at the setting of the sun like the glittering star». Then al-Batul, the twenty
+names of the Manaqib, and the **kunyas** — including Umm Abiha — closing with her tenderness
+towards her husband and her children.
+
+```
+blocks translated : 152/814    notes translated : 24/336
+pages published   : 27/189     sitemap : 3,788 URLs
+```
+
+A translation point worth recording: the reasons given for the name Fatima all turn on
+فطم, to wean. English has no single word that carries the sense across «weaned from the
+Fire», «weaned by knowledge» and «weaned from menstruation», so «weaned away from» is used
+throughout rather than varying it — the whole passage is an argument from one root, and
+varying the verb would hide that from the English reader.
+
+### Checked after building
+
+```
+english pages on disk                        27 (1..27), all in sitemap
+hreflang correct on all 189 arabic pages     en claimed for 1..27, and no further
+ar/en clusters reciprocal on every translated page   True
+footnotes rendered with their translation    24
+empty translation lines                      0
+english pages with an arabic description     0
+prev/next                                    14 books, every chain unbroken
+console errors on a clean tab                none
+```
+
+Boundary confirmed directly: Arabic p27 carries `data-alt-en`, p28 does not.
+
+---
+
 ## 2026-09-11 (part 8)
 
 ### بيت الأحزان English: batch 3 — pages 16–21, and the first footnotes
