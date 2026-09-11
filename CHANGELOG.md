@@ -4,6 +4,93 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-11
+
+### Bihar: seven broken pager links, and a check that would have caught them
+
+Reported as "page 41 jumps to 81 on mobile". It was page **48**, and it was not mobile —
+the wrong href is in the HTML, identical on every device. The pager wraps to two rows on a
+narrow screen, which makes it easy to misread which page you are leaving.
+
+| Page | Had | Should be |
+|---|---|---|
+| `fa/bihar/1/48`, `ur/bihar/1/48` | next → **81** | 49 |
+| `fa/bihar/1/81`, `ur/bihar/1/81`, `en/bihar/1/81` | prev → **48** | 80 |
+| `fa/bihar/1/84`, `ur/bihar/1/84` | next → **disabled** | 85 |
+
+A reader going straight through Farsi or Urdu Bihar skipped 32 pages at 48, and stopped
+dead at 84. Arabic — the source of record — was clean, as were both Bayt al-Ahzan
+editions, both جامع volumes, the Qur'an and مفاتیح.
+
+**Cause: pages left behind by a superseded builder.** Today's `build.py` derives both
+links arithmetically (`n - 1`, `n + 1`) and cannot produce 81 from 48. The proof the
+pages are stale rather than freshly miscompiled is on the pages themselves — their
+`data-pagenum="48"` and `data-pos="47"` are correct, and both come from the same `n_`.
+One pass through today's code cannot emit `pos=47` and `next=81`. An earlier builder
+chained prev/next from the neighbouring entries **in the translation batch**. Batches are
+not contiguous runs of pages: in one of them 81 sat directly after 48, and in another 84
+was the last entry, so it got no next link at all. `en` shows the same fingerprint at 81
+only, meaning en/48 was rebuilt at some point and en/81 never was.
+
+### Repaired surgically, not by rebuilding
+
+A full rebuild fixes the links but **shortens the meta descriptions**, because
+`build.py`'s `description()` returns the first 150 characters of the *first* translated
+line. Page 81 opens with a heading, so a rebuild would reduce its description to
+«کتاب عقل و علم و جهل» — and «The Book of Intellect, Knowledge and Ignorance» in English.
+The live descriptions were written by an older function that spanned several nodes and
+are better. So each page took the rebuilt link markup and kept its existing description.
+
+The patch asserted, per page, that the line count was unchanged and that **every**
+differing line contained `rel="prev"` or `rel="next"` — it would have refused to write
+otherwise. Result: 2 lines changed per page, 7 pages, nothing else touched.
+
+### `verify_pagers.py` — the check that was missing
+
+`verify.py` proves a page carries the right *text*. Nothing proved it carried the right
+*navigation*, which is why seven broken links sat live while every check the project had
+passed them.
+
+It **walks the chain** rather than assuming page N links to N+1 — an assumption already
+false for two books here: Farsi Bayt al-Ahzan has 31 deliberate numbering gaps, and
+مفاتیح interleaves named slugs (`dua-kumayl`) with ordinals, so its neighbours are not
+numeric neighbours. Following the links is both stricter and general:
+
+* every prev/next href resolves to a real page of the same book
+* `next` and `prev` are inverses
+* exactly one page lacks a prev, exactly one lacks a next
+* from that head, following `next` reaches **every** page exactly once — this is what
+  catches both the skip at 48 and the dead end at 84
+* `<link rel=prev/next>` agrees with the pager buttons (written separately; only the
+  buttons were ever eyeballed)
+* `data-pagenum` matches the folder the page sits in
+
+```
+13 paginated book(s); every prev/next chain is a single unbroken path over all pages
+```
+
+> Two faults in the checker itself, both worth knowing. It first missed
+> `en|fa|ur/bihar/1` entirely by not descending three levels — it would have passed the
+> very trees that were broken. And it reported all 4,726 links broken because the pager
+> buttons are **relative** (`../2/`) while the `<head>` links are **absolute**; resolving
+> the absolute form as if it were relative makes every page disagree with itself.
+
+### For volume 2 and any future book
+
+- **Run `verify_pagers.py` before every commit that adds or rebuilds pages.** It is fast
+  and exits non-zero.
+- **Never derive prev/next from a batch's ordering.** A batch is a unit of translation
+  work, not a run of pages. Derive them from the page's own number, or from the full
+  ordered page list — never from "the next entry I happen to be holding".
+- **A rebuild is not neutral.** `description()` truncates at the first line, so
+  re-running `build.py` over pages that open with a heading will shorten their meta
+  descriptions. Diff before overwriting; this is why the repair above was surgical.
+- **`reextract.py` writes JSON to stdout and does not reconfigure it**, so on Windows it
+  dies with `UnicodeEncodeError: 'charmap'` on the first Arabic character. Run it as
+  `PYTHONIOENCODING=utf-8 python reextract.py …`.
+
+---
+
 ## 2026-09-06 (session 8, part 39)
 
 ### مفاتیح: a landing page that is a chooser, two real bugs fixed

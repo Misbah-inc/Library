@@ -30,6 +30,7 @@ extract.py → [external translation] → merge_build.py → verify.py → commi
 | `merge_build.py` | translation module + Arabic source → built pages |
 | `build.py` | page template, called by `merge_build.py` |
 | `verify.py` | checks built page against Arabic source — **must report 0 failures before commit** |
+| `verify_pagers.py` | walks every book's prev/next chain — **must report 0 broken links before commit** |
 | `reextract.py` | built page → JSON, losslessly (for re-templating without retranslating) |
 | `gen_sitemap.py` | rewrites `sitemap.xml` and `robots.txt` from what is on disk |
 | `quran_build.py` | Tanzil text → surah pages, cover, and the Qur'an's JSON assets |
@@ -68,7 +69,11 @@ python3 _translation-kit/merge_build.py tr_<lang>_<a>_<b> <outdir> --lang ur --v
 **Verify before committing:**
 ```bash
 python3 _translation-kit/verify.py <pages…> --lang ur --volume 1 --root <ar root> --out <outdir>
+python3 _translation-kit/verify_pagers.py
 ```
+`verify.py` proves the text; `verify_pagers.py` proves the navigation. Both are required —
+seven broken prev/next links sat live in Farsi and Urdu Bihar for months because only the
+first existed.
 
 **Extract Arabic pages to JSON for translation:**
 ```bash
@@ -139,6 +144,31 @@ Then open `http://localhost:8080`. This avoids CORS issues that block `catalog.j
 - **`.cite` is `display:none` on `en`, `fa` and `ur`** by the owner's request. A book's
   credit or attribution line must use `.book-credit`, or it disappears in three of the
   four languages.
+
+---
+
+## Pager invariants — the check that did not exist until 2026-09-11
+
+- **Never derive prev/next from a batch's ordering.** A batch is a unit of translation
+  work, not a run of pages. An earlier builder chained each page to the neighbouring
+  *entry in its batch*, which left `fa|ur/bihar/1/48` linking "next" to page **81** and
+  `fa|ur/bihar/1/84` with no next link at all — a 32-page skip and a dead end, live for
+  months. Derive them from the page's own number (`n - 1`, `n + 1`, as `build.py` does)
+  or from the full ordered page list, never from the batch.
+- **Run `verify_pagers.py` before any commit that adds or rebuilds pages.** It walks the
+  chain instead of assuming N → N+1, because that assumption is already false here:
+  Farsi Bayt al-Ahzan has 31 deliberate numbering gaps and مفاتیح interleaves named slugs
+  with ordinals. It asserts the chain is a single path reaching every page exactly once.
+- **`<link rel=prev/next>` and the pager buttons are written separately.** They must
+  agree; only the buttons are ever noticed. The head links are absolute and the buttons
+  relative, so any tool comparing them has to resolve both before comparing.
+- **A rebuild is not a no-op.** `build.py`'s `description()` takes the first 150 chars of
+  the *first* translated line, so re-running it over a page that opens with a heading
+  shortens that page's meta description to the heading alone. Diff before overwriting;
+  repair links surgically when that is the only fault.
+- **`reextract.py` does not reconfigure stdout.** On Windows it dies with
+  `UnicodeEncodeError: 'charmap'` on the first Arabic character — run it as
+  `PYTHONIOENCODING=utf-8 python reextract.py …`.
 
 ---
 
@@ -272,9 +302,10 @@ checkouts get CRLF; the published files are unaffected.
 
 Every time a new HTML page is added to the site (new language book index, new reading page, new section):
 
-1. Run `gen_sitemap.py` to regenerate `sitemap.xml`
-2. Update `CHANGELOG.md` with what was added
-3. Owner commits and pushes both files along with the new pages
+1. Run `verify_pagers.py` — it must report 0 broken links
+2. Run `gen_sitemap.py` to regenerate `sitemap.xml`
+3. Update `CHANGELOG.md` with what was added
+4. Owner commits and pushes both files along with the new pages
 
 Google picks up the updated sitemap automatically — no need to resubmit to Search Console.
 
