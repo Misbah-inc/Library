@@ -4,6 +4,178 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-11 (part 18)
+
+### بيت الأحزان English: batch 13 — pages 124–135
+
+Al-Jaz'i's quatrain and the young Abu Ja'far's answer to al-Rida (124); al-Qummi's own
+reflection on why the Imams' grief surfaced only at the name of Fatima, with al-Sadiq and
+al-Sakuni's daughter, and Bashshar al-Makari's report (125–126); the comparison with Shimr
+at Karbala — who was at least shamed into turning away (126–127); «ما زلت مظلوما منذ قبض
+الله نبيه» and the ziyara at 'Ali's grave (128); al-Shaykh Salih al-Hilli's ode, which runs
+across the page break (128–129); al-Mas'udi's account from Ithbat al-Wasiyya, with the five
+prophets 'Ali took as a pattern (130–132); and Fadak — Umm Ayman's testimony, the torn
+document, and 'Ali's argument from the verse of purification (133–135).
+
+```
+blocks translated : 589/814     notes translated : 198/336
+pages published   : 135/189     sitemap : 3,896 URLs
+```
+
+**Two editorial oddities in the source, kept rather than tidied.** Footnote 20 on p. 128 is
+the single word «و», the edition's way of tying notes 20 and 21 to one reference; it is
+rendered as *And*, not silently merged. And note 5 on p. 131 cites «الأعراف 5» for a verse
+that is not at that number. Both stay as printed: the standing rule is that the edition is
+reproduced, not corrected, and a silent fix here would misrepresent what the book says.
+
+Al-Hilli's ode is set as one continuous run of hemistichs across the 128/129 break, as the
+edition sets it — the page division falls mid-poem and is not a stanza boundary.
+
+Checked after building:
+
+```
+english pages on disk                              : 135 (1..135), contiguous
+all en pages in sitemap                            : True
+arabic hreflang correct on all 189                 : True  (en for 1..135, no further)
+data-alt-en boundary exact at 135/136              : True
+ar/en clusters reciprocal on every translated page : True
+x-default → arabic on all 189                      : True
+arabic tree round-trip                             : 814/814 blocks + 336/336 notes exact
+english tree round-trip                            : every arabic block and note exact,
+                                                     every translation line exact
+en pager chain 1..135 (prev/next walked)           : exact
+unique canonicals on en pages                      : 135, no duplicates
+unresolved footnote refs / arabic descriptions     : none / 0
+machine-translation badge                          : 135/135 en, 0/189 ar
+page-jump dropdown on en p134                      : 135 options, 1..135 only
+/en/bayt-al-ahzan/136/                             : 404, and nothing links to it
+console errors / 404s on a clean load              : none
+```
+
+---
+
+## 2026-09-11 (part 17)
+
+### بيت الأحزان English: batch 12 — pages 112–123
+
+The hardest stretch of the book. Al-Kulayni's report of Fatima seizing 'Umar's garment and
+the oath she did not swear (112); 'Ali and al-Zubayr driven to the pledge, and Ibn Abi
+al-Hadid's own defence of the two shaykhs, given in full (112–113); Sulaym b. Qays's
+account of the door, the rib and the miscarriage (114–115); al-Hasan's rebuke of al-Mughira
+(116); Fatima at her father's grave with the two elegies and the litany of «وا…» cries
+(117–119); 'Umar's letter of covenant to Mu'awiya in his own voice (120–121); what was told
+to the Prophet on the night of the Ascension, and al-Sadiq weeping (122–123).
+
+```
+blocks translated : 528/814     notes translated : 172/336
+pages published   : 123/189     sitemap : 3,884 URLs
+```
+
+Rendered exactly as the edition has it, and nothing softened, dropped or smoothed —
+including Ibn Abi al-Hadid's argument that these were minor sins, which al-Qummi prints in
+order to answer it and which loses its point if trimmed. The compiler's own closing barb on
+that passage («عليه ما يستحقه ويريد») is translated too rather than dropped as an aside.
+Fatima's cries at the grave are kept as a series of separate exclamations, not compressed
+into one line: the Arabic is a list and reads as a list.
+
+The round-trip integrity check introduced in part 16 now runs over both trees as standard,
+covering notes as well as blocks, and both directions of the English pairing:
+
+```
+arabic tree : 814/814 blocks + 336/336 notes recovered exactly from the rendered HTML
+english tree: every arabic block and note recovered exactly, each paired with its own
+              translation line, and every translation line equal to bayt_tr_en.json
+```
+
+Checked after building:
+
+```
+english pages on disk                              : 123 (1..123), contiguous
+all en pages in sitemap                            : True
+arabic hreflang correct on all 189                 : True  (en for 1..123, no further)
+data-alt-en boundary exact at 123/124              : True
+ar/en clusters reciprocal on every translated page : True
+x-default → arabic on all 189                      : True
+unique canonicals on en pages                      : 123, no duplicates
+unresolved footnote refs                           : none
+english pages carrying an arabic description       : 0
+machine-translation badge                          : 123/123 en, 0/189 ar
+en pager chain 1..123 (prev/next walked)           : exact
+page-jump dropdown on en p121                      : 123 options, 1..123 only
+/en/bayt-al-ahzan/124/                             : 404, and nothing links to it
+console errors / 404s on a clean load              : none
+```
+
+---
+
+## 2026-09-11 (part 16)
+
+### بيت الأحزان English: batch 11 — pages 100–111
+
+Ibn Abi al-Hadid's report of 'Ali and Fatima going by night to the houses of the Ansar, and
+Mu'awiya's letter throwing it back at him (100–101); Malik b. Nuwayra in the mosque, his
+verse, and Khalid's killing of him (102–105); 'Ali's collected Qur'an presented to the
+people and refused (106–108); and the fire at the door of Fatima's house from Sulaym b.
+Qays, with al-'Ayyashi's and al-Ihtijaj's accounts of her going out towards the grave
+(109–111).
+
+```
+blocks translated : 483/814     notes translated : 155/336
+pages published   : 111/189     sitemap : 3,872 URLs
+```
+
+Rendered as the edition presents it, without softening and without expansion — the same
+rule the whole book has followed. Malik's verse keeps its images (the ten-month camels, the
+hornless sheep) because the edition footnotes them; those footnotes are translated with
+their glosses intact.
+
+**A verification line that had been passing vacuously.** Every batch reported *arabic
+blocks still present verbatim on their page*. That check read each block as `b["t"]` or
+`b.get("text","")` — but the field in `bayt_ar_blocks.json` is `ar`. Both lookups returned
+the empty string, and `"" in html` is true for every page, so the check passed 814 times
+without ever comparing anything. It had reported *True* since the pipeline was built.
+
+Replaced with a real round-trip: recover each rendered `<p lang="ar" data-i="N">` back to
+source form — undo `esc()` and turn `<a class="fnref">K</a>` back into `[K]` — and require
+exact string equality with `bayt_ar_blocks.json`.
+
+```
+arabic tree  : 814/814 blocks and 336/336 notes round-trip exactly
+english tree : 483 arabic blocks + 155 arabic notes round-trip exactly,
+               each paired with its own translation line, none missing
+```
+
+So the Arabic was in fact intact the whole time — but that was luck confirmed after the
+fact, not something the old check ever established. Two dead ends on the way to the real
+number are worth recording, because both look like corruption and are not: `html.escape`
+with `quote=False` does not match the builder, which escapes quotes; and a note body sits
+inside its own `<span>`, with the English note carrying a second `<span class="tr-line">`
+after the Arabic.
+
+> For future batches: the fields are `ar` on a block and `ar` on a note, keyed `i` and `n`.
+> A check that reads a field which does not exist does not fail — it passes.
+
+Checked after building:
+
+```
+english pages on disk                              : 111 (1..111), contiguous
+all en pages in sitemap                            : True
+arabic hreflang correct on all 189                 : True  (en for 1..111, no further)
+data-alt-en boundary exact at 111/112              : True
+ar/en clusters reciprocal on every translated page : True
+x-default → arabic on all 189                      : True
+unique canonicals on en pages                      : 111, no duplicates
+empty translation lines / unresolved footnote refs : 0 / 0
+english pages carrying an arabic description       : 0
+machine-translation badge on en pages              : 111/111 (and 0/189 arabic)
+arabic + english round-trip integrity              : exact, see above
+/en/bayt-al-ahzan/112/                             : 404, and nothing links to it
+page-jump dropdown on en p109                      : 111 options, 1..111 only
+console errors / 404s on a clean load (fresh tab)  : none
+```
+
+---
+
 ## 2026-09-11 (part 15)
 
 ### بيت الأحزان English: batch 10 — pages 88–99
@@ -56,7 +228,8 @@ unique canonicals on en pages                      : 99, no duplicates
 empty translation lines                            : 0
 english pages carrying an arabic description       : 0
 footnote refs resolving to a note on the same page : all
-arabic blocks still present verbatim on their page : all 814
+arabic blocks still present verbatim on their page : (see part 16 — this line
+                                                     rested on a vacuous check)
 /en/bayt-al-ahzan/100/                             : 404, and nothing links to it
 console errors / 404s on a clean load (fresh tab)  : none
 ```
