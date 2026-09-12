@@ -4,6 +4,78 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-11 (part 19)
+
+### بيت الأحزان English: batches 14–17 — pages 136–189. **The book is complete.**
+
+Run through to the end in one session rather than a batch at a time, at the owner's
+instruction to stop waiting for a go-ahead between batches.
+
+```
+blocks translated : 814/814     notes translated : 336/336
+pages published   : 189/189     sitemap : 3,950 URLs
+```
+
+**136–147** — Khalid ordered to kill 'Ali at the greeting of the prayer, and Abu Bakr's
+retraction mid-tashahhud; Ibn Abi al-Hadid's question to the naqib about how 'Ali survived
+at all; 'Ali's letter to Abu Bakr; and **the Fadakiyya** — Fatima's sermon entire, from the
+praise of God to «فاعملوا إنا عاملون».
+
+**148–159** — Abu Bakr's reply and her answer to it; the elegy «قد كان بعدك أنباء وهنبثة»;
+her words to 'Ali on returning from the mosque; Abu Bakr's pulpit speech about the fox and
+its tail, with the naqib's gloss; Umm Salama's protest; al-Jahiz's argument on what the
+silence of the companions proves; Umm Ayman's testimony; and the Ikhtisas report, which
+al-Qummi himself flags as weaker than the rest and includes only because al-Majlisi did.
+
+**160–171** — Zaynab's necklace sent to ransom Abu al-'As, and the naqib's question of why
+Fadak was not asked of the Muslims the same way; al-Judhu'i's ode; then the fourth chapter:
+her weeping, Bilal's unfinished call to prayer, and **the House of Sorrows** that 'Ali built
+for her at al-Baqi' — the passage the book takes its name from.
+
+**172–189** — the two shaykhs admitted at last and her oath against them; Asma's covered
+bier, at which she smiled, the only time she was seen to smile; her words to the women of
+the Muhajirun and Ansar; her washing, shrouding and burial by night; the seven false graves;
+'Ali's address at the Prophet's grave («استرجعت الوديعة وأخذت الرهينة»); the dispute at
+al-Baqi'; her written bequest; and al-Qummi's closing note on the ninety-five days.
+
+**Two source defects preserved rather than repaired.** Page 175 carries a dittography — a
+clause of Umm Salama's exchange set twice by the compositor — and it is translated twice, as
+it stands. Page 131's note 5 cites a sura and verse that do not hold the verse quoted. The
+Arabic is the source of record and is never altered; silently smoothing either one in the
+English would make the translation disagree with the page beside it.
+
+**A verification script instead of a retyped block.** From batch 14 the checks run from one
+script taking the published prefix as its argument, and it exits non-zero on any failure, so
+a batch cannot be reported done over a failing check. Every batch from 14 to 17 passed it
+before the next was begun.
+
+Final state, all 189 pages:
+
+```
+english pages on disk                              : 189 (1..189), contiguous
+all en pages in sitemap                            : True (3,950 URLs)
+arabic hreflang correct on all 189                 : True  (en claimed for every page)
+ar/en clusters reciprocal on every page            : True
+x-default → arabic on all 189                      : True
+arabic tree round-trip                             : 814/814 blocks + 336/336 notes exact
+english tree round-trip                            : every arabic block and note exact,
+                                                     every translation line exact
+en pager chain 1..189 (prev/next walked)           : exact; p1 has no prev, p189 no next
+unique canonicals on en pages                      : 189, no duplicates
+empty translation values / rendered empty tr-lines : 0 / 0
+unresolved footnote refs                           : none
+english pages carrying an arabic description       : 0
+machine-translation badge                          : 189/189 en, 0/189 ar
+/en/bayt-al-ahzan/190/                             : 404, and nothing links to it
+console errors / 404s on a clean load              : none
+```
+
+> بيت الأحزان is now the second complete book-length translation on the site, after Bihar
+> vol. 1. 44,000 words of Arabic; every page has its own URL, its own canonical, and a
+> reciprocal hreflang pair, so each is independently indexable.
+
+---
+
 ## 2026-09-11 (part 18)
 
 ### بيت الأحزان English: batch 13 — pages 124–135

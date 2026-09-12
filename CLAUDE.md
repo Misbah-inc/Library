@@ -396,6 +396,7 @@ On top of the above, before the owner is asked to commit:
 | `quran/assets/` | — | `toc.json`, `qnav.json`, `qnav.js`, `tr/*.json` (12 translations), `votd.json` + `votd/*.json` |
 | `bayt-al-ahzan/` | 1 | Arabic cover (5 chapters, دار الحكمة edition, Bihar-style) |
 | `bayt-al-ahzan/1–189/` | 189 | Arabic original (Qummi), pages 1–189 |
+| `en/bayt-al-ahzan/1–189/` | 189 | English (machine, reviewed prose) of the Arabic, complete 2026-09-11 |
 | `bayt-al-ahzan-fa/` | 1 | Farsi cover |
 | `bayt-al-ahzan-fa/1–262/` | 262 | Complete Persian text (Ishtihardi), printed pages |
 | `jame-al-muqaddimat/` | 1 | Volume selector |
@@ -608,10 +609,15 @@ In rough priority order. Nothing here is started.
    per-language index pages". Those are different facts, and the Qur'an already had to be
    special-cased around it once. An explicit `langIndex: true` in `catalog.json` would be
    sturdier. Touches the Bihar and Qur'an cards, which currently work — change carefully.
-2. **Bayt al-Ahzan in en / ur.** Arabic original is now live at `/bayt-al-ahzan/1–189/`.
-   Extract Arabic blocks with `bayt_ar_build.py`, send to translation, then `bayt_ar_build.py`
-   with `--lang en --tr en.json --out ../Library/en/bayt-al-ahzan` (pipeline TBD). The Farsi
-   is the source of record for the Persian translation — that too can go to en/ur via `bayt_build.py`.
+2. **Bayt al-Ahzan in Urdu.** English is **done** — all 189 pages live at
+   `/en/bayt-al-ahzan/1–189/` as of 2026-09-11, 814 blocks and 336 notes. Urdu follows the
+   same route: translate into a `bayt_tr_ur.json` keyed `<page>:<block>` and `<page>:n<note>`,
+   then the **three builds together** —
+   `bayt_ar_build.py bayt_ar_blocks.json --out ../ur/bayt-al-ahzan --lang ur --tr bayt_tr_ur.json --upto N --alts ar,en,ur`,
+   the Arabic rebuild with `--tr-upto N --alts ar,en,ur`, then `gen_sitemap.py --root ..`.
+   **Both flags are needed on the Arabic rebuild**: `--tr-upto` says how far the translation
+   reaches, `--alts` says the language exists at all; either alone silently leaves the
+   switcher unable to reach pages that are sitting right there.
 3. **Bihar volume 2.** The pipeline is proven on volume 1; this is throughput, not design.
 4. **A `.gitattributes`** to silence the CRLF warnings, if the noise ever matters.
 
