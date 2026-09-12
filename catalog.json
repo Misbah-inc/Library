@@ -146,7 +146,13 @@
       "unit": "chapters",
       "pages": 189,
       "href": "bayt-al-ahzan/",
-      "srclang": "ar"
+      "srclang": "ar",
+      "translated": [
+        "en"
+      ],
+      "volumesPublished": [
+        1
+      ]
     },
     {
       "slug": "bayt-al-ahzan-fa",

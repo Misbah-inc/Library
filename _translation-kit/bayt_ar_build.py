@@ -56,6 +56,18 @@ TITLES = {"ar": "بيت الأحزان في مصائب سيدة النسوان",
           "ur": "رنج ہا و فریادہای فاطمہ سلام اللہ علیہا"}
 PAGEWORD = {"ar": "ص", "fa": "ص", "ur": "ص", "en": "p."}
 
+# Languages with a cover AND a full page tree at /<lang>/bayt-al-ahzan/.
+# Set in main() from --alts. fa must never appear here: the Persian book is a
+# different edition at /bayt-al-ahzan-fa/, and listing it made the cover's
+# chapter links point at /fa/bayt-al-ahzan/<n>/, which is a 404 for every
+# chapter. That bug was fixed once in the built HTML and came straight back on
+# the next rebuild, because the builder still emitted it.
+COVER_LANGS = ["ar"]
+AUTHORS = {"ar": "الشيخ عباس القمي",
+           "en": "Shaykh Abbas al-Qummi"}
+PUBS    = {"ar": "دار الحكمة، قم",
+           "en": "Dar al-Hikma, Qum"}
+
 
 def tr_of(page_n, key):
     return TR.get(f"{page_n}:{key}", "")
@@ -341,10 +353,41 @@ def build_toc_json(data):
     return chapters
 
 
-def build_arabic_cover(data, out_dir):
+def build_cover(data, out_dir):
+    """The book cover, in whatever language LANG is.
+
+    Arabic and English get a real cover each. A reader browsing the site in
+    English who clicks the book from the catalogue has to land on an English
+    page; before this existed they landed on the Arabic cover and had no way
+    of knowing a translation was there at all until they opened a reading
+    page and used the switcher."""
     pages = data['pages']
     nums  = [p['n'] for p in pages]
     first = nums[0]
+    # /bayt-al-ahzan/ is one level under the root; /en/bayt-al-ahzan/ is two.
+    up   = ".." if LANG == "ar" else "../.."
+    titles = CHAPTERS if LANG == "ar" else CHAPTERS_EN
+    BTITLE = TITLES.get(LANG, TITLE)
+    BAUTH  = AUTHORS.get(LANG, AUTH)
+    BPUB   = PUBS.get(LANG, PUB)
+    # data-book must point at a folder that HAS assets/toc.json — the Arabic
+    # book root. A translated cover pointing at itself makes the Contents
+    # drawer fetch /<lang>/<slug>/assets/toc.json, which is a 404.
+    cover_book = "." if LANG == "ar" else f"{up}/{SLUG}"
+    # A translated cover pins its language. Without this it adopts whatever the
+    # reader last chose site-wide, so someone opening the English URL with
+    # Arabic stored sees an Arabic page under an English canonical — the page
+    # would contradict its own hreflang. The Arabic cover deliberately has no
+    # data-sitelang: it is the source of record and follows the switcher, so a
+    # reader who picks English there is carried into the English pages.
+    cover_sitelang = "" if LANG == "ar" else f' data-sitelang="{LANG}"'
+    # The chapter titles on a translated cover are themselves machine output,
+    # so the cover carries the same badge every translated page carries.
+    cover_badge = ('' if LANG == "ar" else
+                   '<p class="tr-note machine cover-note">'
+                   '<svg class="ic" viewBox="0 0 24 24"><path d="M12 3v2M5 8h14v11H5z"/>'
+                   '<circle cx="9" cy="13" r="1.2"/><circle cx="15" cy="13" r="1.2"/></svg>'
+                   '<span data-i18n="machineTr"></span></p>')
 
     chap_list = sorted(CHAPTERS)
     # Build chapter start-page map (first page that belongs to each chapter)
@@ -360,36 +403,51 @@ def build_arabic_cover(data, out_dir):
         cend  = chap_list[i + 1] - 1 if i + 1 < len(chap_list) else nums[-1]
         fp    = first_page_of(cstart)
         count = sum(1 for n in nums if cstart <= n <= cend)
-        label = CHAPTERS[cstart]
+        label = titles[cstart]
+        # Chapter titles swap in place with the language switcher, through
+        # reader.js's [data-ar] handler: a reader who sets the site to English
+        # on the ARABIC cover follows links into the English pages, so leaving
+        # the titles in Arabic labels English destinations in Arabic.
+        # No lang attribute here on purpose — reader.js keeps <html lang> and
+        # dir in step with the switcher, and a hardcoded lang="ar" would render
+        # the swapped English title in Amiri, right-to-left.
+        data_attrs = f' data-ar="{esc(CHAPTERS[cstart])}"'
+        if CHAPTERS_EN.get(cstart):
+            data_attrs += f' data-en="{esc(CHAPTERS_EN[cstart])}"'
         chap_cells.append(
             f'<a class="chap-cell" href="{fp}/" data-n="{fp}">'
             f'<span class="chap-n">{i+1}</span>'
-            f'<span class="chap-title" lang="ar">{esc(label)}</span>'
-            f'<span class="chap-pages">{count} ص</span></a>'
+            f'<span class="chap-title"{data_attrs}>{esc(label)}</span>'
+            f'<span class="chap-pages" data-ar="{count} ص" data-en="{count} p.">'
+            f'{count} {PAGEWORD[LANG]}</span></a>'
         )
     chaps_grid = '\n'.join(chap_cells)
 
     canonical = f'<link rel="canonical" href="{abs_url()}">'
-    alts = (f'<link rel="alternate" hreflang="ar" href="{abs_url()}">'
-            f'<link rel="alternate" hreflang="fa" href="{SITE}/bayt-al-ahzan-fa/">'
-            f'<link rel="alternate" hreflang="x-default" href="{abs_url()}">')
+    # Only languages that actually have a cover may be claimed here. The Farsi
+    # edition is a DIFFERENT book with its own pagination, so it is linked at
+    # its own slug, never as /fa/bayt-al-ahzan/.
+    alts = ''.join(f'<link rel="alternate" hreflang="{L}" href="{abs_url(lang=L)}">'
+                   for L in COVER_LANGS)
+    alts += (f'<link rel="alternate" hreflang="fa" href="{SITE}/bayt-al-ahzan-fa/">'
+             f'<link rel="alternate" hreflang="x-default" href="{abs_url(lang="ar")}">')
 
     html_out = f"""<!DOCTYPE html>
-<html lang="ar" dir="rtl" data-root=".." data-book=".">
+<html lang="{LANG}" dir="{DIR[LANG]}" data-root="{up}" data-book="{cover_book}"{cover_sitelang}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{esc(TITLE)}</title>
-<meta name="description" content="{esc(TITLE)} — {esc(AUTH)} — {esc(PUB)}">
+<title>{esc(BTITLE)}</title>
+<meta name="description" content="{esc(BTITLE)} — {esc(BAUTH)} — {esc(BPUB)}">
 {canonical}{alts}
-<link rel="stylesheet" href="../assets/reader.css?v={ASSETS_V}">
+<link rel="stylesheet" href="{up}/assets/reader.css?v={ASSETS_V}">
 </head>
 <body class="cover">
 <a class="skip" href="#main">&rarr;</a>
 <header class="bar"><div class="bar-in">
-  <a class="brand" href="../"><b data-i18n="libName"></b><small>Misbah Library</small></a>
+  <a class="brand" href="{up}/"><b data-i18n="libName"></b><small>Misbah Library</small></a>
   <div class="spacer"></div>
-  <a class="tbtn" href="../"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span class="lbl" data-i18n="home"></span></a>
+  <a class="tbtn" href="{up}/"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span class="lbl" data-i18n="home"></span></a>
   <button class="tbtn icon-only" id="btn-menu" aria-label="Menu">
     <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   <div class="langs" role="group">
@@ -399,12 +457,12 @@ def build_arabic_cover(data, out_dir):
 </div></header>
 <main class="wrap" id="main">
   <div class="cover-hero">
-    <p class="by" lang="ar">{esc(AUTH)}</p>
-    <h1 class="book-title" lang="ar">{esc(TITLE)}</h1>
-    <p class="book-sub" lang="ar">{esc(PUB)}</p>
+    <p class="by" lang="{LANG}">{esc(BAUTH)}</p>
+    <h1 class="book-title" lang="{LANG}">{esc(BTITLE)}</h1>
+    <p class="book-sub" lang="{LANG}">{esc(BPUB)}</p>{cover_badge}
     <a class="btn start" href="{first}/" data-i18n="startReading"></a>
   </div>
-  <section class="chaps" data-langpath="{SLUG}" data-langs="ar,fa">
+  <section class="chaps" data-langpath="{SLUG}" data-langs="{",".join(COVER_LANGS)}">
     {chaps_grid}
   </section>
 </main>
@@ -412,22 +470,22 @@ def build_arabic_cover(data, out_dir):
   <div class="nav-head"><b data-i18n="menu"></b>
     <button id="nav-close" aria-label="Close">✕</button></div>
   <ul>
-    <li><a href="../"><span data-i18n="home"></span></a></li>
-    <li><a href="../books/"><span data-i18n="allBooks"></span></a></li>
-    <li><a href="../search/"><span data-i18n="search"></span></a></li>
+    <li><a href="{up}/"><span data-i18n="home"></span></a></li>
+    <li><a href="{up}/books/"><span data-i18n="allBooks"></span></a></li>
+    <li><a href="{up}/search/"><span data-i18n="search"></span></a></li>
   </ul>
 </nav>
 <footer class="foot"><div class="foot-in">
   <div><h3 data-i18n="libName"></h3></div>
   <div><h3 data-i18n="browse"></h3><ul>
-    <li><a href="../" data-i18n="home"></a></li>
-    <li><a href="../books/" data-i18n="allBooks"></a></li>
-    <li><a href="../search/" data-i18n="search"></a></li>
-    <li><a href="../about/" data-i18n="about"></a></li>
-    <li><a href="../contact/" data-i18n="contact"></a></li>
+    <li><a href="{up}/" data-i18n="home"></a></li>
+    <li><a href="{up}/books/" data-i18n="allBooks"></a></li>
+    <li><a href="{up}/search/" data-i18n="search"></a></li>
+    <li><a href="{up}/about/" data-i18n="about"></a></li>
+    <li><a href="{up}/contact/" data-i18n="contact"></a></li>
   </ul></div>
 </div></footer>
-<script src="../assets/reader.js?v={ASSETS_V}" defer></script>
+<script src="{up}/assets/reader.js?v={ASSETS_V}" defer></script>
 </body>
 </html>"""
 
@@ -465,9 +523,11 @@ def main():
                          'at a 404 and invalidates all of it.')
     args = ap.parse_args()
 
-    global LANG, TR, R, PUB_LANGS, TR_UPTO
+    global LANG, TR, R, PUB_LANGS, TR_UPTO, COVER_LANGS
     LANG = args.lang
     PUB_LANGS = [x.strip() for x in args.alts.split(',') if x.strip()]
+    # fa is never a cover language here — see COVER_LANGS.
+    COVER_LANGS = [L for L in PUB_LANGS if L != 'fa']
     TR_UPTO = args.tr_upto if args.tr_upto else (args.upto or 0)
     if LANG not in PUB_LANGS:
         sys.exit(f'--alts must include --lang ({LANG}); hreflang sets are self-referential')
@@ -516,9 +576,9 @@ def main():
         tj.write_text(json.dumps(toc, ensure_ascii=False, indent=2), encoding=enc)
         print(f'  toc.json → {tj}  ({len(toc)} chapters)')
 
-    # ── Arabic cover ─────────────────────────────────────────────────────────
-    if (args.cover or not (args.pages or args.page)) and LANG == 'ar':
-        build_arabic_cover(data, out_dir)
+    # ── cover, in this build's language ──────────────────────────────────────
+    if args.cover or not (args.pages or args.page):
+        build_cover(data, out_dir)
 
     # ── reading pages ────────────────────────────────────────────────────────
     if args.page:

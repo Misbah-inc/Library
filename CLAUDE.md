@@ -186,6 +186,26 @@ Then open `http://localhost:8080`. This avoids CORS issues that block `catalog.j
 - **After any change to that builder, rebuild the Arabic and diff it against what is live.**
   It must come out byte-identical. A stray newline in the template put a blank line on all
   189 Arabic pages and only the diff caught it.
+- **`COVER_LANGS` must never contain `fa`.** The cover's `.chaps` grid takes its language
+  prefix from `data-langs`; listing `fa` makes every chapter link `/fa/bayt-al-ahzan/<n>/`,
+  which is a 404 for all five. This was fixed once in the built HTML and came straight back
+  on the next rebuild, because only the output was patched. **A fix applied to generated
+  output is not a fix** — it survives until the next build. Patch the builder.
+- **Each language with pages needs a cover of its own**, built by the same
+  `build_cover()` with `--lang <L> --cover`. A translated cover needs three things the
+  reading pages already have: `data-sitelang="<L>"` (or it adopts whatever language the
+  reader last chose, serving the wrong language under that URL's canonical),
+  `data-book="../../bayt-al-ahzan"` (Contents loads `BOOK + '/assets/toc.json'`, and only
+  the Arabic root has one), and depth-correct relative links — it sits one level deeper.
+- **Chapter titles on the cover carry `data-ar`/`data-en` and swap in place**, through
+  reader.js's `[data-ar]` handler, because the Arabic cover's links follow the chosen
+  language into the translated pages. Give those spans no `lang` attribute: reader.js keeps
+  `<html lang>`/`dir` in step, and a hardcoded `lang="ar"` renders swapped English in Amiri,
+  right-to-left.
+- **A new translation is not reachable until `catalog.json` says so.** `bookCard()` gates
+  the language prefix on `translated` *and* a non-empty `volumesPublished`; without both,
+  readers browsing in that language get the Arabic cover and never learn the translation
+  exists.
 
 ---
 
@@ -396,6 +416,7 @@ On top of the above, before the owner is asked to commit:
 | `quran/assets/` | — | `toc.json`, `qnav.json`, `qnav.js`, `tr/*.json` (12 translations), `votd.json` + `votd/*.json` |
 | `bayt-al-ahzan/` | 1 | Arabic cover (5 chapters, دار الحكمة edition, Bihar-style) |
 | `bayt-al-ahzan/1–189/` | 189 | Arabic original (Qummi), pages 1–189 |
+| `en/bayt-al-ahzan/` | 1 | English cover (5 chapters, English titles) |
 | `en/bayt-al-ahzan/1–189/` | 189 | English (machine, reviewed prose) of the Arabic, complete 2026-09-11 |
 | `bayt-al-ahzan-fa/` | 1 | Farsi cover |
 | `bayt-al-ahzan-fa/1–262/` | 262 | Complete Persian text (Ishtihardi), printed pages |

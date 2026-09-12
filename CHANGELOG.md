@@ -4,6 +4,100 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-11 (part 20)
+
+### Language switching, checked end to end — and two faults it exposed
+
+The owner asked for a switching check: start in Arabic or Farsi and reach English, start
+in English, and have the chapter list on the landing page and in Contents follow the
+chosen language. Driven in a real browser, both directions, all four languages.
+
+**What already worked.** Arabic page N ↔ English page N switches both ways and lands on
+the same page. Farsi goes to the Persian edition's cover, as designed — that book has
+unrelated pagination, so there is no page-for-page target. Urdu, which has no edition,
+switches the interface only and leaves the Arabic text, which is the intended fallback.
+The Contents drawer on an English reading page already rendered English chapter titles and
+linked to English pages: `toc.json` carries an `en` field and reader.js rewrites the hrefs
+per language.
+
+**Fault 1 — a fixed bug had come back, through my own rebuilds.** The Arabic cover carried
+
+```html
+<section class="chaps" data-langpath="bayt-al-ahzan" data-langs="ar,fa">
+```
+
+so with the site in Farsi every chapter link became `/fa/bayt-al-ahzan/<n>/` — a 404, for
+all five chapters. This is the 2026-09-11 (part 2) bug. **That fix was applied to the built
+HTML and never to the builder**, so the first cover rebuild of this session silently
+restored it, and every rebuild after that kept it. Fixed in `bayt_ar_build.py` this time:
+`COVER_LANGS` is derived from `--alts` with `fa` filtered out, and the constant carries the
+reason so it is not "corrected" back.
+
+> The lesson is narrow and worth keeping: **a fix applied to generated output is not a
+> fix.** It survives exactly until the next build. Nothing in the checks caught this,
+> because every check compared the built pages against the source data — and the cover is
+> not derived from page data at all.
+
+**Fault 2 — the English book had no landing page.** `/en/bayt-al-ahzan/` did not exist;
+`build_arabic_cover()` was gated on `LANG == 'ar'`. A reader browsing the site in English
+who clicked the book from the catalogue landed on the **Arabic** cover, with no indication
+a full translation existed until they opened a page and found the switcher. The dev server
+masked it by serving a directory listing where GitHub Pages would return a 404.
+
+`build_cover()` is now language-aware and builds both. The English cover carries English
+title, author, publisher, chapter titles and page counts, its own canonical, the reciprocal
+hreflang pair, and the machine-translation badge — the chapter titles are machine output
+too. Three details it needs and the reading pages already had:
+
+- `data-sitelang="en"`, so it pins to English. Without it the page adopts whatever language
+  the reader last chose site-wide, so opening the English URL with Arabic stored served an
+  Arabic page under an English canonical — a page contradicting its own hreflang.
+- `data-book="../../bayt-al-ahzan"`, not `"."`. Contents loads `BOOK + '/assets/toc.json'`,
+  and only the Arabic book root has one.
+- Depth-correct relative links throughout: the cover sits one level deeper than the Arabic.
+
+**Chapter titles now swap in place on the Arabic cover.** With the site in English the
+Arabic cover's chapter links already pointed into the English pages, but the titles stayed
+Arabic — English destinations labelled in Arabic. They now carry `data-ar`/`data-en` and
+swap through reader.js's existing `[data-ar]` handler, page counts with them (`17 ص` →
+`17 p.`). No `lang` attribute on those spans on purpose: reader.js keeps `<html lang>` and
+`dir` in step, and a hardcoded `lang="ar"` would render the swapped English in Amiri,
+right-to-left.
+
+**`catalog.json`**: the Bayt al-Ahzan entry gains `"translated": ["en"]` and
+`"volumesPublished": [1]`, which is what `bookCard()` gates the language prefix on. English
+readers' cards now point at `/en/bayt-al-ahzan/`; Farsi and Urdu fall back to the Arabic
+cover, which is correct — neither language has an edition of this book.
+
+Verified in the browser, not inferred:
+
+```
+ar p50 → en p50, and en p50 → ar p50                    : both land on page 50
+fa from an arabic page                                  : Persian edition cover (by design)
+ur                                                      : interface only, arabic text kept
+arabic cover with site in fa — chapter links            : /bayt-al-ahzan/<n>/, all 200
+                                                          (was /fa/…, all 404)
+arabic cover with site in en — links / titles / counts  : english pages, english titles, "p."
+english cover with "ar" stored in localStorage          : stays english, ltr, english titles
+english cover chapter links                             : /en/bayt-al-ahzan/<n>/, all 200
+catalogue card, all 4 languages × 6 books (24 links)    : every one resolves 200
+ar/en cover hreflang                                    : reciprocal, x-default → arabic
+canonicals                                              : distinct per language
+console on a clean load                                 : one 404, the site-wide missing
+                                                          favicon (known, unrelated)
+all 189 pages + sitemap + pager chain                   : re-verified, all pass
+```
+
+Arabic reading pages rebuilt and diffed: **byte-identical**. The only Arabic change is on
+the cover, and it is the two intended lines.
+
+> **`<head>` change — approved by the owner, 2026-09-11.** The Arabic cover gains
+> `<link rel="alternate" hreflang="en" href="…/en/bayt-al-ahzan/">`, required for the pair
+> to be reciprocal; hreflang is ignored wholesale otherwise. Structural `<head>` changes
+> remain the owner's call each time — this one was put to them and kept.
+
+---
+
 ## 2026-09-11 (part 19)
 
 ### بيت الأحزان English: batches 14–17 — pages 136–189. **The book is complete.**
