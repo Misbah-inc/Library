@@ -4,6 +4,71 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-11 (part 22)
+
+### بيت الأحزان Urdu: **complete — 189/189**
+
+Run through from page 13 to the end without stopping, at the owner's instruction.
+
+```
+urdu  : 814/814 blocks   336/336 notes   189/189 pages
+english: unchanged at 189/189
+sitemap: 4,141 URLs
+```
+
+The book now exists in three languages: the Arabic source of record, English, and Urdu —
+each page independently addressable, canonicalised and cross-linked.
+
+**A real fault the browser check caught after every automated check had passed.** The Urdu
+tree was built without `--tr-upto`, so `langs_for()` saw only Urdu and the pages came out
+carrying `data-alt-ar` and `data-alt-fa` and **nothing for English** — no `data-alt-en`, no
+`hreflang="en"`. English claimed Urdu; Urdu did not claim English. A one-directional
+hreflang cluster is ignored wholesale, so both languages would have lost the pairing.
+
+`verify_bayt_ur.py` passed it, because it checked ar↔ur reciprocity and never en↔ur. That
+gap is now closed, with the reason recorded in the file:
+
+> Every published language must be checked against every other, not only against the
+> Arabic. Checking each translation against the source alone leaves the translations
+> unchecked against each other, which is exactly where this failed.
+
+Rebuilt with `--tr-upto en=189,ur=189`; all three trees now carry the full cluster.
+
+**The Urdu-specific checks earned their place.** Two more false positives surfaced and were
+resolved without weakening the test:
+
+- Bibliography lines that are Arabic book titles set in Urdu orthography — caught because
+  the marker set had Urdu consonants but not ی ک ۃ ۔; widened.
+- **Note 20 on p.128 is the single conjunction «و».** Its correct Urdu, «اور», contains no
+  Urdu-only letter at all. Lines of six characters or fewer are now exempt from that one
+  test; the same-as-source and translation-exact checks still cover them.
+
+Everything else held at every batch: the Arabic round-trip stayed exact through eighteen
+rebuilds, no Urdu line ever equalled its Arabic source, no line ran under 35% of its source
+length, and no Urdu line carried ي ك ة.
+
+Final state:
+
+```
+urdu pages on disk                       : 189 (1..189), contiguous, all in sitemap
+arabic hreflang per language             : ur→189, en→189, each exact
+data-alt-ur boundary exact at 189/190    : True
+ar/ur reciprocal · en/ur reciprocal      : both directions
+UR tree arabic round-trip                : every block and note exact
+UR tree translations exact               : vs bayt_tr_ur.json
+every line is urdu, not arabic           : urdu-only letters present
+ur pager chain 1..189 walked             : exact
+unresolved footnote refs / non-urdu desc : none / none
+machine-translation badge                : 189/189 ur
+unique canonicals                        : 189, no duplicates
+/ur/bayt-al-ahzan/190/                   : 404, nothing links to it
+urdu cover                               : chapter titles in urdu, links all 200
+console on a clean load                  : the site-wide favicon only
+english tree re-verified                 : still 189/189, all pass
+```
+
+---
+
 ## 2026-09-11 (part 21)
 
 ### بيت الأحزان Urdu: started — pipeline built and proven, pages 1–36
