@@ -36,7 +36,7 @@ SLUG = "jame-al-muqaddimat"
 # Keep in step with the other builders — every page in the library links the
 # same assets/reader.css and assets/reader.js, so they must all move together
 # or a reader gets one book's stylesheet while browsing another's.
-ASSETS_V = "7"
+ASSETS_V = "9"
 SRC = "fa"
 FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹"
 

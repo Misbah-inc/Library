@@ -4,6 +4,91 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-12
+
+### The favicon, and the `volumesPublished` wart
+
+Two long-deferred items, both closed.
+
+**1 — The site now has an icon, and no page changed.** Every browser asks for
+`/favicon.ico` on every page load; the site had none, so every page logged a 404 — noise
+that makes a real error harder to spot. Built from `Misbah Website/assets/logo.png` (the
+dark-green disc, 2048²), not the light version: a dark mark stays visible on both a light
+and a dark tab bar, where a cream-on-white mark would vanish.
+
+**The wordmark is cropped out.** At 16px the full logo was an unreadable smudge — the
+calligraphy and the word MISBAH blurring into each other. The calligraphic mark alone,
+scaled to 72% of the disc, still reads as a minaret and a gold dome at 32px and keeps a
+distinctive silhouette at 16px. Rendered both sizes on light and dark grounds and looked
+at them before accepting it.
+
+```
+/favicon.ico          ICO, 16/32/48/64/128/256, transparent outside the disc
+/apple-touch-icon.png 180², flattened onto the brand green — iOS ignores alpha and
+                      composites on BLACK, which would frame the disc in a black square
+/icon-512.png         512², for anything wanting a large one
+```
+
+> **No HTML was touched.** `/favicon.ico` and `/apple-touch-icon.png` are fetched from the
+> origin root by convention, whatever the page's depth — so one file at the root covers all
+> ~4,100 pages. Declaring `<link rel="icon">` would have meant rewriting every page in the
+> repo for a cosmetic gain, which is the same trap `Set-AssetVersion.ps1` is flagged for.
+
+**2 — `volumesPublished` no longer means two things at once.** `bookCard()` decided whether
+to send a reader to `<lang>/<slug>/` by asking *"does this book have published volumes?"* —
+a different fact that merely coincided for Bihar. The consequences were already on disk:
+
+- The **Qur'an** has translations but no per-language index page, and was correct only by
+  accident — it happens to carry no `volumesPublished`.
+- **Bayt al-Ahzan** is one 189-page book with five chapters and no volumes at all. To make
+  its English and Urdu cards point at the right covers, it had been given a fictitious
+  `volumesPublished: [1]` — a small untruth sitting in the data for the next reader to
+  trip over.
+
+Now `langIndex: true` states the actual fact, and the gate reads it. Bihar keeps its
+`volumesPublished` because it is *true* of Bihar and the stats counter legitimately reads
+it; Bayt al-Ahzan's fictitious one is gone.
+
+Checked before and after, against a baseline captured before the edit:
+
+```
+card hrefs, 6 books × 4 languages : byte-identical to before
+all 24 card links                 : resolve 200
+home stats                        : ۶ کتاب | ۶ جلد | ۲۵۵۶ صفحه — unchanged
+favicon on a deep page (ur p100)  : 200 image/x-icon, 0 declared in <head>
+console                           : clean
+```
+
+**3 — `ASSETS_V` bumped to 9, sitewide — approved by the owner.** `reader.js` changed in
+the item above, and a returning reader with a cached copy would have kept the old file.
+
+The survey first, because the target was not obvious: **3,685 pages carried `?v=7` and 457
+carried `?v=8`** — the Qur'an versions its pages alone. Stamping 8 would have left those
+457 un-busted, so the bump is to **9**. All six builders that emit the constant were moved
+to 9 as well, so the next build stays in step instead of re-stamping 7 over the top.
+
+The rewrite is **byte-level**, not text-level: the files are CRLF with no BOM, and reading
+them as text would have silently normalised 4,142 files' line endings into the same commit.
+Each file is also asserted to differ from its original *only* in the version digits before
+it is written.
+
+```
+html files rewritten : 4142
+total byte delta     : 0        ← 7→9 and 8→9 are both one digit
+files with a BOM     : 0
+after: reader.css v=9 ×4142, reader.js v=9 ×4142, nothing else on any value
+```
+
+> Three files are pure-LF rather than CRLF — `en|fa|ur/bihar/1/index.html`, the hand-made
+> Bihar language index pages. They were already so: a CRLF→LF conversion loses a byte a
+> line and the delta was zero. Noted, not changed.
+
+Verified after: both Bayt al-Ahzan trees still pass every check; `/`, مفاتیح, the Qur'an,
+جامع المقدمات, a Bihar index and a deep Urdu page all serve `v=9`; the page renders with
+both assets at 9 and a clean console.
+
+---
+
 ## 2026-09-11 (part 22)
 
 ### بيت الأحزان Urdu: **complete — 189/189**

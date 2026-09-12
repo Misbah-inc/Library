@@ -39,7 +39,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 HERE = pathlib.Path(__file__).parent
 SITE = "https://library.misbah-inc.com"
 SLUG = "mafatih"
-ASSETS_V = "7"          # in step with the rest of the tree
+ASSETS_V = "9"          # in step with the rest of the tree
 FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹"
 
 TITLE_FA = "مفاتیح الجنان"

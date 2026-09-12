@@ -46,13 +46,26 @@ extract.py → [external translation] → merge_build.py → verify.py → commi
 
 All of `build.py`, `merge_build.py`, and `verify.py` accept `--lang` (`en`/`fa`/`ur`) and `--volume`.
 
-**`Set-AssetVersion.ps1` is not routine.** It rewrites every page in the repo, which
-makes a ~950-file diff out of a one-file change and buries any real edit in the same
-commit. The site currently carries no version query and does not need one: GitHub
-Pages serves `assets/` with a short max-age, so a hard refresh (Ctrl-Shift-R, or
-pull-to-refresh twice on mobile) is the first thing to try when a JS change looks
-like it did not land. Reach for the stamp only after a hard refresh has been tried
-and failed, and get the owner's agreement first — a bulk rewrite is their call.
+**`Set-AssetVersion.ps1` is not routine.** It rewrites every page in the repo — now
+**4,142 files** — and buries any real edit in the same commit. A hard refresh
+(Ctrl-Shift-R, or pull-to-refresh twice on mobile) is the first thing to try when a JS
+change looks like it did not land. Reach for the stamp only after that has failed, and
+get the owner's agreement first: a bulk rewrite is their call.
+
+**The whole tree is at `?v=9` as of 2026-09-12** (it was 7 everywhere except the Qur'an's
+457 pages, which were at 8). All six builders that emit `ASSETS_V` — `bayt_ar_build.py`,
+`bayt_build.py`, `build.py`, `jame_build.py`, `mafatih_build.py`, `quran_build.py` — were
+moved to 9 together, so a later build does not re-stamp an old value over the top.
+
+Two rules for the next bump:
+
+1. **Survey before choosing the number.** The tree has not always been on one value. Pick
+   a number strictly above the highest in use, or the pages already on the highest keep
+   their cached assets and the bump misses exactly the readers it was for.
+2. **Rewrite at the byte level.** These files are CRLF with no BOM; reading them as text
+   and writing them back normalises every line ending in the repo into the same commit.
+   Assert that each file differs from its original only in the version digits — a correct
+   run has a **total byte delta of 0**.
 
 ### Shared assets
 
@@ -328,6 +341,13 @@ checkouts get CRLF; the published files are unaffected.
 - Editorial footnotes signed `ط` end with " T." in English.
 - Qur'anic quotations translated fresh, in double quotes.
 - For Urdu and Farsi, `verify.py` cannot detect untranslated Arabic (both use Arabic script) — those batches need a human eye on a sample.
+- **No automated check tests whether a translation is CORRECT.** The Bayt al-Ahzan
+  checks prove the Arabic is byte-exact, that every block has a line, that the line
+  matches the translation file, and — for Urdu — that it is written in Urdu and not
+  left as Arabic. None of that is accuracy. 814 blocks and 336 notes in each of two
+  languages are machine output that no human has read; the machine-translation badge
+  on every page is the only thing standing between a reader and that fact. A sampled
+  human review is outstanding for both English and Urdu.
 
 ---
 
@@ -389,7 +409,23 @@ On top of the above, before the owner is asked to commit:
    literal word `pickChapter` on the page rather than as an error.
 3. **Diff the emitted text against the source JSON block for block.** Escaping and
    heading-tag bugs are invisible in a rendered page.
-4. Confirm no page carries `?v=`, and that nothing outside the new book was touched.
+4. Confirm the new pages carry the tree's current `?v=` (9), and that nothing
+   outside the new book was touched.
+
+---
+
+## Site icon
+
+`/favicon.ico`, `/apple-touch-icon.png` and `/icon-512.png` sit at the **repo root** and
+are found by convention — no page declares them, and none should. A browser requests
+`/favicon.ico` from the origin root whatever the page's depth, so one file covers all
+~4,100 pages; adding `<link rel="icon">` would rewrite every page for nothing.
+
+They are generated from `Misbah Website/assets/logo.png` (the dark-green disc) with the
+**MISBAH wordmark cropped away** — at 16px the full logo is an illegible smudge. The mark
+is scaled to 72% of the disc. Two things to keep if they are ever regenerated: the disc
+stays dark (a cream-on-white mark disappears on a light tab bar), and the Apple icon is
+**flattened onto the brand green**, because iOS ignores alpha and composites on black.
 
 ---
 
@@ -418,8 +454,8 @@ On top of the above, before the owner is asked to commit:
 | `bayt-al-ahzan/1–189/` | 189 | Arabic original (Qummi), pages 1–189 |
 | `en/bayt-al-ahzan/` | 1 | English cover (5 chapters, English titles) |
 | `ur/bayt-al-ahzan/` | 1 | Urdu cover (5 chapters, Urdu titles) |
-| `en/bayt-al-ahzan/1–189/` | 189 | English (machine, reviewed prose) of the Arabic, complete 2026-09-11 |
-| `ur/bayt-al-ahzan/1–189/` | 189 | Urdu (machine, reviewed prose) of the Arabic, complete 2026-09-11 |
+| `en/bayt-al-ahzan/1–189/` | 189 | English of the Arabic — **machine translation, not reviewed by a human**, complete 2026-09-11 |
+| `ur/bayt-al-ahzan/1–189/` | 189 | Urdu of the Arabic — **machine translation, not reviewed by a human**, complete 2026-09-11 |
 | `bayt-al-ahzan-fa/` | 1 | Farsi cover |
 | `bayt-al-ahzan-fa/1–262/` | 262 | Complete Persian text (Ishtihardi), printed pages |
 | `jame-al-muqaddimat/` | 1 | Volume selector |
@@ -628,10 +664,11 @@ The remaining `catalog.json` entries are placeholders.
 
 In rough priority order. Nothing here is started.
 
-1. **`bookCard()` gates on `volumesPublished`**, using it as a proxy for "this book has
-   per-language index pages". Those are different facts, and the Qur'an already had to be
-   special-cased around it once. An explicit `langIndex: true` in `catalog.json` would be
-   sturdier. Touches the Bihar and Qur'an cards, which currently work — change carefully.
+1. ~~**`bookCard()` gates on `volumesPublished`**~~ — **done 2026-09-12.** `catalog.json`
+   now carries an explicit `langIndex: true` on the books that have an index page at
+   `<lang>/<slug>/`, and `bookCard()` reads that. `volumesPublished` went back to meaning
+   only what it says and is read only by the stats counter. Bayt al-Ahzan's fictitious
+   `volumesPublished: [1]` is gone.
 2. **Bayt al-Ahzan is finished in Arabic, English and Urdu** (2026-09-11). Nothing
    remains on this book. Any fourth language follows the same route: translate into
    `bayt_tr_<lang>.json` keyed `<page>:<block>` and `<page>:n<note>`, then the builds

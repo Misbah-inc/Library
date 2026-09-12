@@ -151,9 +151,7 @@
         "en",
         "ur"
       ],
-      "volumesPublished": [
-        1
-      ]
+      "langIndex": true
     },
     {
       "slug": "bayt-al-ahzan-fa",
@@ -391,7 +389,8 @@
       "href": "bihar/",
       "volumesPublished": [
         1
-      ]
+      ],
+      "langIndex": true
     },
     {
       "slug": "jame-al-muqaddimat",

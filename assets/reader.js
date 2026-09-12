@@ -357,8 +357,15 @@
         '<span class="who">' + esc(pick(b.author)) +
         '<em class="soon-tag">' + esc(t('soon')) + '</em></span></span></div>';
     }
+    /* langIndex means exactly what it says: this book has an index page at
+       <lang>/<slug>/ to send a non-Arabic reader to. It used to test
+       volumesPublished instead, which is a different fact that merely
+       coincided for Bihar — the Qur'an has translations but no per-language
+       index and was only correct by accident, and Bayt al-Ahzan had to be
+       given a fictitious volume list to make its card point at the English
+       cover. Both facts are now stated separately. */
     var href = (lang !== 'ar' && b.translated && b.translated.indexOf(lang) !== -1 &&
-                b.volumesPublished && b.volumesPublished.length)
+                b.langIndex)
       ? lang + '/' + b.href
       : b.href;
     return '<a class="bcard" href="' + ROOT + '/' + esc(href) + '">' +

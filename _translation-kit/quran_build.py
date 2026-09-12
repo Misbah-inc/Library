@@ -27,7 +27,7 @@ import argparse, html, json, os, pathlib, re, sys
 import xml.etree.ElementTree as ET
 
 SITE = "https://library.misbah-inc.com"
-ASSETS_V = "8"   # bump when reader.css/js change, to break browser caches
+ASSETS_V = "9"   # bump when reader.css/js change, to break browser caches
 SRC = pathlib.Path(__file__).parent / "quran-source"
 
 # Translations available per language. THE FIRST ENTRY IS THE DEFAULT: its text
