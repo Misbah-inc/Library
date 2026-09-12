@@ -4,6 +4,68 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-11 (part 21)
+
+### بيت الأحزان Urdu: started — pipeline built and proven, pages 1–36
+
+The owner asked for Urdu next, batch by batch, running through without being prompted.
+Three batches are in; the rest follow the same loop.
+
+```
+urdu: 238 strings   pages published : 36/189    (english stays at 189/189)
+```
+
+**A design gap had to be closed before a single line was translated.** `--tr-upto` was one
+number shared by every translated language. English was finished at 189 and Urdu starting
+at 0, so that one number could only be wrong: at 189 the Arabic pages would claim an Urdu
+translation for all 189 (a 404 on every one), and at 12 it would withdraw English from 177
+pages that exist. Neither is fixable by rebuilding one language, because **the claim lives
+on the Arabic page**, which is shared.
+
+`--tr-upto` now takes `en=189,ur=36`; `langs_for()` caps each language separately. The bare
+`--tr-upto 189` form still works for a one-translation book.
+
+**An Urdu-specific verifier, because the standard checks are blind here.** CLAUDE.md has
+always noted that `verify.py` cannot detect untranslated Arabic in Urdu — the two share a
+script, so "is there text in this line?" passes on a line that was never translated.
+`verify_bayt_ur.py` adds three signals the English checks did not need:
+
+- **Urdu-only letters.** ٹ ڈ ڑ ں ے ہ گ چ پ ژ ھ never occur in Arabic.
+- **Urdu orthography.** ی for ي, ک for ك, ۃ for ة, ۔ for the full stop.
+- **Equality with the source**, and a line under 35% of its source length.
+
+The first run of that check reported four failures and all four were **false positives** —
+bibliography entries whose content is an Arabic book title, correctly left as a title. They
+were properly set in Urdu (`فی` not `في`, `ۃ` not `ة`) and my marker set was simply too
+narrow: it had the Urdu consonants but not the orthography. Widened, with the reason
+recorded in the file, and a fourth check added in the other direction: an Urdu line
+containing ي ك ة is reported, since a line properly set in Urdu should have none.
+
+Also added for Urdu: `CHAPTERS_UR` and an Urdu author/publisher, `toc.json` now carries a
+`ur` field alongside `en`, cover chapter titles carry `data-ur`, and `catalog.json` lists
+`ur` in `translated`. **`TITLES['ur']` was wrong and is corrected** — it held a
+transliteration of the *Persian* edition's title (رنج ہا و فریادہای…), which is a different
+book; it now reads بیت الاحزان فی مصائب سیدۃ النسوان.
+
+Arabic and English rebuilt and diffed after the builder changes: **reading pages
+byte-identical in both languages**; the only differences are the intended `data-ur`
+additions on the two covers and the `ur` field in `toc.json`.
+
+Per batch, all passing at 12, 24 and 36:
+
+```
+urdu pages contiguous, in sitemap, unique canonicals
+arabic hreflang per language          : ur→36, en→189, each exact
+data-alt-ur boundary exact, ar/ur reciprocal
+UR tree arabic round-trip + translations exact
+every line is URDU not arabic / none equals its source / none too short
+no arabic letterforms (ي ك ة) in an urdu line
+pager chain walked, footnote refs resolve, badge on every page
+english tree re-verified after every urdu build : still 189/189, all pass
+```
+
+---
+
 ## 2026-09-11 (part 20)
 
 ### Language switching, checked end to end — and two faults it exposed

@@ -53,7 +53,7 @@ DIR = {"ar": "rtl", "fa": "rtl", "ur": "rtl", "en": "ltr"}
 TITLES = {"ar": "بيت الأحزان في مصائب سيدة النسوان",
           "en": "The Sorrows of Fatima (Bayt al-Ahzan)",
           "fa": "رنج‌ها و فریادهای فاطمه سلام‌الله‌علیها",
-          "ur": "رنج ہا و فریادہای فاطمہ سلام اللہ علیہا"}
+          "ur": "بیت الاحزان فی مصائب سیدۃ النسوان"}
 PAGEWORD = {"ar": "ص", "fa": "ص", "ur": "ص", "en": "p."}
 
 # Languages with a cover AND a full page tree at /<lang>/bayt-al-ahzan/.
@@ -64,9 +64,11 @@ PAGEWORD = {"ar": "ص", "fa": "ص", "ur": "ص", "en": "p."}
 # the next rebuild, because the builder still emitted it.
 COVER_LANGS = ["ar"]
 AUTHORS = {"ar": "الشيخ عباس القمي",
-           "en": "Shaykh Abbas al-Qummi"}
+           "en": "Shaykh Abbas al-Qummi",
+           "ur": "شیخ عباس قمی"}
 PUBS    = {"ar": "دار الحكمة، قم",
-           "en": "Dar al-Hikma, Qum"}
+           "en": "Dar al-Hikma, Qum",
+           "ur": "دار الحکمہ، قم"}
 
 
 def tr_of(page_n, key):
@@ -140,22 +142,53 @@ def excerpt(page):
 
 
 PUB_LANGS = ["ar"]      # languages that actually have pages; set in main()
-TR_UPTO = 0             # the translation exists for pages 1..TR_UPTO
+TR_UPTO = {}            # lang -> the translation exists for pages 1..N
 
 
 def langs_for(n):
     """Which languages actually have THIS page.
 
-    The translation lands a prefix at a time, so English exists for pages
-    1..TR_UPTO and not beyond. Claiming it for every page points hreflang and
-    the language switcher at pages nobody built; claiming it for none — which
-    is what the first Arabic build did — leaves the switcher unable to reach
-    the English pages that DO exist, so a reader clicking EN is told the page
-    is untranslated while the translation sits right beside it."""
+    A translation lands a prefix at a time, so each language reaches its own
+    page N and no further. Claiming one for every page points hreflang and the
+    language switcher at pages nobody built; claiming it for none — which is
+    what the first Arabic build did — leaves the switcher unable to reach the
+    pages that DO exist, so a reader clicking EN is told the page is
+    untranslated while the translation sits right beside it.
+
+    The cap is PER LANGUAGE, not one number for all of them. English finished
+    at 189 while Urdu was starting at 0; a single cap would have claimed Urdu
+    for all 189 pages (404 on every one) or held English back to Urdu's
+    progress. Neither is recoverable by rebuilding one language alone, because
+    the claim lives on the ARABIC page."""
     out = ["ar"]
     for L in PUB_LANGS:
-        if L != "ar" and n <= TR_UPTO:
+        if L != "ar" and n <= TR_UPTO.get(L, 0):
             out.append(L)
+    return out
+
+
+def parse_tr_upto(spec, pub_langs):
+    """--tr-upto accepts "189" (every published translation) or "en=189,ur=12".
+
+    The bare form is kept for one-translation books; the moment a second
+    language exists it is almost always wrong, so it is rejected when the two
+    languages are at different points and the caller has to be explicit."""
+    spec = (spec or "").strip()
+    others = [L for L in pub_langs if L != "ar"]
+    if not spec:
+        return {}
+    if "=" not in spec:
+        return {L: int(spec) for L in others}
+    out = {}
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        L, _, n = part.partition("=")
+        L = L.strip()
+        if L not in others:
+            sys.exit(f'--tr-upto names {L!r}, which is not in --alts ({",".join(pub_langs)})')
+        out[L] = int(n)
     return out
 
 
@@ -309,6 +342,14 @@ def build_reading_page(page, order, idx):
 </html>"""
 
 
+CHAPTERS_UR = {
+    1:   "مقدمہ",
+    18:  "باب اول — آپ کی ولادت، اسماء اور کنیت",
+    30:  "باب دوم — آپ کی فضیلت، جلالت، زہد اور علم",
+    55:  "باب سوم — سقیفہ کے واقعات اور جو آپ پر گزرا",
+    163: "باب چہارم — آپ کے غم اور اپنے والد پر گریے کی کثرت",
+}
+
 CHAPTERS_EN = {
     1:   "Introduction",
     18:  "Chapter One — her birth, her names and her kunyas",
@@ -345,6 +386,7 @@ def build_toc_json(data):
             'n':    i + 1,
             'title': CHAPTERS[cstart],
             'en':   CHAPTERS_EN.get(cstart, ''),
+            'ur':   CHAPTERS_UR.get(cstart, ''),
             'p':    first_page,
             'ar':   CHAPTERS[cstart],
             'href': f'{SLUG}/{first_page}/',
@@ -366,7 +408,7 @@ def build_cover(data, out_dir):
     first = nums[0]
     # /bayt-al-ahzan/ is one level under the root; /en/bayt-al-ahzan/ is two.
     up   = ".." if LANG == "ar" else "../.."
-    titles = CHAPTERS if LANG == "ar" else CHAPTERS_EN
+    titles = {"ar": CHAPTERS, "en": CHAPTERS_EN, "ur": CHAPTERS_UR}.get(LANG, CHAPTERS)
     BTITLE = TITLES.get(LANG, TITLE)
     BAUTH  = AUTHORS.get(LANG, AUTH)
     BPUB   = PUBS.get(LANG, PUB)
@@ -412,13 +454,15 @@ def build_cover(data, out_dir):
         # dir in step with the switcher, and a hardcoded lang="ar" would render
         # the swapped English title in Amiri, right-to-left.
         data_attrs = f' data-ar="{esc(CHAPTERS[cstart])}"'
-        if CHAPTERS_EN.get(cstart):
-            data_attrs += f' data-en="{esc(CHAPTERS_EN[cstart])}"'
+        for _L, _M in (("en", CHAPTERS_EN), ("ur", CHAPTERS_UR)):
+            if _M.get(cstart):
+                data_attrs += f' data-{_L}="{esc(_M[cstart])}"'
         chap_cells.append(
             f'<a class="chap-cell" href="{fp}/" data-n="{fp}">'
             f'<span class="chap-n">{i+1}</span>'
             f'<span class="chap-title"{data_attrs}>{esc(label)}</span>'
-            f'<span class="chap-pages" data-ar="{count} ص" data-en="{count} p.">'
+            f'<span class="chap-pages" data-ar="{count} ص" data-en="{count} p."'
+            f' data-ur="{count} ص">'
             f'{count} {PAGEWORD[LANG]}</span></a>'
         )
     chaps_grid = '\n'.join(chap_cells)
@@ -508,7 +552,7 @@ def main():
                     help='Language of the pages to write. ar is the source of record.')
     ap.add_argument('--tr',    help='Translation JSON for --lang: '
                                '{"<page>:<block>": "...", "<page>:n<note>": "..."}')
-    ap.add_argument('--tr-upto', type=int, default=0, dest='tr_upto',
+    ap.add_argument('--tr-upto', default='', dest='tr_upto',
                     help='Pages 1..N also exist in the translated language. Used by the '
                          'ARABIC build so its switcher and hreflang reach the English '
                          'pages that exist, and only those.')
@@ -528,7 +572,8 @@ def main():
     PUB_LANGS = [x.strip() for x in args.alts.split(',') if x.strip()]
     # fa is never a cover language here — see COVER_LANGS.
     COVER_LANGS = [L for L in PUB_LANGS if L != 'fa']
-    TR_UPTO = args.tr_upto if args.tr_upto else (args.upto or 0)
+    TR_UPTO = (parse_tr_upto(args.tr_upto, PUB_LANGS) if args.tr_upto
+               else ({LANG: args.upto} if (args.upto and LANG != 'ar') else {}))
     if LANG not in PUB_LANGS:
         sys.exit(f'--alts must include --lang ({LANG}); hreflang sets are self-referential')
     if LANG != 'ar':
