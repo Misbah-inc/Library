@@ -30,7 +30,10 @@ import sys
 sys.stdout.reconfigure(encoding="utf-8")
 
 SITE = "https://library.misbah-inc.com"
-ASSETS_V = "9"
+ASSETS_V = "9"   # FROZEN — do not bump. GitHub Pages serves reader.css/js with
+                 # Cache-Control: max-age=600 + ETag, identically with or without
+                 # this query string, so a stale copy self-corrects in 10 minutes.
+                 # Bumping it rewrites every page in the repo to buy nothing.
 RAIL = 120                      # links in the edge rail; volume 1 uses 120
 AR_DIGITS = "٠١٢٣٤٥٦٧٨٩"
 
@@ -172,7 +175,7 @@ def build_page(page, pages, vol, tp):
       &nbsp;·&nbsp;<code>/bihar/{vol}/{n}/</code></p>
   </article>
 </main>
-<div id="page-meta" hidden data-slug="bihar" data-title-ar="{esc(SHORT_AR)}" data-title-fa="{esc(SHORT_AR)}" data-title-ur="{esc(SHORT_AR)}" data-title-en="Bihar al-Anwar" data-href="bihar/{vol}/{n}/"
+<div id="page-meta" hidden data-trlangs="" data-slug="bihar" data-title-ar="{esc(SHORT_AR)}" data-title-fa="{esc(SHORT_AR)}" data-title-ur="{esc(SHORT_AR)}" data-title-en="Bihar al-Anwar" data-href="bihar/{vol}/{n}/"
      data-pagenum="{n}" data-volume="{vol}" data-pos="{i}" data-total="{len(pages)}"></div>
 {tp['tail']}"""
 

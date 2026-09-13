@@ -39,7 +39,10 @@ sys.stdout.reconfigure(encoding="utf-8")
 HERE = pathlib.Path(__file__).parent
 SITE = "https://library.misbah-inc.com"
 SLUG = "mafatih"
-ASSETS_V = "9"          # in step with the rest of the tree
+ASSETS_V = "9"   # FROZEN — do not bump. GitHub Pages serves reader.css/js with
+                 # Cache-Control: max-age=600 + ETag, identically with or without
+                 # this query string, so a stale copy self-corrects in 10 minutes.
+                 # Bumping it rewrites every page in the repo to buy nothing.
 FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹"
 
 TITLE_FA = "مفاتیح الجنان"

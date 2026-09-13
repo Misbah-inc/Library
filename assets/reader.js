@@ -773,8 +773,28 @@
     if (lang === 'ar') return;
     var slug = meta.getAttribute('data-slug');
     var page = meta.getAttribute('data-pagenum');
-    load(BOOK + '/assets/tr/' + lang + '.json').then(function (tr) {
-      var rows = tr[page] || [];
+    var vol  = meta.getAttribute('data-volume');
+    /* The store is keyed by PAGE NUMBER, with no volume in it. Asking for
+       /bihar/assets/tr/en.json from /bihar/2/105/ therefore returned volume
+       ONE's page 105 and printed it under volume 2's Arabic — a different text
+       entirely, presented to the reader as this page's translation.
+       Volume 1 shipped before per-volume files existed and keeps its original
+       name; every other volume reads <lang>-<vol>.json. A volume with no
+       translation has no such file, and the 404 must fall through to the
+       "not translated yet" notice rather than reject — load() throws on !ok. */
+    var _trUrl = BOOK + '/assets/tr/' + lang +
+                 (!vol || vol === '1' ? '' : '-' + vol) + '.json';
+    /* A page may state which languages it HAS. When it does and this language
+       is not among them, say so at once instead of firing a request that is
+       known to 404. Volume 1 predates the attribute and omits it, which keeps
+       its existing fetch-and-see behaviour untouched. */
+    var _has = meta.getAttribute('data-trlangs');
+    var _known = _has !== null &&
+                 _has.split(',').filter(Boolean).indexOf(lang) === -1;
+    var _p = _known ? Promise.resolve({})
+                    : load(_trUrl).catch(function () { return {}; });
+    _p.then(function (tr) {
+      var rows = (tr && tr[page]) || [];
       var head = document.createElement('div');
       head.id = 'tr-bar';
       head.className = 'tr-bar';

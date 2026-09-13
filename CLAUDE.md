@@ -45,30 +45,50 @@ extract.py → [external translation] → merge_build.py → verify.py → commi
 | `mafatih_verify.py` | independent audit of `mafatih.json` — **must print `VERDICT clean`** |
 | `mafatih_build.py` | `mafatih.json` → the 689 مفاتیح pages, cover and `toc.json` |
 | `Fix-LibrarySeo.ps1` | one-off bulk `<head>` repair across the tree (PowerShell) |
-| `Set-AssetVersion.ps1` | stamps `?v=N` on `reader.css`/`reader.js` sitewide |
+| `Set-AssetVersion.ps1` | **retired** — stamped `?v=N` sitewide; see the frozen-`ASSETS_V` note below |
 
 All of `build.py`, `merge_build.py`, and `verify.py` accept `--lang` (`en`/`fa`/`ur`) and `--volume`.
 
-**`Set-AssetVersion.ps1` is not routine.** It rewrites every page in the repo — now
-**4,142 files** — and buries any real edit in the same commit. A hard refresh
-(Ctrl-Shift-R, or pull-to-refresh twice on mobile) is the first thing to try when a JS
-change looks like it did not land. Reach for the stamp only after that has failed, and
-get the owner's agreement first: a bulk rewrite is their call.
+**`ASSETS_V` is frozen at 9 and must never be bumped again.** All seven builders emit
+the constant with that note on it; `Set-AssetVersion.ps1` is retired.
 
-**The whole tree is at `?v=9` as of 2026-09-12** (it was 7 everywhere except the Qur'an's
-457 pages, which were at 8). All six builders that emit `ASSETS_V` — `bayt_ar_build.py`,
-`bayt_build.py`, `build.py`, `jame_build.py`, `mafatih_build.py`, `quran_build.py` — were
-moved to 9 together, so a later build does not re-stamp an old value over the top.
+The stamp was solving a problem this host does not have. Measured against the live site
+on 2026-09-13:
 
-Two rules for the next bump:
+```
+$ curl -sSI https://library.misbah-inc.com/assets/reader.js?v=9
+Server: GitHub.com
+Cache-Control: max-age=600
+ETag: "6aa6537c-1198d"
+```
 
-1. **Survey before choosing the number.** The tree has not always been on one value. Pick
-   a number strictly above the highest in use, or the pages already on the highest keep
-   their cached assets and the bump misses exactly the readers it was for.
-2. **Rewrite at the byte level.** These files are CRLF with no BOM; reading them as text
-   and writing them back normalises every line ending in the repo into the same commit.
-   Assert that each file differs from its original only in the version digits — a correct
-   run has a **total byte delta of 0**.
+and the **identical** headers come back with no query string at all. GitHub Pages caches
+every asset for ten minutes and then revalidates against the ETag, so a changed
+`reader.js` reaches every reader within ten minutes whether or not the URL carries a
+version. There is no Cloudflare on this hostname (`Server: GitHub.com`, Fastly behind
+it), so nothing overrides that.
+
+What the stamp cost instead: rewriting every page in the repo. At 4,142 files that was
+merely disproportionate; the book is going to 110 volumes, and a version baked into the
+HTML is **O(pages) per asset change** — roughly 100,000 files rewritten to fix one line
+of JavaScript, with the real edit buried in the same commit.
+
+So the rule is the opposite of what it used to be:
+
+1. **Ship the JS or CSS change on its own.** It is live for everyone within ten minutes.
+   No page is touched, no bulk commit, and this stays true at 110 volumes.
+2. **When a change looks like it did not land, it is the ten-minute window or your own
+   browser** — hard refresh (Ctrl-Shift-R, or pull-to-refresh twice on mobile). During
+   development, `fetch(url, {cache:'reload'})` then reload; a long-lived tab is not
+   evidence.
+3. **Do not remove the `?v=9` either.** Stripping it would cost exactly the tree-wide
+   rewrite being avoided, and a frozen stamp is behaviourally identical to no stamp —
+   the headers above are the proof. Leave it; new pages keep emitting 9 so the tree
+   stays uniform.
+
+If a future host ever does set a long `max-age`, the scalable fix is still not a stamp
+in the HTML — it is a caching header, or one small stable loader file that the pages
+point at permanently. Never per-deploy state in N pages.
 
 ### Shared assets
 
@@ -248,6 +268,19 @@ Then open `http://localhost:8080`. This avoids CORS issues that block `catalog.j
   `bihar/1/26/index.html` at build time. Diff any new volume's structure against volume 1
   after building — 0.948 similarity is the expected figure, the gap being volume 1's
   translation hreflangs and heading spans.
+- **`bihar/assets/tr/<lang>.json` is keyed by PAGE NUMBER and has no volume in it.**
+  Volume 1 shipped before a second volume existed. Every other volume must address its
+  own file, `<lang>-<vol>.json`, or it renders volume 1's translation of that page number
+  under its own Arabic — a different text entirely, presented to the reader as this page's
+  translation. Volume 1 keeps the original name; do not rename it, the three published
+  translations key to it.
+- **A volume with no translation says so on the page**: `data-trlangs=""` in `#page-meta`.
+  reader.js reads it and skips the fetch instead of 404ing. A page that omits the
+  attribute (volume 1) keeps the older fetch-and-see path, so adding a translation later
+  needs the attribute updated, not just the file dropped in.
+- **`load()` rejects on a non-OK response.** Anything optional — a translation store that
+  may not exist — must `.catch()` back to a usable default, or a 404 leaves the page with
+  neither the thing nor the notice that it is missing.
 - **The edge rail is 120 evenly spaced links**, `n = 1 + round(k·(N−1)/119)`, plus the
   current page when absent. reader.js then replaces the rail with a dropdown built from
   those links, so the dropdown offers 120 pages on every volume — volume 1 included.
@@ -475,8 +508,8 @@ stays dark (a cream-on-white mark disappears on a light tab bar), and the Apple 
 | Tree | Pages | State |
 |---|---|---|
 | `bihar/1/` (Arabic, source) | 231 | Complete |
-| `bihar/2/` (Arabic, source) | 325 | Complete 2026-09-13, no translation |
-| `bihar/3/` (Arabic, source) | 341 | Complete 2026-09-13, no translation |
+| `bihar/2/` (Arabic, source) | 325 | Complete 2026-09-13, no translation (`data-trlangs=""`) |
+| `bihar/3/` (Arabic, source) | 341 | Complete 2026-09-13, no translation (`data-trlangs=""`) |
 | `en/bihar/1/` | 231 | Complete, machine translation |
 | `fa/bihar/1/` | 231 | Complete, machine translation |
 | `ur/bihar/1/` | 231 | Complete, machine translation |
@@ -610,9 +643,9 @@ in `localStorage`, so the cover and every surah page share one setting.
 > non-default gets `votd/<lang>.<id>.json` (366 strings) instead — pulling a whole
 > 900 KB corpus to render one verse would be absurd.
 
-> **`ASSETS_V` in `quran_build.py` versions the Qur'an's pages alone.** The rest of
-> the tree carries whatever `Set-AssetVersion.ps1` last stamped. Bumping it here is
-> cheap (457 pages); bumping the whole site is the owner's call.
+> **`ASSETS_V` in `quran_build.py` is the same frozen 9 as everywhere else.** It once
+> looked cheap to bump here alone (457 pages), which is how the tree ended up on two
+> different values. It is frozen now; see the `ASSETS_V` note above.
 
 **مفاتیح الجنان (2026-09-06).** Live at `/mafatih/` — cover + 689 pages.
 `mafatih.json` holds 689 sections and 4,073 Arabic units, 98% of them paired with

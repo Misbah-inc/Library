@@ -4,6 +4,80 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-13 (part 3)
+
+### Volumes 2 and 3 were showing volume 1's English and Urdu under their Arabic
+
+Reported by the owner from `/bihar/2/105/`: a translation appeared on pages that have
+never been translated, and it did not match the Arabic beside it. It was volume **1**'s
+page 105, printed under volume 2's text and labelled as that page's translation.
+
+**Cause.** `bihar/assets/tr/<lang>.json` is keyed by page number and carries no volume
+dimension — it predates there being a second volume. `applyTranslation()` read only
+`data-pagenum`, so every volume asked the same file for the same key and volumes 2 and 3
+got volume 1's answer. This is worse than a missing feature: it presents one page of
+Bihar as the translation of a different one.
+
+**Fix**, in `assets/reader.js` and `_translation-kit/bihar_ar_build.py`:
+
+- the store is now addressed per volume — `<lang>-<vol>.json`. Volume 1 shipped before
+  per-volume files existed and keeps its original `<lang>.json` name, so its three
+  published translations are untouched;
+- a missing file no longer rejects. `load()` throws on `!ok`, which would have left the
+  page with neither a translation nor a notice; the fetch now falls through to the
+  existing "not translated yet" line;
+- an untranslated volume states so on the page itself, `data-trlangs=""` in `#page-meta`,
+  and reader.js trusts that instead of firing a request it knows will 404. Volume 1 omits
+  the attribute and keeps its fetch-and-see behaviour.
+
+**Verified in the browser**, fresh tab, assets re-fetched with `cache:'reload'`:
+
+| Page | Language | Result |
+|---|---|---|
+| `/bihar/2/105/` | English | notice shown, 0 translation lines, 0 requests to `tr/`, Arabic intact |
+| `/bihar/3/50/` | Farsi | «این صفحه هنوز ترجمه نشده است؛ متن عربی نمایش داده می‌شود.» |
+| `/bihar/3/50/` | Urdu | «اس صفحے کا ترجمہ ابھی نہیں ہوا؛ عربی متن دکھایا جا رہا ہے۔» |
+| `/bihar/3/50/` | Arabic | no notice — Arabic is the text |
+| `/bihar/1/105/` | English | 10 translation lines, correct text — unaffected |
+
+Console clean; no `tr/` request is made on an untranslated volume at all.
+
+**No `ASSETS_V` bump is needed** — and none ever will be again. See the entry below.
+
+### `ASSETS_V` frozen at 9; `Set-AssetVersion.ps1` retired
+
+The owner asked why every `reader.js` change should cost a tree-wide rewrite, and pointed
+out that at 110 volumes it would mean ~100,000 files rewritten to fix one line of
+JavaScript. That is the right objection, and the mechanism was wrong.
+
+Measured against the live site:
+
+```
+$ curl -sSI https://library.misbah-inc.com/assets/reader.js?v=9
+Server: GitHub.com
+Cache-Control: max-age=600
+ETag: "6aa6537c-1198d"
+```
+
+The identical headers come back **with no query string at all**. GitHub Pages caches
+assets for ten minutes, then revalidates against the ETag. The `?v=` stamp was buying a
+ten-minute head start in exchange for rewriting all 4,142 pages, and the cost grows with
+the book while the benefit stays at ten minutes.
+
+- All seven builders now carry `ASSETS_V = "9"` marked FROZEN, with the reason inline.
+- The `?v=9` already in the tree is **kept**: stripping it would cost the very rewrite
+  being avoided, and a frozen stamp behaves identically to no stamp.
+- Rebuilt volume 3 and diffed: all 341 reading pages byte-identical, so freezing changed
+  no output. All seven builders compile.
+- `CLAUDE.md`'s "two rules for the next bump" are replaced by the reason there is no next
+  bump, plus the note that if a host ever did set a long `max-age`, the answer is a
+  caching header or one stable loader file — never per-deploy state in N pages.
+
+So the translation-leak fix above ships on its own, and reaches every reader within ten
+minutes of the push.
+
+---
+
 ## 2026-09-13 (part 2)
 
 ### بحار الأنوار volumes 2 and 3 — Arabic, 666 new pages

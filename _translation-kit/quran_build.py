@@ -27,7 +27,10 @@ import argparse, html, json, os, pathlib, re, sys
 import xml.etree.ElementTree as ET
 
 SITE = "https://library.misbah-inc.com"
-ASSETS_V = "9"   # bump when reader.css/js change, to break browser caches
+ASSETS_V = "9"   # FROZEN — do not bump. GitHub Pages serves reader.css/js with
+                 # Cache-Control: max-age=600 + ETag, identically with or without
+                 # this query string, so a stale copy self-corrects in 10 minutes.
+                 # Bumping it rewrites every page in the repo to buy nothing.
 SRC = pathlib.Path(__file__).parent / "quran-source"
 
 # Translations available per language. THE FIRST ENTRY IS THE DEFAULT: its text
@@ -543,7 +546,8 @@ def build_verse_index(ar_text, meta, total=114):
                 pass
     return json.dumps(verses, ensure_ascii=False, separators=(",", ":"))
 
-
+
+
 def build_index(meta, published, total=114, ar_text=None):
     """The book cover at /quran/. Like /bihar/, there is ONE cover for every
     language: the strings carry data-ar/fa/ur/en and the reader swaps them,
