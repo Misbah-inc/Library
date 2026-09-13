@@ -4,6 +4,75 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-13 (part 4)
+
+### بحار الأنوار volumes 4, 5 and 6 — Arabic, 1,011 new pages
+
+Same edition as volumes 1–3, دار احياء التراث العربي, confirmed from each export's own
+هوية الكتاب block before anything was built.
+
+```
+vol 4   327 pages (1–327)   1,222 blocks   534 notes   تتمة كتاب التوحيد
+vol 5   343 pages (1–343)   1,779 blocks   711 notes   كتاب العدل و المعاد
+vol 6   341 pages (1–341)   1,526 blocks   751 notes   تتمة كتاب العدل و المعاد
+```
+
+**The volume-6 export is mislabelled at source.** Its هوية الكتاب record says
+«المجلد 7». Its own title heading says «المجلد 6», and its text opens at
+تتمة كتاب العدل و المعاد / **باب 19** — exactly where volume 5 stops, at باب 18 of
+أبواب العدل. The catalogue record is the thing that is wrong, so it is published as
+volume 6. Both other seams check out the same way: volume 3 ends at باب 14 of
+كتاب التوحيد and volume 4 opens «تتمة كتاب التوحید».
+
+**New: `bihar_ar_audit.py`**, the losslessness check as a script rather than an ad-hoc
+one. `CLAUDE.md` has always said to prove extraction by word frequency against the raw
+export — that is what caught all four faults in volumes 2–3 — but the code for it was
+thrown away each time. With 104 volumes still to come it belongs in the kit.
+
+All three volumes pass **exactly**, source and output multisets identical:
+
+```
+vol 4   116,193 source tokens   116,193 output   0 uncaptured   0 extra
+vol 5   116,488 source tokens   116,488 output   0 uncaptured   0 extra
+vol 6   114,916 source tokens   114,916 output   0 uncaptured   0 extra
+```
+
+Two things the auditor had to learn to be meaningful:
+
+1. **The page marker is structure, not text.** «ص: N» becomes the folio label, so its
+   «ص» is legitimately absent from the body. Before this was handled, every volume
+   reported exactly one uncaptured token per page — 327, 343, 341 — which is noise that
+   would hide a real loss.
+2. **The publisher blurb is dropped on purpose.** Its shortfall is reported separately
+   from a real one, so only the second number has to be zero.
+
+**The auditor was mutation-tested rather than trusted.** Deleting one page from the
+volume-4 JSON makes it report 336 uncaptured tokens; deleting a single footnote is also
+caught. A checker nobody has seen fail is not evidence.
+
+**Wiring**, all by `bihar_ar_wire.py`: volume index pages for 4–6, 83 new chapter rows in
+`bihar/assets/toc.json` (180 total across six volumes), selector tiles switched on in all
+four language copies with `data-langs="ar"`, and `volumesPublished` → `[1,2,3,4,5,6]`.
+Each page carries `data-trlangs=""`, so no untranslated volume asks for a translation
+file or shows one.
+
+**Verified**
+
+- `verify_pagers.py`: **20 books, every prev/next chain a single unbroken path.**
+- `gen_sitemap.py`: 5,823 URLs, up 1,014 (1,011 pages + 3 volume indexes), no drafts.
+- Browser, all four languages on `/bihar/6/200/`: Arabic intact, 2 footnotes, citation
+  reads «المجلد ٦ / vol. 6 / جلد 6», folio localised per language, and the
+  "not translated yet" notice in EN/FA/UR with no notice in Arabic.
+- Language switcher: in English and Urdu, volume 1 links into `/en|ur/bihar/1/` while
+  volumes 2–6 stay on the Arabic tree — the `data-langs` guard holding for the new tiles.
+- Contents drawer: 180 rows, **0 rendering as `undefined`**, hrefs spanning volumes 1–6.
+- Page dropdown on a volume-4 page: 120 options, `/bihar/4/1/` … `/bihar/4/327/`.
+- `<head>`: `hreflang` is `ar` + `x-default` only, no `data-alt-*`, canonical absolute.
+- Structural similarity to volume 1 page 26: 0.968 / 0.961 / 0.970.
+- Console clean. All pages on `?v=9`, which is now frozen.
+
+---
+
 ## 2026-09-13 (part 3)
 
 ### Volumes 2 and 3 were showing volume 1's English and Urdu under their Arabic

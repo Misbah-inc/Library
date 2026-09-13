@@ -37,6 +37,7 @@ extract.py → [external translation] → merge_build.py → verify.py → commi
 | `bihar_ar_extract.py` | Ghaemiyeh Bihar export → `bihar_v<N>.json`, one volume |
 | `bihar_ar_build.py` | `bihar_v<N>.json` → Arabic reading pages, chrome templated from a published vol-1 page |
 | `bihar_ar_wire.py` | volume index, toc.json rows, selector tiles, catalog — wires a built volume into the site |
+| `bihar_ar_audit.py` | proves an extraction lost nothing, by word frequency against the raw export |
 | `bayt_extract.py` | Ghaemiyeh HTML export → batch JSON (Bayt al-Ahzan) |
 | `bayt_paginate.py` | splits Bayt al-Ahzan at its `[ صفحه ۷۷ ]` markers into printed pages |
 | `bayt_build.py` | Bayt al-Ahzan page builder, cover, and `toc.json` |
@@ -259,7 +260,20 @@ Then open `http://localhost:8080`. This avoids CORS issues that block `catalog.j
   belongs to the next page, and may have no marker at all while still holding a page of
   text. All three occur in volumes 2–3, and each one silently loses text if unhandled.
 - **Prove losslessness by word frequency against the raw export**, not by eyeballing page
-  counts. That is the check that caught every one of the four extraction faults.
+  counts. That is the check that caught every one of the four extraction faults. It is
+  now `bihar_ar_audit.py <export.htm> bihar_v<N>.json`, which must print
+  **`UNCAPTURED SOURCE TOKENS: 0`** — volumes 4–6 match the source multiset exactly.
+  Two things it accounts for, and any similar checker must: the page marker «ص: N» is
+  structure that becomes the folio label, so its «ص» is *supposed* to be missing (skip
+  this and every volume reports one phantom loss per page, which is enough noise to hide
+  a real one); and the Ghaemiyeh publisher blurb is dropped deliberately, so its
+  shortfall is counted separately. Mutation-test it after any change — deleting one page
+  from a volume's JSON must make it fail. A checker nobody has seen fail is not evidence.
+- **The Ghaemiyeh catalogue record can name the wrong volume.** The volume-6 export's
+  هوية الكتاب says «المجلد 7». The title heading inside the same file says 6, and its text
+  opens at باب 19 of أبواب العدل, directly continuing volume 5's باب 18. Trust the heading
+  and the seam, not the record — and always check the seam against the previous volume's
+  last chapter before publishing.
 - **An untranslated volume declares `ar` + `x-default` only** — no en/fa/ur hreflang, no
   `data-alt-*`, and its selector tile carries `data-langs="ar"` so `applyLang()` keeps it
   on the Arabic tree instead of rewriting it to a language folder nobody built.
@@ -422,7 +436,7 @@ checkouts get CRLF; the published files are unaffected.
 | Item | Status |
 |---|---|
 | `robots.txt` — allows all, points to sitemap | ✅ |
-| `sitemap.xml` — 1,173 URLs, submitted to Search Console | ✅ |
+| `sitemap.xml` — 5,823 URLs, submitted to Search Console | ✅ |
 | HTTPS (GitHub Pages) | ✅ |
 | Clean URL structure (`/en/bihar/1/26/`) | ✅ |
 | Canonical URL on every page (absolute) | ✅ |
@@ -510,6 +524,9 @@ stays dark (a cream-on-white mark disappears on a light tab bar), and the Apple 
 | `bihar/1/` (Arabic, source) | 231 | Complete |
 | `bihar/2/` (Arabic, source) | 325 | Complete 2026-09-13, no translation (`data-trlangs=""`) |
 | `bihar/3/` (Arabic, source) | 341 | Complete 2026-09-13, no translation (`data-trlangs=""`) |
+| `bihar/4/` (Arabic, source) | 327 | Complete 2026-09-13, no translation (`data-trlangs=""`) |
+| `bihar/5/` (Arabic, source) | 343 | Complete 2026-09-13, no translation (`data-trlangs=""`) |
+| `bihar/6/` (Arabic, source) | 341 | Complete 2026-09-13, no translation (`data-trlangs=""`) |
 | `en/bihar/1/` | 231 | Complete, machine translation |
 | `fa/bihar/1/` | 231 | Complete, machine translation |
 | `ur/bihar/1/` | 231 | Complete, machine translation |
@@ -722,7 +739,7 @@ footnote numbering never has to reach the screen. The Arabic arrives fully vocal
 > `صوت` marker, so the 38 names are learned where the markup proves them and removed
 > elsewhere only on an exact match.
 
-Bihar volumes 2 and 3 are published in Arabic; 4–110 not started. The Qur'an is complete in all four languages.
+Bihar volumes 1–6 are published in Arabic (1 also in en/fa/ur); 7–110 not started. The Qur'an is complete in all four languages.
 The remaining `catalog.json` entries are placeholders.
 
 ---
@@ -749,7 +766,8 @@ In rough priority order. Nothing here is started.
    > one-directional cluster is ignored wholesale. Automated checks passed it because they
    > compared each translation to the **Arabic** and never to each other.
 
-3. **Bihar volume 2.** The pipeline is proven on volume 1; this is throughput, not design.
+3. **Bihar volumes 7–110.** The pipeline is proven on six volumes and audited by
+   `bihar_ar_audit.py`; this is throughput, not design.
 4. **A `.gitattributes`** to silence the CRLF warnings, if the noise ever matters.
 
 ### Known-good state
