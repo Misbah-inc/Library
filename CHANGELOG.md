@@ -4,6 +4,79 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-13
+
+### رنج‌ها و فریادهای فاطمه — 41 spelling corrections
+
+The owner reported misspellings they had hit while reading. A full audit of all 262 pages
+found 31; they supplied 10 more. All 41 are fixed **in `bayt.json`, the source of record**,
+and the book rebuilt — not patched in the HTML, which the next build would have reverted.
+
+**The audit had to be rebuilt twice before it was trustworthy.**
+
+1. The first pass extracted only `<p>` body blocks and **silently skipped every footnote and
+   heading** — about 19,000 characters. The owner's `نخستان` (p171) sits in a footnote,
+   which is exactly why the first pass missed it. Extraction now covers blocks, headings and
+   notes, and is verified complete: every Arabic-script token in each page's body region is
+   accounted for, 0 pages with uncaptured words.
+2. The first pass also used hand-rolled suffix stripping, which accepted `نخستان` as
+   `نخست`+`ان` and `احکان` as `احک`+`ان`. Replaced with hazm's lemmatiser plus its
+   193,751-entry lexicon, which rejects both.
+
+> Two lessons worth keeping. **An extraction that reads one element type is not an audit of
+> the page** — check what element the text actually lives in before trusting a sweep. And a
+> morphology rule that strips a plural suffix will happily turn a typo into a real word;
+> validate the rule against a known error before relying on it.
+
+**One reported item was not an error, and one of my own corrections was wrong.**
+
+- `یَلُومُو` (p216) looked like a truncated `یلومون`. It is the first half of
+  `یلومونهما`, **split across the two hemistichs of the verse** — block 414 ends with
+  `یَلُومُو`, block 415 opens with `نَهُما`. Correcting it would have corrupted the poem.
+  Left alone.
+- I told the owner `آنهمه` was on p47 rather than their reported p239. They were right: it
+  is on **seven** pages including 239. My search had used `انهمه` without the madda.
+
+**Raised, and the owner declined — `مرا` (129×) and `ترا` (40×) stay as printed.** Both
+are correct Persian, not misspellings; changing them would have rewritten the translator's
+register rather than repairing OCR damage. The book uses `مرا` consistently (`من را` never
+appears), while `ترا` already coexists with `تو را` (54×). Worth flagging next time someone
+proposes them: they read as errors to a modern eye but are Ishtihardi's own usage.
+
+Applied — 41 corrections across 36 pages:
+
+```
+persian prose (31)  ایاشن→ایشان  احکان→احکام  ماجرهای→ماجراهای  مویه‌ها→میوه‌ها
+                    حدیجه→خدیجه  آنهغا→آنها  همانحال→همان حال  ندداشتند→نداشتند
+                    جرا→چرا  پرسیتاری→پرستاری  زیرر→زیر  هدا→خدا  آنهمه→آن همه ×7
+                    کتاقب→کتاب  مرحا→مرحبا  گماتن→گمان  ابوسیفیان→ابوسفیان
+                    پپشتکار→پشتکار  رتفار→رفتار  پیشتیبانی→پشتیبانی  پبامبر→پیامبر
+                    قفنذ→قنفذ  ابومختف→ابومخنف  نخستان→نخلستان  همچگونه→هیچگونه
+                    جانسوی→جانسوز  پیروزی→پیروی  دورغ→دروغ  اندوهیگین→اندوهگین
+                    تصیم→تصمیم  «است و که»→«است که»
+quoted arabic (4)   اللَّره→اللَّه   وَغاحَرْ بِها→وَغا حَرْبِها
+                    لِعَمهَدِ→لِعَهْدِ   جُدِّ دَلَنا→جُدِّدَ لَنا
+```
+
+Every replacement was anchored on surrounding context and asserted to match **exactly once**
+before being applied; the script aborts otherwise, and did abort twice on Arabic strings
+whose diacritic order differed from what was typed. Those four were rebuilt from the file's
+own bytes rather than retyped.
+
+Checked after rebuilding:
+
+```
+pages on disk                       : 262 (unchanged), 31 empty holes intact
+pages differing from before         : 36 — exactly the pages targeted
+diff hunks                          : 47, every one an intended word
+encoding: invalid utf-8 / BOM / FFFD : 0 / 0 / 0
+misspellings remaining              : none
+corrections present in built pages  : all
+p171 in the browser                 : نخلستان renders, clean console
+```
+
+---
+
 ## 2026-09-12
 
 ### The favicon, and the `volumesPublished` wart
