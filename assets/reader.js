@@ -182,9 +182,16 @@
       if (!v) { v = a.getAttribute('href').replace(/\//g, ''); a.setAttribute('data-vol', v); }
       var parts = location.pathname.replace(/\/$/, '').split('/');
       var slug = parts[parts.length - 1];
-      a.setAttribute('href', lang !== 'ar'
-        ? ROOT + '/' + lang + '/' + slug + '/' + v + '/'
-        : v + '/');
+      /* A volume exists in the languages its own data-langs lists. Bihar 2 and
+         3 are Arabic-only, so sending an English reader to /en/bihar/2/ would
+         be a 404 — the same trap the .chaps grid solves with data-langs, and
+         solved the same way. No attribute means "every language", which is what
+         volume 1 relied on before this existed. */
+      var pub = (a.getAttribute('data-langs') || '').split(',');
+      var use = (lang === 'ar' || (pub[0] && pub.indexOf(lang) === -1)) ? 'ar' : lang;
+      a.setAttribute('href', use !== 'ar'
+        ? ROOT + '/' + use + '/' + slug + '/' + v + '/'
+        : ROOT + '/' + slug + '/' + v + '/');
     });
     each('.langs button', function (b) {
       b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === lang));

@@ -34,6 +34,9 @@ extract.py → [external translation] → merge_build.py → verify.py → commi
 | `reextract.py` | built page → JSON, losslessly (for re-templating without retranslating) |
 | `gen_sitemap.py` | rewrites `sitemap.xml` and `robots.txt` from what is on disk |
 | `quran_build.py` | Tanzil text → surah pages, cover, and the Qur'an's JSON assets |
+| `bihar_ar_extract.py` | Ghaemiyeh Bihar export → `bihar_v<N>.json`, one volume |
+| `bihar_ar_build.py` | `bihar_v<N>.json` → Arabic reading pages, chrome templated from a published vol-1 page |
+| `bihar_ar_wire.py` | volume index, toc.json rows, selector tiles, catalog — wires a built volume into the site |
 | `bayt_extract.py` | Ghaemiyeh HTML export → batch JSON (Bayt al-Ahzan) |
 | `bayt_paginate.py` | splits Bayt al-Ahzan at its `[ صفحه ۷۷ ]` markers into printed pages |
 | `bayt_build.py` | Bayt al-Ahzan page builder, cover, and `toc.json` |
@@ -219,6 +222,35 @@ Then open `http://localhost:8080`. This avoids CORS issues that block `catalog.j
   the language prefix on `translated` *and* a non-empty `volumesPublished`; without both,
   readers browsing in that language get the Arabic cover and never learn the translation
   exists.
+
+---
+
+## بحار الأنوار — adding an Arabic volume
+
+- **Check the edition before anything else.** Each Ghaemiyeh export states its own
+  publisher in the هوية الكتاب block. Volumes 1–3 are دار احياء التراث العربي. The
+  مؤسسة الوفاء text in `Claude outputs/bihar-vol2/` is a *different* edition with its own
+  pagination and must not be mixed into `bihar/`.
+- **The page marker `ص: N` CLOSES its page**, and footnotes for page N follow it. Segment
+  on `<SPAN class=chapter>`, which falls after the notes, so a segment is body + marker +
+  notes. Match the marker as a paragraph whose entire content is «ص: N» — the bare string
+  also appears mid-prose as a cross-reference.
+- **A segment may hold more than one marker**, may carry text after its last marker that
+  belongs to the next page, and may have no marker at all while still holding a page of
+  text. All three occur in volumes 2–3, and each one silently loses text if unhandled.
+- **Prove losslessness by word frequency against the raw export**, not by eyeballing page
+  counts. That is the check that caught every one of the four extraction faults.
+- **An untranslated volume declares `ar` + `x-default` only** — no en/fa/ur hreflang, no
+  `data-alt-*`, and its selector tile carries `data-langs="ar"` so `applyLang()` keeps it
+  on the Arabic tree instead of rewriting it to a language folder nobody built.
+- **The Arabic page template lives only in the published pages.** `build.py` emits
+  en/fa/ur; `bihar_ar_build.py` therefore lifts head/header/nav/footer out of
+  `bihar/1/26/index.html` at build time. Diff any new volume's structure against volume 1
+  after building — 0.948 similarity is the expected figure, the gap being volume 1's
+  translation hreflangs and heading spans.
+- **The edge rail is 120 evenly spaced links**, `n = 1 + round(k·(N−1)/119)`, plus the
+  current page when absent. reader.js then replaces the rail with a dropdown built from
+  those links, so the dropdown offers 120 pages on every volume — volume 1 included.
 
 ---
 
@@ -443,6 +475,8 @@ stays dark (a cream-on-white mark disappears on a light tab bar), and the Apple 
 | Tree | Pages | State |
 |---|---|---|
 | `bihar/1/` (Arabic, source) | 231 | Complete |
+| `bihar/2/` (Arabic, source) | 325 | Complete 2026-09-13, no translation |
+| `bihar/3/` (Arabic, source) | 341 | Complete 2026-09-13, no translation |
 | `en/bihar/1/` | 231 | Complete, machine translation |
 | `fa/bihar/1/` | 231 | Complete, machine translation |
 | `ur/bihar/1/` | 231 | Complete, machine translation |
@@ -655,7 +689,7 @@ footnote numbering never has to reach the screen. The Arabic arrives fully vocal
 > `صوت` marker, so the 38 names are learned where the markup proves them and removed
 > elsewhere only on an exact match.
 
-Bihar volumes 2–110 not started. The Qur'an is complete in all four languages.
+Bihar volumes 2 and 3 are published in Arabic; 4–110 not started. The Qur'an is complete in all four languages.
 The remaining `catalog.json` entries are placeholders.
 
 ---

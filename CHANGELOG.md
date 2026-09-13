@@ -4,6 +4,93 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-13 (part 2)
+
+### بحار الأنوار volumes 2 and 3 — Arabic, 666 new pages
+
+Both from the Ghaemiyeh export of **دار احياء التراث العربي** — the same edition volume 1
+was built from, confirmed from each file's own bibliographic record. The warning in
+`CLAUDE.md` about mixing editions applies to `Claude outputs/bihar-vol2/bihar-vol2.html`
+(the مؤسسة الوفاء text), **not** to these two files.
+
+```
+vol 2   325 pages (1–325)   2,103 blocks   413 notes
+vol 3   341 pages (1–341)   1,266 blocks   560 notes
+```
+
+**Extraction is proven lossless** — every Arabic token in both exports appears in the
+output, checked by word-frequency comparison against the raw source: 0 uncaptured.
+Getting there took four faults, each of which silently lost text and none of which raised
+an error:
+
+1. **A segment can hold two page markers.** The bibliographic record and the first text
+   page both close with «ص: 1» inside one `<SPAN class=chapter>` segment. Reading only the
+   first marker dropped the whole of volume 2's page 1 — 12 blocks including باب 8.
+2. **Text after a segment's last marker was discarded.** That is where volume 3's
+   dedication to كتاب التوحيد lives; it belongs to the next page, whose marker is in the
+   following segment. Now carried forward.
+3. **A page can lose its own marker.** Volume 3 page 37 carried 1,950 characters and no
+   «ص: 37»; its neighbours closed 36 and 38. The extractor infers the label and reports it.
+4. **A marker-less page still has footnotes.** The recovery branch first hardcoded
+   `notes: []` and dropped page 37's note.
+
+The owner then supplied a corrected volume 3 export with page 37's marker restored, which
+also filled page 284 (blank in the first file). Faults 3 and 4 no longer fire on the
+current source, and the handling stays because the next volume may need it.
+
+**`bihar_ar_build.py` takes its chrome from a published volume 1 page** rather than
+re-implementing it — `build.py` emits en/fa/ur only, so volume 1's Arabic template exists
+nowhere in the kit. Structural diff against volume 1 page 26: **0.948 similar**, and both
+differences are correct — volume 1 carries three extra hreflang links and wraps its
+headings in translation spans, neither of which an untranslated volume may have.
+
+> **An untranslated volume must not claim hreflang or `data-alt-*` for en/fa/ur.** A
+> cluster pointing at pages nobody built is ignored wholesale and the switcher offers a
+> 404. Volumes 2 and 3 declare `ar` and `x-default` only.
+
+**One shared-JS change, and it was necessary.** `applyLang()` rewrote every `.vols a.vol`
+to `/<lang>/bihar/<v>/`, which for an Arabic-only volume is a guaranteed 404 the moment a
+reader switches language on the volume selector. The tiles now carry `data-langs`, and the
+handler keeps a volume on the Arabic tree when the chosen language is not listed — exactly
+the guard `.chaps` already uses. Volume 1 declares `ar,en,fa,ur`; volumes 2 and 3 declare
+`ar`. Verified across all 12 volume×language combinations: every one resolves 200.
+
+> Because this edits `assets/reader.js`, a reader holding a cached copy keeps the old
+> behaviour until it expires. **This is the one case that argues for an `ASSETS_V` bump**
+> — the stale file produces real 404s rather than a cosmetic difference. Not done: it
+> rewrites 4,142 files and is the owner's call. A hard refresh fixes it for anyone who
+> hits it meanwhile. The browser cache is also what made the guard look broken on first
+> test, until the script was re-fetched.
+
+Also wired: volume index pages for 2 and 3, 71 new chapters appended to
+`bihar/assets/toc.json` (97 rows across three volumes), `pages-2.json`/`pages-3.json`,
+the selector switched on in all four `bihar/index.html` variants with the published count
+at 3, and `catalog.json` `volumesPublished: [1,2,3]`.
+
+Checked after building:
+
+```
+blocks + notes round-tripping exactly vs source JSON : 2,103+413 and 1,266+560, 0 mismatches
+pages on disk                                        : 325 and 341, contiguous
+canonicals unique and correct                        : 666/666
+pages claiming a language that does not exist        : 0
+footnote refs resolving on their own page            : all
+encoding: invalid utf-8 / BOM / U+FFFD / wrong ?v=   : 0 / 0 / 0 / 0
+page dropdown                                        : 120 options, identical to volume 1
+volume index pages                                   : 325/413 and 341/560, links resolve
+contents drawer from a volume 3 page                 : 97 rows, 26+32+39 by volume
+volume selector, 3 volumes × 4 languages             : 12/12 resolve 200
+sitewide pager sweep                                 : 17 books, 0 broken links
+sitemap                                              : 4,809 URLs, 0 duplicates
+console on a clean load in a FRESH tab               : no errors
+```
+
+> The long-lived test tab reported six 404s that a fresh tab did not. Same artifact as
+> before: a tab's console keeps failures from every earlier navigation. Only a fresh tab
+> is evidence.
+
+---
+
 ## 2026-09-13
 
 ### رنج‌ها و فریادهای فاطمه — 41 spelling corrections
