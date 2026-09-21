@@ -619,6 +619,20 @@
     var body = openDrawer(t('contents'));
     body.innerHTML = '<p class="note-msg">' + esc(t('searching')) + '</p>';
     load(BOOK + '/assets/toc.json').then(function (toc) {
+      /* A multi-volume book shows the CURRENT volume's contents, not the whole
+         work. Bihar is 110 volumes and 7,038 headings; rendered flat they are
+         indistinguishable — every volume has a «باب 1» and the row never says
+         which volume it belongs to. Guarded twice so single-volume books and
+         books whose rows carry no `vol` (Bayt al-Ahzan, Mafatih, the Qur'an,
+         Jami al-Muqaddimat) are untouched: filter only when this page declares
+         a volume AND some row claims one. Volume 1's rows predate the field,
+         so bihar_ar_wire.py backfills it from the href. */
+      var _m = document.getElementById('page-meta');
+      var _v = _m && _m.getAttribute('data-volume');
+      if (_v && toc.some(function (x) { return x.vol != null; })) {
+        var only = toc.filter(function (x) { return String(x.vol) === String(_v); });
+        if (only.length) toc = only;
+      }
       body.innerHTML = toc.map(function (x) {
         var label = (lang !== 'ar' && x[lang]) ? x[lang] : x.title;
         return '<a class="toc-i" href="' + ROOT + '/' + (FIXED && !STANDALONE ? FIXED + '/' : '') + x.href + '"><span>' +

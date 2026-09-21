@@ -37,29 +37,35 @@ def chapters(data):
             if b["tag"] not in ("h3", "h4"):
                 continue
             t = b["ar"].strip()
-            if not t or t.startswith("بحار الأنوار الجامعة") or t == "هوية الكتاب":
+            # «اشارة» is the export's generic "note follows" marker, not a
+            # chapter title. It occurs 267 times across 110 volumes and every
+            # one of them would be an indistinguishable Contents row.
+            if (not t or t.startswith("بحار الأنوار الجامعة")
+                    or t in ("هوية الكتاب", "اشارة", "إشارة")):
                 continue
             if (t, p["n"]) in seen:
                 continue
             seen.add((t, p["n"]))
-            rows.append({"title": t, "p": p["n"]})
+            rows.append({"title": t, "p": p["n"],
+                         "id": p.get("id", str(p["n"]))})
     return rows
 
 
 def volume_index(data, tpl):
     v = data["volume"]
+    ids = [p.get("id", str(p["n"])) for p in data["pages"]]
     pages = [p["n"] for p in data["pages"]]
     notes = sum(len(p["notes"]) for p in data["pages"])
     rows = chapters(data)
     toc = "".join(
-        f'<a class="toc-i" href="{r["p"]}/"><span data-num="{r["p"]}">{ar_num(r["p"])}</span>'
+        f'<a class="toc-i" href="{r["id"]}/"><span data-num="{r["p"]}">{ar_num(r["p"])}</span>'
         f'<span style="flex:1" data-ar="{esc(r["title"])}">{esc(r["title"])}</span></a>'
         for r in rows)
 
     s = tpl
     s = s.replace('data-num="1">1</span>', f'data-num="{v}">{v}</span>', 1)
-    s = re.sub(r'<a class="btn solid" href="\d+/"',
-               f'<a class="btn solid" href="{pages[0]}/"', s, count=1)
+    s = re.sub(r'<a class="btn solid" href="[\w-]+/"',
+               f'<a class="btn solid" href="{ids[0]}/"', s, count=1)
     s = re.sub(r'(<dt data-i18n="pages"></dt><dd data-num=")\d+(">)\d+(</dd>)',
                rf'\g<1>{len(pages)}\g<2>{len(pages)}\g<3>', s, count=1)
     s = re.sub(r'(<dt data-i18n="notes"></dt><dd data-num=")\d+(">)\d+(</dd>)',
@@ -93,9 +99,18 @@ def wire_selector(path, published, langs_by_vol):
 
 
 def main():
-    files = sys.argv[1:]
-    if not files:
+    args = sys.argv[1:]
+    if not args:
         sys.exit(__doc__)
+    if len(args) == 1 and "-" in args[0] and not args[0].endswith(".json"):
+        lo, hi = (int(x) for x in args[0].split("-"))
+        files = [str(pathlib.Path(__file__).parent / f"bihar_v{v}.json")
+                 for v in range(lo, hi + 1)]
+    else:
+        files = args
+    missing = [f for f in files if not pathlib.Path(f).exists()]
+    if missing:
+        sys.exit("missing extraction json: " + ", ".join(missing))
     datas = [json.loads(pathlib.Path(f).read_text(encoding="utf-8")) for f in files]
 
     tpl = (LIB / "bihar/1/index.html").read_text(encoding="utf-8")
@@ -110,10 +125,15 @@ def main():
         out.write_text(volume_index(d, tpl), encoding="utf-8", newline="")
         print(f"  volume index -> {out.relative_to(LIB)}")
         for r in chapters(d):
-            toc.append({"title": r["title"], "href": f"bihar/{v}/{r['p']}/",
+            toc.append({"title": r["title"], "href": f"bihar/{v}/{r['id']}/",
                         "label": ar_num(r["p"]), "p": r["p"], "vol": v})
         print(f"    {len(chapters(d))} chapters added to toc.json")
 
+    for row in toc:
+        if "vol" not in row:
+            m = re.match(r"bihar/(\d+)/", row.get("href", ""))
+            if m:
+                row["vol"] = int(m.group(1))
     toc_path.write_text(json.dumps(toc, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"  toc.json -> {len(toc)} rows")
 

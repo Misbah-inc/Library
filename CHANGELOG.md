@@ -4,6 +4,138 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-13 (part 5)
+
+### بحار الأنوار is complete in Arabic — volumes 7-110, 42,400 new pages
+
+Volumes 7 and 8 from the owner's own exports; 9-110 from
+`Claude outputs/bihar-ghbook-html`. All دار احياء التراث العربي except volume 83.
+Volumes 2-6 were rebuilt at the same time because the page template changed.
+
+```
+109 volumes built (2-110)   44,306 pages   site total 48,556 URLs
+```
+
+**Three extraction faults found, each of which silently destroyed text.** None
+was visible in a page count, and none would have been caught by reading the
+output; all three came out of the word-frequency audit.
+
+1. **Footnote citations read as page markers** (volumes 11, 14, 36, 37). A
+   citation written «ص: 159» is indistinguishable from a page marker, so it
+   split a page in two and invented a label — volume 37 carried «ص: 45155155»,
+   «ص: 12864» and two pages numbered 0. The tell turned out to be exact:
+   deleting the entry makes the run contiguous (`labels[i-1] + 1 == labels[i+1]`),
+   which nothing else in 103 volumes satisfies and a genuine restart never does.
+   Nine removed, **14 blocks of real text merged forward, none dropped** — the
+   marker closes its page, so orphaned text belongs to the page the next real
+   marker closes.
+2. **Publisher front matter colliding with al-Majlisi's pages** (29, 53, 102,
+   108, 109, 110). Those volumes paginate هوية الكتاب / كلمة الناشر / مقدّمة الناشر
+   1..N and then restart at 1. Volume 29 has two completely different texts both
+   calling themselves page 5. The builder would have written both to
+   `/bihar/29/5/` and the second would have overwritten the first in silence.
+   On the owner's decision they now take ids **`fm-1..fm-N`**, so a citation to
+   «vol 29 p 5» still resolves to al-Majlisi's page 5 and none of the 86 pages
+   is lost.
+3. **Negative footnote ids.** Volume 29's front matter numbers its footnotes
+   from a negative counter — `content_note_-5_1` — and the regex required
+   `\d+`. Six footnotes were dropped silently; they are not paragraphs, so no
+   other rule picked them up. This was volume 29's 76 missing words.
+
+**Every one of the 103 volumes now passes `bihar_ar_audit.py` at 0 uncaptured
+tokens**, and volumes 4-6 re-extract byte-identical, so the fixes changed
+nothing that was already right.
+
+### The edge rail is gone from volumes 2-110
+
+45% of every page (9,303 of 20,424 bytes) was 120 tick links that `reader.js`
+deletes on load and replaces with a dropdown. Emitting none makes reader.js take
+its other path — fetch `bihar/assets/pages-<vol>.json` — which every translated
+page already uses. **Pages fall from 21.0 KB to 11.3 KB**, and the dropdown now
+offers *every* page (655 on volume 29) instead of 120 sampled ones.
+
+Volume 1 keeps its rail: it is the source of record and the template, and is not
+restructured without the owner's word.
+
+Crawlability was checked rather than assumed: each volume index links every
+chapter, so no page sits more than ~7 clicks deep, and `<link rel=prev/next>`
+plus the pager buttons are untouched in the static HTML.
+
+### sitemap.xml is now a sitemap index
+
+**A sitemap file may hold at most 50,000 URLs; past that the whole file is
+rejected, not the surplus.** The library was at 5,823 and Bihar in Arabic alone
+takes it to 48,556 — 1,633 short of the cliff, with the next translation
+guaranteed to cross it. `gen_sitemap.py` now shards at 40,000 and writes
+`sitemap.xml` as an index over `sitemap-1.xml`, `sitemap-2.xml`. Nothing changes
+at Search Console: the submitted URL is still `/sitemap.xml`. Stale shards from a
+larger previous run are deleted first, or they would sit in the tree unlisted
+but crawlable.
+
+### The contents drawer now shows one volume, not all 110
+
+At six volumes a flat list was fine. At 110 it is 6,771 rows in which every
+volume has a «باب 1» and no row says which volume it belongs to. `reader.js`
+filters `toc.json` to the page's own volume, guarded twice so single-volume books
+and books whose rows carry no `vol` are untouched; `bihar_ar_wire.py` backfills
+`vol` on volume 1's older rows. 267 rows that were just «اشارة» — the export's
+generic "note follows" marker, not a chapter title — are no longer emitted.
+
+### Volume 83 ships with an edition notice
+
+ghbook.ir has no HTML edition of volume 83 (withdrawn at the publisher's
+request), so it comes from ablibrary and is the **مؤسسة الوفاء** text, whose
+pagination does not match دار احياء التراث العربي. On the owner's decision it is
+published with a `.book-credit` notice on all 372 pages, in all four languages,
+saying so — `.book-credit` and not `.cite`, which is hidden on en/fa/ur.
+
+### Verified
+
+- `verify_pagers.py`: **124 paginated books, every prev/next chain a single
+  unbroken path over all pages.** The `fm-` pages are in the chain: volume 29
+  runs `fm-1 … fm-50 → 2 … 656`, and page 2's `prev` points back at `fm-50`.
+- Sitemap index parses as `sitemapindex`; both shards parse as `urlset`;
+  40,000 + 8,556 URLs; all 86 `fm-` pages present; no drafts.
+- Browser: `/bihar/29/fm-5/` shows «مقدمة الناشر ٥» with الاعتصام بأهل البیت and
+  cites "مقدمة الناشر، ص ٥", while `/bihar/29/5/` shows al-Majlisi's text and
+  cites "المجلد ٢٩، ص ٥" — two different pages at two different URLs.
+- Browser: 0 rail anchors anywhere; dropdowns of 655 / 415 options built from
+  pages-<vol>.json.
+- Browser: volume 83's notice renders in Arabic and swaps to English; volume 70
+  has none. "Not translated yet" shows in en/fa/ur, no translation leaks.
+- Browser: contents drawer on volume 83 returns 11 rows, **all** of volume 83.
+- Volume selector: 110 tiles active, all non-1 volumes `data-langs="ar"`.
+- Page weight measured on disk: 11.8 / 11.5 / 10.6 KB on volumes 4 / 70 / 110.
+
+### Not done, and why
+
+`DEPLOY.md` was revised after external review before anyone followed it. The first
+draft used S3's **public website endpoint**, which gives directory-index resolution for
+free but requires a public bucket — and a public bucket has its own reachable URL, so all
+48,600 files can be pulled **straight from S3, bypassing CloudFront**, billed as S3 egress
+rather than CloudFront's free tier. That is cost exposure, not just posture. It now uses a
+**private bucket with Origin Access Control** plus a ten-line **CloudFront Function** to
+map `/bihar/4/50/` onto its `index.html`, tested against 15 real URL shapes including
+`fm-` pages, Mafatih's named slugs, assets and the sitemap shards. Three other review
+points were adopted: a least-privilege deploy policy instead of `s3:*`, MFA on the root
+account, and custom error responses for **403 as well as 404** — the REST endpoint
+returns 403 for a missing key, so without both, `404.html` never shows. The cost claim of
+"about a penny a month" was replaced with an itemised table, and the note that an AWS
+budget is an **alert, not a cap**.
+
+**Nothing has been committed or pushed.** `deploy_s3.py` and `DEPLOY.md` are new:
+the deploy excludes `_translation-kit/` (192 MB), `CLAUDE.md` and `CHANGELOG.md`, all of
+which are served on the live GitHub Pages site today and would leak the moment the repo
+goes private.
+
+ GitHub Pages deployments time out
+after 10 minutes and a deploy rebuilds the whole site, not the diff — at ~48,600
+files that limit is a problem for every future deploy, not just this one. The
+hosting move to S3 + CloudFront should happen before these pages go live, and
+`ASSETS_V` stays frozen at 9.
+
+---
+
 ## 2026-09-13 (part 4)
 
 ### بحار الأنوار volumes 4, 5 and 6 — Arabic, 1,011 new pages

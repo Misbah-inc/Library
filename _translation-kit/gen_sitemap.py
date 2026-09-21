@@ -41,6 +41,16 @@ def sort_key(rel):
     return tuple((1, int(x)) if x.isdigit() else (0, x) for x in parts)
 
 
+# The sitemap protocol allows at most 50,000 URLs and 50 MB per FILE. Past
+# either, the whole file is rejected - not the surplus entries, the file.
+# Bihar in Arabic alone takes this library to ~48,400 URLs, so a single
+# sitemap.xml stops being valid at the very next thing added. Above the limit
+# sitemap.xml becomes an INDEX listing sitemap-1.xml, sitemap-2.xml ... which
+# is the protocol's own answer and needs nothing changed at Search Console:
+# the submitted URL stays /sitemap.xml.
+PER_FILE = 40000          # under 50,000, with room before resplitting
+
+
 def build_xml(rels):
     urls = []
     for rel in rels:
@@ -50,6 +60,33 @@ def build_xml(rels):
     return ('<?xml version="1.0" encoding="UTF-8"?>'
             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
             + body + '</urlset>'), urls
+
+
+def write_sitemaps(root, rels):
+    """One sitemap.xml, or an index plus shards once past PER_FILE."""
+    # Shards from a previous, larger run would no longer be listed by the index
+    # but would still sit in the tree and be crawlable. Clear them first.
+    for old in root.glob("sitemap-*.xml"):
+        old.unlink()
+
+    if len(rels) <= PER_FILE:
+        urls = rels
+        (root / "sitemap.xml").write_text(xml, encoding="utf-8", newline="")
+        return len(urls), ["sitemap.xml"], False
+
+    shards, total = [], 0
+    for k in range(0, len(rels), PER_FILE):
+        name = "sitemap-%d.xml" % (k // PER_FILE + 1)
+        xml, urls = build_xml(rels[k:k + PER_FILE])
+        (root / name).write_text(xml, encoding="utf-8", newline="")
+        shards.append(name)
+        total += len(urls)
+    body = "".join("<sitemap><loc>%s/%s</loc></sitemap>" % (SITE, n) for n in shards)
+    (root / "sitemap.xml").write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        + body + '</sitemapindex>', encoding="utf-8", newline="")
+    return total, ["sitemap.xml"] + shards, True
 
 
 def main():
@@ -78,10 +115,15 @@ def main():
         print("\n--dry-run: nothing written")
         return
 
-    (root / "sitemap.xml").write_text(xml, encoding="utf-8")
+    total, files, is_index = write_sitemaps(root, rels)
     (root / "robots.txt").write_text(ROBOTS.format(site=SITE), encoding="utf-8")
-    print(f"\nwrote {root/'sitemap.xml'}")
-    print(f"wrote {root/'robots.txt'}")
+    print()
+    if is_index:
+        print("wrote sitemap INDEX + %d shards (%s URLs, %s max per file)"
+              % (len(files) - 1, format(total, ","), format(PER_FILE, ",")))
+    for f in files:
+        print("  " + str(root / f))
+    print("wrote " + str(root / "robots.txt"))
 
 
 if __name__ == "__main__":

@@ -45,7 +45,11 @@ MARKER = re.compile(
     r"<P class=content_paragraph>\s*<SPAN class=content_text>\s*ص\s*:\s*(\d+)\s*</SPAN>\s*</P>",
     re.I)
 NOTE = re.compile(
-    r'<DIV id=content_note_(\d+)_(\d+) class=content_note>(.*?)</DIV>', re.I | re.S)
+    r'<DIV id=content_note_(-?\d+)_(\d+) class=content_note>(.*?)</DIV>', re.I | re.S)
+# Volume 29's publisher front matter numbers its footnotes from a NEGATIVE
+# page counter — content_note_-5_1. Requiring \d+ dropped those six notes
+# silently: they are not paragraphs, so no other rule picked them up, and
+# only the word-frequency audit noticed the 76 missing words.
 NOTELINK = re.compile(
     r'<A [^>]*class=content_notelink[^>]*>\s*\((\d+)\)\s*</A>', re.I)
 PARA = re.compile(r"<P class=content_paragraph>(.*?)</P>", re.I | re.S)
@@ -156,8 +160,65 @@ def parse(path, volume):
                 pages.append({"n": label, "blocks": blocks, "notes": notes})
         carry = seg[prev_end:]
 
+    fix = resolve_pagination(pages)
     return {"volume": volume, "pages": pages, "dropped_segments": dropped,
-            "recovered_markers": recovered}
+            "recovered_markers": recovered, **fix}
+
+
+def resolve_pagination(pages):
+    """Clean the page-label sequence, and separate publisher front matter.
+
+    Two faults occur across volumes 9-110, and both silently destroy text if
+    left alone, because two pages with one label land in one directory and the
+    second overwrites the first.
+
+    1. A FOOTNOTE CITATION written «ص: 159» is indistinguishable from a page
+       marker, so it splits a page in two and invents a label. Volume 37 has
+       «ص: 45155155». The tell is exact: the neighbours are already
+       consecutive, so deleting the entry makes the run contiguous
+       (labels[i-1] + 1 == labels[i+1]). Nothing else in 103 volumes satisfies
+       that, and a genuine restart never does. The marker CLOSES its page, so
+       the orphaned text belongs to the page the NEXT real marker closes -
+       merge it FORWARD, never drop it.
+
+    2. PUBLISHER FRONT MATTER (هوية الكتاب, كلمة الناشر, مقدّمة الناشر) is
+       paginated 1..N before al-Majlisi's own text restarts at 1. Both runs
+       claim the same numbers. The front matter takes ids «fm-1..fm-N» so that
+       a citation to «vol 29 p 5» still resolves to al-Majlisi's page 5, and
+       none of the 86 pages is lost.
+    """
+    removed, merged_blocks = [], 0
+    i = 1
+    while i < len(pages) - 1:
+        a, b, c = pages[i - 1]["n"], pages[i]["n"], pages[i + 1]["n"]
+        if b != a + 1 and a + 1 == c:
+            nxt = pages[i + 1]
+            off = len(pages[i]["blocks"])
+            for blk in nxt["blocks"]:
+                blk["i"] += off
+            nxt["blocks"] = pages[i]["blocks"] + nxt["blocks"]
+            nxt["notes"] = pages[i]["notes"] + nxt["notes"]
+            merged_blocks += off
+            removed.append(b)
+            pages.pop(i)
+            continue
+        i += 1
+
+    # One descending step left, near the front, means a front-matter run.
+    cut = next((i for i in range(1, len(pages))
+                if pages[i]["n"] <= pages[i - 1]["n"]), None)
+    front = []
+    if cut is not None and cut <= len(pages) // 2:
+        front = [p["n"] for p in pages[:cut]]
+        for p in pages[:cut]:
+            p["id"] = f"fm-{p['n']}"
+    for p in pages:
+        p.setdefault("id", str(p["n"]))
+
+    extra = [i for i in range(1, len(pages)) if pages[i]["n"] <= pages[i - 1]["n"]
+             and not (front and i == cut)]
+    return {"spurious_removed": removed, "blocks_merged_forward": merged_blocks,
+            "front_matter": front, "unresolved_restarts": extra}
 
 
 def main():
@@ -165,7 +226,8 @@ def main():
         sys.exit(__doc__)
     data = parse(sys.argv[1], int(sys.argv[2]))
     p = data["pages"]
-    nums = [x["n"] for x in p]
+    body = [x for x in p if not str(x.get("id", "")).startswith("fm-")]
+    nums = [x["n"] for x in body]
     gaps = [i for i in range(nums[0], nums[-1] + 1) if i not in set(nums)]
     print(json.dumps(data, ensure_ascii=False), file=sys.stdout)
     print(f"volume {data['volume']}: {len(p)} pages  {nums[0]}–{nums[-1]}", file=sys.stderr)
@@ -178,6 +240,17 @@ def main():
     blank=[x["n"] for x in p if not x["blocks"] and not x["notes"]]
     if blank:
         print(f"  blank pages kept (no text in the edition): {blank}", file=sys.stderr)
+    if data["spurious_removed"]:
+        print(f"  spurious markers removed (citations read as «ص: N»): "
+              f"{data['spurious_removed']}  "
+              f"[{data['blocks_merged_forward']} blocks merged forward, none dropped]",
+              file=sys.stderr)
+    if data["front_matter"]:
+        print(f"  publisher front matter -> fm-1..fm-{max(data['front_matter'])} "
+              f"({len(data['front_matter'])} pages)", file=sys.stderr)
+    if data["unresolved_restarts"]:
+        print(f"  ** UNRESOLVED label restarts at entries {data['unresolved_restarts']} **",
+              file=sys.stderr)
     print(f"  duplicate labels merged: "
           f"{len(nums) - len(set(nums))}", file=sys.stderr)
     if gaps:

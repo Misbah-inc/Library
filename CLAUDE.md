@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Site
 
-**https://library.misbah-inc.com** — a custom domain on GitHub Pages. The repo root is served at the domain root. Pure static HTML: no SSG framework, no build step other than the Python scripts in `_translation-kit/`.
+**https://library.misbah-inc.com** — a custom domain, moving from GitHub Pages to S3 + CloudFront (see `_translation-kit/DEPLOY.md`). The repo root is served at the domain root. Pure static HTML: no SSG framework, no build step other than the Python scripts in `_translation-kit/`.
 
 ---
 
@@ -38,6 +38,7 @@ extract.py → [external translation] → merge_build.py → verify.py → commi
 | `bihar_ar_build.py` | `bihar_v<N>.json` → Arabic reading pages, chrome templated from a published vol-1 page |
 | `bihar_ar_wire.py` | volume index, toc.json rows, selector tiles, catalog — wires a built volume into the site |
 | `bihar_ar_audit.py` | proves an extraction lost nothing, by word frequency against the raw export |
+| `deploy_s3.py` | publishes the site to S3 + CloudFront — see `DEPLOY.md` |
 | `bayt_extract.py` | Ghaemiyeh HTML export → batch JSON (Bayt al-Ahzan) |
 | `bayt_paginate.py` | splits Bayt al-Ahzan at its `[ صفحه ۷۷ ]` markers into printed pages |
 | `bayt_build.py` | Bayt al-Ahzan page builder, cover, and `toc.json` |
@@ -49,6 +50,25 @@ extract.py → [external translation] → merge_build.py → verify.py → commi
 | `Set-AssetVersion.ps1` | **retired** — stamped `?v=N` sitewide; see the frozen-`ASSETS_V` note below |
 
 All of `build.py`, `merge_build.py`, and `verify.py` accept `--lang` (`en`/`fa`/`ur`) and `--volume`.
+
+**GitHub Pages can no longer serve this site.** Two limits, and the second is
+the one that bites first:
+
+- **1 GB published-site cap**, hard, identical on every GitHub plan. The library
+  is ~0.52 GB in Arabic and would pass 1 GB at its first translation of Bihar.
+- **Deployments time out after 10 minutes**, and a deploy rebuilds the *whole*
+  site, not the diff. At ~48,600 files that ceiling applies to every future
+  deploy, including a one-line fix.
+
+So the Arabic Bihar build must not be pushed to a Pages-enabled repo. The agreed
+destination is **S3 static website hosting behind CloudFront**: no size or file
+limit, index-document support for `/bihar/4/50/` is documented AWS behaviour, and
+the custom domain is one CNAME — which matters because `misbah-inc.com` is
+registered at Wix with `clientUpdateProhibited`, its nameservers are Wix's, and
+the zone also carries the Wix company site and Google Workspace MX. Nothing about
+GitHub changes except that it stops being the web server: it keeps the files,
+the history and the push workflow, and the repo can then be private at no cost
+(Pages from a private repo needs a paid GitHub plan).
 
 **`ASSETS_V` is frozen at 9 and must never be bumped again.** All seven builders emit
 the constant with that note on it; `Set-AssetVersion.ps1` is retired.
@@ -269,6 +289,40 @@ Then open `http://localhost:8080`. This avoids CORS issues that block `catalog.j
   a real one); and the Ghaemiyeh publisher blurb is dropped deliberately, so its
   shortfall is counted separately. Mutation-test it after any change — deleting one page
   from a volume's JSON must make it fail. A checker nobody has seen fail is not evidence.
+- **Two page-label faults recur across the corpus, and both destroy text in
+  silence.** `resolve_pagination()` in `bihar_ar_extract.py` handles them; never
+  build a volume that has not been through it.
+  1. A footnote citation written «ص: 159» matches the page-marker markup, so it
+     splits a page and invents a label — volume 37 had «ص: 45155155» and two
+     pages numbered 0. Detect it by the one thing that is exact: deleting the
+     entry makes the run contiguous (`labels[i-1] + 1 == labels[i+1]`). Merge the
+     orphaned text **forward** — the marker closes its page, so text before a
+     bogus marker belongs to the page the next real marker closes. Never drop it.
+  2. Six volumes (29, 53, 102, 108, 109, 110) paginate publisher front matter
+     1..N before al-Majlisi's text restarts at 1, so two different pages claim
+     one number and one directory. Front matter takes ids **`fm-1..fm-N`**;
+     al-Majlisi keeps the bare numbers, so a citation still resolves. `fm-` pages
+     are in the prev/next chain but **not** in `pages-<vol>.json`, which
+     reader.js reads as integers.
+- **Footnote ids can be negative.** Volume 29's front matter numbers its notes
+  from a negative counter (`content_note_-5_1`). A `\d+` in the NOTE pattern
+  dropped six notes with no error — they are not paragraphs, so nothing else
+  caught them, and only the word-frequency audit noticed the 76 missing words.
+- **Volumes 2-110 ship NO edge rail; volume 1 keeps its.** The rail was 45% of
+  each page for markup reader.js deletes on load. With no `.edgewrap`, reader.js
+  fetches `bihar/assets/pages-<vol>.json` instead — the path translated pages
+  already use — and the dropdown then offers every page. Volume 1 is the source
+  of record and the template: do not restructure it without the owner's word.
+- **Volume 83 is a different edition.** ghbook.ir has no HTML edition of it, so
+  it comes from ablibrary and is the مؤسسة الوفاء text, whose pagination does not
+  match دار احياء التراث العربي. It is published with a `.book-credit` notice on
+  every page in all four languages (`.cite` would be invisible on en/fa/ur).
+  `WAFA_VOLS` in `bihar_ar_build.py` is the list; add to it, never hardcode.
+- **The contents drawer is scoped to the page's own volume.** 110 volumes are
+  6,771 toc rows in which every volume has a «باب 1» and no row says which.
+  reader.js filters on `vol`, guarded so books whose rows lack it are untouched.
+  «اشارة» is the export's "note follows" marker, not a chapter title — 267 of
+  them are filtered out in `bihar_ar_wire.py`.
 - **The Ghaemiyeh catalogue record can name the wrong volume.** The volume-6 export's
   هوية الكتاب says «المجلد 7». The title heading inside the same file says 6, and its text
   opens at باب 19 of أبواب العدل, directly continuing volume 5's باب 18. Trust the heading
@@ -436,7 +490,7 @@ checkouts get CRLF; the published files are unaffected.
 | Item | Status |
 |---|---|
 | `robots.txt` — allows all, points to sitemap | ✅ |
-| `sitemap.xml` — 5,823 URLs, submitted to Search Console | ✅ |
+| `sitemap.xml` — **index** over 2 shards, 48,556 URLs | ✅ |
 | HTTPS (GitHub Pages) | ✅ |
 | Clean URL structure (`/en/bihar/1/26/`) | ✅ |
 | Canonical URL on every page (absolute) | ✅ |
@@ -522,15 +576,11 @@ stays dark (a cream-on-white mark disappears on a light tab bar), and the Apple 
 | Tree | Pages | State |
 |---|---|---|
 | `bihar/1/` (Arabic, source) | 231 | Complete |
-| `bihar/2/` (Arabic, source) | 325 | Complete 2026-09-13, no translation (`data-trlangs=""`) |
-| `bihar/3/` (Arabic, source) | 341 | Complete 2026-09-13, no translation (`data-trlangs=""`) |
-| `bihar/4/` (Arabic, source) | 327 | Complete 2026-09-13, no translation (`data-trlangs=""`) |
-| `bihar/5/` (Arabic, source) | 343 | Complete 2026-09-13, no translation (`data-trlangs=""`) |
-| `bihar/6/` (Arabic, source) | 341 | Complete 2026-09-13, no translation (`data-trlangs=""`) |
+| `bihar/2/`…`bihar/110/` (Arabic, source) | 44,306 | Complete 2026-09-13, no translation (`data-trlangs=""`) |
 | `en/bihar/1/` | 231 | Complete, machine translation |
 | `fa/bihar/1/` | 231 | Complete, machine translation |
 | `ur/bihar/1/` | 231 | Complete, machine translation |
-| `bihar/`, `en|fa|ur/bihar/` | 4 | Volume selector pages |
+| `bihar/`, `en|fa|ur/bihar/` | 4 | Volume selectors — all 110 tiles active |
 | `quran/` + `quran/1–114/` | 115 | Cover and all 114 surahs, Arabic |
 | `en|fa|ur/quran/1–114/` | 342 | 12 translations, reader-selectable; defaults Shakir · فولادوند · علامہ جوادی |
 | `quran/assets/` | — | `toc.json`, `qnav.json`, `qnav.js`, `tr/*.json` (12 translations), `votd.json` + `votd/*.json` |
@@ -739,7 +789,7 @@ footnote numbering never has to reach the screen. The Arabic arrives fully vocal
 > `صوت` marker, so the 38 names are learned where the markup proves them and removed
 > elsewhere only on an exact match.
 
-Bihar volumes 1–6 are published in Arabic (1 also in en/fa/ur); 7–110 not started. The Qur'an is complete in all four languages.
+**Bihar is complete in Arabic: all 110 volumes.** Volume 1 is also in en/fa/ur; 2–110 are not translated. The Qur'an is complete in all four languages.
 The remaining `catalog.json` entries are placeholders.
 
 ---
@@ -766,8 +816,8 @@ In rough priority order. Nothing here is started.
    > one-directional cluster is ignored wholesale. Automated checks passed it because they
    > compared each translation to the **Arabic** and never to each other.
 
-3. **Bihar volumes 7–110.** The pipeline is proven on six volumes and audited by
-   `bihar_ar_audit.py`; this is throughput, not design.
+3. ~~**Bihar volumes 7–110**~~ — **done 2026-09-13.** All 110 volumes in Arabic.
+   Translations are the remaining work, and they are what forces the hosting move.
 4. **A `.gitattributes`** to silence the CRLF warnings, if the noise ever matters.
 
 ### Known-good state
