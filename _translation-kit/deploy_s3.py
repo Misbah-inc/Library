@@ -122,7 +122,7 @@ def main():
     # volume-1-only file and still exists, so "the book has some index" would
     # pass while 109 volumes had none.
     missing = []
-    for b in ("bihar", "kafi"):
+    for b in ("bihar", "kafi", "faqih"):
         if not (root / b).is_dir():
             continue
         vols = [d.name for d in (root / b).iterdir()
@@ -134,7 +134,9 @@ def main():
     # Its shards hold POSITIONS into pages.json, so a half-present set is
     # worse than none: it answers with confidently wrong pages.
     sd = root / "assets" / "search"
-    if not (sd / "pages.json").is_file() or len(list(sd.glob("t-*.json"))) < 2:
+    if (not (sd / "meta.json").is_file()
+            or len(list(sd.glob("t-*.json"))) < 2
+            or len(list(sd.glob("p-*.json"))) < 1):
         missing.append("site-wide index (assets/search/)")
     if missing and not a.dry_run:
         print("no search indexes for: " + ", ".join(missing))

@@ -40,6 +40,8 @@ extract.py → [external translation] → merge_build.py → verify.py → commi
 | `bihar_ar_audit.py` | proves an extraction lost nothing, by word frequency against the raw export |
 | `kafi_ar_build.py` | `kafi_v<N>.json` → al-Kafi's Arabic reading pages |
 | `kafi_ar_wire.py` | al-Kafi's volume selector, volume indexes, `toc.json` and catalog row |
+| `faqih_ar_build.py` | `faqih_v<N>.json` → «من لا يحضره الفقيه» Arabic reading pages |
+| `faqih_ar_wire.py` | al-Faqih's volume selector, volume indexes, `toc.json`, catalog row |
 | `build_search_index.py` | per-volume in-book search indexes — **required before every deploy** |
 | `build_site_index.py` | the site-wide inverted index behind `/search/` — **also required** |
 | `deploy_s3.py` | publishes the site to S3 + CloudFront — see `DEPLOY.md` |
@@ -479,8 +481,9 @@ the list of pages it appears on. Three files answer a query:
 
 | File | Size | When |
 |---|---|---|
-| `assets/search/pages.json` | 7.83 MB raw, **0.54 MB gzipped** | once per visit |
-| `assets/search/t-000…511.json` | 27 MB total, **median 23 KB gzipped** | one per query word |
+| `assets/search/meta.json` | **5.3 KB** — shard counts + segment table | once per visit |
+| `assets/search/t-000…511.json` | 28 MB total, **median 23 KB gzipped** | one per query word |
+| `assets/search/p-000…055.json` | 6.1 MB total, largest 190 KB raw | only the blocks holding results on screen |
 | the result pages themselves | ~3 KB gzipped each | ~20 per result page |
 
 Measured end to end: a three-word query with an exclusion, over the whole
@@ -489,6 +492,27 @@ compresses the HTML. 52,909 pages and 310,147 words are indexed: all 110 Bihar
 volumes, al-Kafi, both Bayt al-Ahzan editions, جامع المقدمات, مفاتیح, the Qur'an,
 and every translation (en/fa/ur).
 
+- **The page table is SHARDED, and the fields that repeat are not in it.**
+  It began as one `pages.json` holding href/book/category/language/volume/
+  label/chapter for every page, fetched whole by every searching reader. At
+  55,393 pages that hit **8,471,418 bytes — 85% of CloudFront's 10,000,000-byte
+  compression ceiling**, past which the file is served RAW: 8.5 MB instead of
+  0.57 MB, with nothing anywhere to announce it. Two changes removed the cliff
+  rather than postponing it:
+    1. book, category, language and volume moved into a **segment table** in
+       `meta.json` — each source file occupies a CONTIGUOUS run of ids, so
+       those are properties of the run, not of 55,000 separate pages. 136 rows
+       covering everything, and it is all the book/category filter needs.
+    2. what remains (name, printed label, chapter) is split into blocks of
+       1,000 ids; a reader fetches only the blocks their own results fall in.
+  The once-per-visit fetch went from 8.5 MB to **5.3 KB**. Keep it that way:
+  anything added to `meta.json` is paid by every reader on every visit.
+- **The href is rebuilt from segment + name, not stored.** `build_site_index.py`
+  asserts the rebuild reproduces the original exactly for every page and exits
+  if it cannot — because if that silently drifts, every search result links to
+  a 404. Any new book whose page URLs are not
+  `<lang>/<book>/<vol>/<name>/` will trip this at build time, which is where it
+  belongs.
 - **Snippets come from fetching the RESULT PAGES, not the per-volume text.**
   Twenty results spread over twenty volumes would be 6 MB of volume files
   against 60 KB of pages, and the pages are already in the CDN.
@@ -541,6 +565,50 @@ None raised an error. Each returned plausible, wrong results.
 python _translation-kit/build_search_index.py --all
 python _translation-kit/build_site_index.py
 ```
+
+## من لا يحضره الفقيه — the third Arabic book (2026-09-23)
+
+Four volumes, 2,484 pages, 9,519 footnotes, at `/faqih/<vol>/<page>/`. Built by
+`faqih_ar_build.py` from the Ghaemiyeh export (ghbook.ir book 19340), extracted
+and audited by the shared `bihar_ar_extract.py` / `bihar_ar_audit.py`.
+
+- **Edition: تحقيق علي أكبر الغفاري، مؤسسة النشر الإسلامي / جماعة المدرسين، قم.**
+  Named in every volume's own هوية الكتاب. **Do not write دار التعارف here** —
+  that is al-Kafi's edition in this library, and the two builders sit next to
+  each other in the same folder.
+- **This export is NOT meaningfully vocalised, and the choice of source was
+  argued badly the first time.** Marks per Arabic letter: Bihar vol 10 54.88%,
+  al-Kafi vol 1 10.83%, **al-Faqih vol 1 0.69%, vol 3 0.51%**. The ~17,000
+  marks are the editor disambiguating the odd word. The tashkīl argument that
+  decided al-Kafi does not apply. Ghaemiyeh was still right, for duller
+  reasons: it carries the back-matter فهارس that ablibrary drops, and it is the
+  format the existing extractor and audit already read. **Measure the density
+  before claiming a source is vocalised** — a raw mark count says nothing.
+- **ablibrary (books 2594-2597) is the SAME edition with the SAME pagination.**
+  Page N is page N, verified at 100/200/300/400 in every volume, and 98.75-99.75%
+  of sampled character runs match. Either source can check a citation.
+- **Compare Arabic across sources with whitespace REMOVED, not normalised.**
+  Three successive comparisons here gave badly wrong answers because Ghaemiyeh
+  is inconsistent about spacing: «عزوجل» for «عز وجل», «محمدبن» for «محمد بن»,
+  «و قالت» for «وقالت». Only stripping whitespace entirely gave a true figure.
+  The residual misses after that are chapter-heading boundaries, where one side
+  puts the title in its own element — not missing text.
+- **أبواب are numbered CONTINUOUSLY across the four volumes**, 1-87, 89-314,
+  315-491, 492-665, and hadith likewise, vol 1 ending at 1573 and vol 4 at 5829.
+  So unlike Bihar and al-Kafi there is no «باب 1» collision; the contents drawer
+  is still volume-scoped, but only to keep it at 108-301 rows instead of 789.
+- **Volume 1 paginates 32 front-matter pages** before the text starts, taking
+  `fm-1..fm-32`; volume 3 has 2. ablibrary independently lists exactly 32 named
+  front pages for volume 1, which is good evidence both captured it intact.
+- The book has **no named parts**, so the part-label slot carries the book's own
+  title rather than a part name — unlike al-Kafi's أصول/فروع/الروضة.
+
+> **A heading check that counts `<H3`/`<H4>` tags is looking at the wrong thing.**
+> Volume 1 marks its أبواب as `<H2 class=content_h2>`, volumes 2-3 use H3/H4,
+> volume 4 mixes all three. `bihar_ar_extract.py` matches on `class=content_h(\d)`
+> rather than the tag name and handles all of them — 86 / 226 / 177 / 172 باب
+> headings captured. An early pass here counted raw tags and reported volume 1
+> as having zero chapters, which was alarming and wrong.
 
 ## Pager invariants — the check that did not exist until 2026-09-11
 
@@ -786,6 +854,9 @@ stays dark (a cream-on-white mark disappears on a light tab bar), and the Apple 
 | `kafi/` | 1 | Volume selector — all 8 tiles active |
 | `kafi/1/`…`kafi/8/` | 8 | Volume indexes, 2,703 chapter rows total |
 | `kafi/1/…8/<page>/` (Arabic, source) | 4,484 | Complete 2026-09-22, no translation (`data-trlangs=""`) |
+| `faqih/` | 1 | Volume selector — all 4 tiles active |
+| `faqih/1/`…`faqih/4/` | 4 | Volume indexes, 789 chapter rows total |
+| `faqih/1/…4/<page>/` (Arabic, source) | 2,484 | Complete 2026-09-23, no translation (`data-trlangs=""`) |
 
 **جامع المقدمات (2026-09-03).** Multi-volume, Bihar-shaped: `/jame-al-muqaddimat/<vol>/<page>/`.
 Persian commentary around Arabic matn, so every block carries its own `lang` (`ar`/`fa`)
@@ -982,8 +1053,8 @@ footnote numbering never has to reach the screen. The Arabic arrives fully vocal
 **Bihar is complete in Arabic: all 110 volumes**, and **al-Kafi is complete in
 Arabic: all 8.** Bihar volume 1 is also in en/fa/ur; 2–110 and all of al-Kafi are
 not translated. The Qur'an is complete in all four languages.
-Of the four canonical books only al-Kafi is published; الفقيه, التهذيب and
-الاستبصار are still `catalog.json` placeholders, as are الغدير and البرهان.
+Of the four canonical books, **al-Kafi and من لا يحضره الفقيه are published**;
+التهذيب and الاستبصار are still `catalog.json` placeholders, as are الغدير and البرهان.
 
 ---
 

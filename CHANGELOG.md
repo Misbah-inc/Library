@@ -4,6 +4,135 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-23 (part 2)
+
+### The search page table is sharded — 8.5 MB down to 5.3 KB per visit
+
+Done before the next book rather than after, because the failure it prevents is
+silent. `assets/search/pages.json` carried href, book, category, language,
+volume, page label and chapter for all 55,393 pages, and every reader who
+searched downloaded the whole thing. It had reached **8,471,418 bytes — 85% of
+CloudFront's 10,000,000-byte auto-compression ceiling.** Past that ceiling
+nothing errors; the file simply starts arriving RAW, 8.5 MB instead of 0.57 MB
+gzipped, to everyone who searches. التهذيب alone would have crossed it.
+
+Two changes removed the cliff instead of postponing it:
+
+1. **Book, category, language and volume moved into a segment table.** Each
+   source file occupies a *contiguous* run of page ids, so those four fields
+   are properties of the run, not of 55,000 separate pages. 136 rows now
+   describe the whole library, and they are all the book and category filters
+   need — the filter never touches a page row at all.
+2. **What remains is sharded.** Name, printed label and chapter go into blocks
+   of 1,000 ids; a reader fetches only the blocks their own results fall in.
+
+| | before | after |
+|---|---|---|
+| fetched once per visit | 8,471,418 bytes | **5,698 bytes** |
+| page data | one file, all of it | 56 shards, largest 190 KB, 3 fetched for a typical result page |
+| headroom before the ceiling | ~10,000 pages | the largest file is now 190 KB |
+
+The href is **rebuilt** from segment + name rather than stored, which is where
+most of the remaining bytes went. `build_site_index.py` asserts the rebuild
+reproduces the original exactly for every page and exits if it cannot — if that
+ever drifts, every search result links to a 404, so it fails at build time
+instead.
+
+Verified against the pre-shard behaviour rather than assumed: «الصدقة» returns
+the same 672 candidates, the al-Faqih book filter the same 49, the phrase «باب
+فضل الصدقة» the same 17 verified. English results carry `lang="en"` and resolve
+to `/en/bayt-al-ahzan/N/`; eight sampled result links all return 200; in-book
+search is untouched and still returns 59 hits on al-Faqih volume 2. The shipped
+`reader.js` was checked for the new code and for the absence of the old — the
+lesson from the tokeniser parity test that passed while the regex was broken.
+
+---
+
+## 2026-09-23
+
+### من لا يحضره الفقيه is published in Arabic — 4 volumes, 2,484 pages
+
+The second of the four canonical books, from the Ghaemiyeh export of ghbook.ir
+book 19340, through the same extractor and audit as Bihar and al-Kafi.
+
+```
+4 volumes   2,484 pages   9,519 footnotes   789 chapter rows
+```
+
+**Edition: تحقيق علي أكبر الغفاري، مؤسسة النشر الإسلامي / جماعة المدرسين، قم** —
+the standard scholarly edition, named in each volume's own هوية الكتاب.
+
+### The source was compared against ablibrary before building
+
+ablibrary (books 2594-2597) turns out to carry **the same edition with the same
+pagination**: page N is page N, verified at pages 100/200/300/400 in every
+volume, with 98.75-99.75% of sampled character runs matching. Either source can
+be used to check a citation.
+
+**Three successive comparisons gave badly wrong answers before one was right.**
+Ghaemiyeh is inconsistent about spacing — «عزوجل» for «عز وجل», «محمدبن» for
+«محمد بن», «و قالت» for «وقالت» — so word-based comparison kept reporting text
+as missing when it was merely spaced differently. Only removing whitespace
+entirely gave a true figure. What remains after that is chapter-heading
+boundaries, where one side puts the title in its own element.
+
+### A recommendation that was argued wrongly, and is corrected here
+
+Ghaemiyeh was recommended on the grounds that it "carries the vocalisation,
+~17,000 marks against zero — the same advantage that decided al-Kafi". That was
+measured properly only after pages started coming out bare:
+
+| | marks per Arabic letter |
+|---|---|
+| Bihar vol 10 | 54.88% |
+| al-Kafi vol 1 | 10.83% |
+| **al-Faqih vol 1** | **0.69%** |
+| **al-Faqih vol 3** | **0.51%** |
+
+17,000 marks across 2.8 million letters is the editor disambiguating the odd
+word, not a vocalised text. **A raw mark count says nothing; density is the
+measure.** Ghaemiyeh was still the right source — it carries the back-matter
+فهارس that ablibrary drops, and it is the format the existing extractor and
+audit already read — but the reason given was not the true one. The builder
+docstring, the export folder's README and `CLAUDE.md` now all state this.
+
+Two smaller claims also corrected: the extractor does **not** miss volume 1's
+`<H2>` chapter headings (it matches `class=content_h(\d)`, not the tag name, and
+captured 86 / 226 / 177 / 172 أبواب); and أبواب are numbered **continuously**
+across the four volumes, 1-665, not restarting per volume as first written.
+
+### What was checked
+
+- **`UNCAPTURED SOURCE TOKENS: 0`** on all four volumes.
+- 120 random pages / 733 blocks diffed block-for-block against the extraction
+  JSON — 0 mismatches.
+- All **9,519 footnotes** verified page by page across all 2,484 pages — 0
+  mismatches.
+- No duplicate page ids. Volume 1's 32 front-matter pages take `fm-1..fm-32`;
+  ablibrary independently lists exactly 32 named front pages, which is good
+  evidence both captured it intact.
+- Browser: volume selector, volume index, reading page, contents drawer (301
+  rows on volume 2, none from other volumes), and site-wide search filtered to
+  the book (49 hits with chapter, page and snippet).
+
+### The search page table is approaching a hard ceiling
+
+`assets/search/pages.json` is now **8,471,418 bytes — 84.7% of CloudFront's
+10,000,000-byte auto-compression ceiling**. Below it, a searching reader gets
+0.57 MB gzipped; one byte above, the same file is served raw at 8.5 MB, a 15x
+regression with nothing in any log to announce it. At ~153 bytes per page there
+is headroom for about **10,000 more pages** — roughly four more books this size,
+or rather less than one more Bihar.
+
+`build_site_index.py` now prints the remaining headroom past 80% and says
+loudly when the ceiling is crossed. The fix, when it is needed, is to shard the
+page table the way the postings already are: a reader needs the rows for their
+hits, not all 55,000. Not done now — it deserves its own change.
+
+Site index: **55,393 pages**, 321,526 words. Sitemap: **55,538 URLs**.
+
+---
+
 ## 2026-09-22
 
 ### الكافي is published in Arabic — 8 volumes, 4,484 pages
