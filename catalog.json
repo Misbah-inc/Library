@@ -242,7 +242,6 @@
     {
       "slug": "faqih",
       "category": "hadith",
-      "placeholder": true,
       "volumes": 4,
       "title": {
         "ar": "من لا يحضره الفقيه",
@@ -259,8 +258,14 @@
         "ur": "شیخ صدوق",
         "en": "Shaykh al-Saduq"
       },
-      "pages": 0,
-      "href": ""
+      "pages": 2484,
+      "href": "faqih/",
+      "volumesPublished": [
+        1,
+        2,
+        3,
+        4
+      ]
     },
     {
       "slug": "tahdhib",

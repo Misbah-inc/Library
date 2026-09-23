@@ -181,6 +181,25 @@ def main():
         separators=(",", ":")).encode("utf-8"))
 
     pt = (OUT / "pages.json").stat().st_size
+    # CloudFront auto-compresses only BELOW 10,000,000 bytes. pages.json is
+    # fetched by every reader who searches; at 8.5 MB it arrives as 0.57 MB
+    # gzipped, and one byte over the ceiling it arrives as 8.5 MB raw — a 15x
+    # regression with no error anywhere to announce it. ~153 bytes per page,
+    # so the ceiling is around 65,000 pages.
+    #
+    # The fix when it comes is to shard the page table the way the postings are
+    # already sharded — a reader needs the rows for their hits, not all of them.
+    CF_LIMIT = 10_000_000
+    if pt > CF_LIMIT:
+        print("")
+        print(f"  ** pages.json is {pt:,} bytes, OVER CloudFront's "
+              f"{CF_LIMIT:,}-byte compression ceiling. It will be served "
+              f"UNCOMPRESSED. Shard it before deploying. **")
+    elif pt > CF_LIMIT * 0.8:
+        print("")
+        print(f"  ! pages.json is at {100*pt/CF_LIMIT:.0f}% of CloudFront's "
+              f"compression ceiling ({pt:,} of {CF_LIMIT:,} bytes) — about "
+              f"{(CF_LIMIT-pt)//max(1, pt//len(pages)):,} more pages of headroom.")
     print(f"\n  {len(pages):,} pages, {len(post):,} words, {a.shards} shards")
     print(f"  assets/search/pages.json   {pt/1048576:6.2f} MB")
     print(f"  assets/search/t-*.json     {total/1048576:6.2f} MB "
