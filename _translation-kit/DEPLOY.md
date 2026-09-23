@@ -110,22 +110,76 @@ Pages one gesture did two jobs; now they are separate:
 So a normal change is:
 
 1. Edit the files on Drive (or have Claude build them).
-2. **Publish:**
+2. **Rebuild the search indexes** if any reading page changed:
+
+   ```bash
+   python _translation-kit/build_search_index.py --all
+   ```
+
+   These are the files a reader's browser downloads when they use the **Search**
+   button inside a book. They are deliberately **not in git** — they are a second
+   copy of every book's text, about 165 MB, and the repository is already hard to
+   push. `aws s3 sync` does not read `.gitignore`, so they still reach S3.
+
+   The consequence to know about: **on a machine that has never run this, the
+   indexes do not exist**, and `deploy_s3.py`'s `--delete` would remove them from
+   the bucket — every Search button would start answering "Could not load." The
+   deploy script refuses to run in that state rather than let it happen, and tells
+   you this command. It checks per volume, so a stale `bihar/assets/search-index.json`
+   does not fool it.
+
+3. **Publish:**
 
    ```bash
    python _translation-kit/deploy_s3.py --bucket library-misbah-inc --dist E2P6OCWDH7403J
    ```
 
    It compares local against the bucket, uploads only what differs, and invalidates the
-   CDN. A one-page fix takes seconds; it does not re-upload 48,000 files.
+   CDN.
 
-3. **Commit and push** to GitHub as usual — that is now purely the archive and history.
+   **A full deploy takes about 50 minutes, and that is Google Drive, not AWS.**
+   Measured on 2026-09-22: 170 MB of new search indexes uploaded in *under a minute*,
+   and unchanged pages were correctly skipped — but `aws s3 sync` must still stat all
+   53,000 local files to work out what changed, and every one of those is a network
+   round trip to a streamed Drive folder. Everything that walks this tree costs the
+   same: `verify_pagers.py` ~50 min, building Bihar's indexes 28 min.
+
+   **So for a routine change, sync only what changed** — seconds instead of an hour,
+   because it only walks that subtree:
+
+   ```bash
+   aws s3 sync "G:/My Drive/Misbah Library/Library/kafi" s3://library-misbah-inc/kafi      --cache-control public,max-age=600 --only-show-errors
+   aws cloudfront create-invalidation --distribution-id E2P6OCWDH7403J --paths "/kafi/*"
+   ```
+
+   Note there is no `--delete` there: a targeted sync cannot safely delete, because it
+   has no view of the rest of the site. Run the full `deploy_s3.py` when pages have been
+   *removed*, or every so often as a reconciliation pass.
+
+   **The durable fix is to stop streaming the files.** Marking the Drive folder
+   "Available offline" pins real files to local disk, and would speed up the deploy, the
+   index builds, the verifiers — and very likely the git push failures, which were the
+   same Drive-streaming problem wearing a different hat.
+
+4. **Commit and push** to GitHub as usual — that is now purely the archive and history.
+   The search indexes are skipped automatically; nothing to do.
+
+> **Adding a pattern to `EXCLUDE` does not remove what is already in the bucket.**
+> `aws s3 sync --delete` applies its filters to the *destination* listing too, so an
+> excluded key is invisible to the delete pass rather than deleted by it. `.claude/launch.json`
+> was live on the site and survived a deploy that excluded it. Clear such things once, by hand:
+>
+> ```bash
+> aws s3 rm s3://library-misbah-inc/.claude/ --recursive
+> aws cloudfront create-invalidation --distribution-id E2P6OCWDH7403J --paths "/.claude/*"
+> ```
 
 The order does not matter, and neither does doing both in the same sitting. They are
 independent: the deploy decides what readers see, the push decides what is recorded.
 
 **Before publishing anything that adds or rebuilds pages**, the existing rules still
-apply — `verify_pagers.py` must report 0 broken links and `gen_sitemap.py` must be re-run.
+apply — `verify_pagers.py` must report 0 broken links, `gen_sitemap.py` must be re-run,
+and `build_search_index.py` must be re-run for the books that changed.
 See `CLAUDE.md`, "Page addition checklist".
 
 ### Restoring the single gesture, if it is ever wanted

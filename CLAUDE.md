@@ -38,6 +38,10 @@ extract.py → [external translation] → merge_build.py → verify.py → commi
 | `bihar_ar_build.py` | `bihar_v<N>.json` → Arabic reading pages, chrome templated from a published vol-1 page |
 | `bihar_ar_wire.py` | volume index, toc.json rows, selector tiles, catalog — wires a built volume into the site |
 | `bihar_ar_audit.py` | proves an extraction lost nothing, by word frequency against the raw export |
+| `kafi_ar_build.py` | `kafi_v<N>.json` → al-Kafi's Arabic reading pages |
+| `kafi_ar_wire.py` | al-Kafi's volume selector, volume indexes, `toc.json` and catalog row |
+| `build_search_index.py` | per-volume in-book search indexes — **required before every deploy** |
+| `build_site_index.py` | the site-wide inverted index behind `/search/` — **also required** |
 | `deploy_s3.py` | publishes the site to S3 + CloudFront — see `DEPLOY.md` |
 | `bayt_extract.py` | Ghaemiyeh HTML export → batch JSON (Bayt al-Ahzan) |
 | `bayt_paginate.py` | splits Bayt al-Ahzan at its `[ صفحه ۷۷ ]` markers into printed pages |
@@ -355,6 +359,189 @@ Then open `http://localhost:8080`. This avoids CORS issues that block `catalog.j
 
 ---
 
+## الكافي — the second Arabic book (2026-09-22)
+
+Eight volumes, 4,484 pages, at `/kafi/<vol>/<page>/`. Built by
+`kafi_ar_build.py` (one builder per book, as everywhere here) from the same
+Ghaemiyeh HTML exports as Bihar, extracted by `bihar_ar_extract.py` —
+the export format is identical, so the extractor and the audit are shared.
+
+- **The edition is دار التعارف للمطبوعات، بيروت (1411 هـ / 1990 م)**, edited by
+  محمد جعفر شمس الدين. All eight volumes say so in their own هوية الكتاب.
+  **Do not write al-Ghaffari** anywhere — that is the دار الكتب الإسلامية
+  printing, a different text with different pagination, and it is the edition
+  most citations of al-Kafi in circulation actually refer to. `EDITION` in
+  `kafi_ar_wire.py` is the single place the name is written.
+- **The part label comes from the volume's own heading**: 1-2 «أصول الكافي»,
+  3-7 «فُروعُ الكافي», 8 «روضة الكافي». It is the page `<title>` and the first
+  element of every citation, so it is not cosmetic. `PART` in both kafi scripts
+  must agree; they are checked against the openings — vol 3 كتاب الطهارة,
+  4 أبواب الصدقة, 5 كتاب الجهاد, 6 كتاب العقيقة, 7 كتاب الوصايا, 8 كتاب الروضة.
+- **Volume 4's export has no `<H4>` at all.** Its 362 باب titles ship as
+  ordinary `content_paragraph`s, so the volume came out with 7 contents rows
+  across 599 pages while its siblings had 300-400. They are promoted to `h4`
+  before the build, by the one pattern that is exact here — a paragraph whose
+  text starts `^\d+\s*-\s*باب` and is under 250 characters. It fires 362 times
+  and the numbers run 1..362 with two breaks, one of them a typo in the source;
+  it never fires inside a hadith. **The promotion asserts the text is
+  byte-identical afterwards** and the volume re-audits at 0 uncaptured tokens,
+  because the only thing allowed to change is a tag.
+- **Do not apply that promotion to any other volume.** Volume 6 has *both* — an
+  unnumbered `<H4>` running head and a numbered paragraph repeating it — so
+  promoting there would double all 422 of its chapter rows. Volumes 1, 2, 3, 5
+  and 7 match only a handful of times and almost every one is a duplicate of an
+  `<H4>` on the same page carrying footnote markers the heading omits.
+- **Filter «اشارة» and «هوية الكتاب» folded, not literally.** Some volumes spell
+  them with Persian ی/ک and some with Arabic ي/ك; comparing the raw string
+  leaks the publisher's catalogue record into the contents of volumes 3, 4
+  and 8. `fold()` in `kafi_ar_wire.py` does it.
+- **Volume 1 paginates its front matter 1..10 before the text restarts at 1**,
+  the same fault as Bihar's six volumes, and takes the same `fm-1..fm-10` ids:
+  in the prev/next chain, out of `pages-1.json`.
+- Every volume is Arabic-only: `data-trlangs=""` on the pages, `data-langs="ar"`
+  on the selector tiles, no `translated` array in `catalog.json`, so
+  `bookCard()` keeps a reader browsing in English on the Arabic tree rather
+  than linking `/en/kafi/`, which nobody has built.
+- `kafi_ar_wire.py` **builds its chrome instead of lifting it** from a published
+  page, which is how `bihar_ar_wire.py` works — there was no published al-Kafi
+  page to lift from. Keep the markup the same shape as Bihar's (same classes,
+  same `data-i18n` keys, `<main class="cover">`) so reader.js needs nothing new.
+
+> **The home-page counter reads `pages` from `catalog.json`, and it is written
+> by hand.** Bihar's said 231 — volume 1 alone — from before the 110-volume
+> build until 2026-09-22, so the site advertised 2,556 pages while serving
+> about 49,000. Nothing derives it, nothing checks it: set it when a book grows.
+
+## In-book search — how it works and what it costs (2026-09-22)
+
+There is no search engine behind this site. When a reader opens a book, clicks
+**Search** and types a word, `reader.js` downloads that book's index and scans
+it in the browser with `indexOf`. So the index **is** the book's text, a second
+time. That is the whole reason these files are large.
+
+- **One file per volume, never one per book.** Bihar as a single file is about
+  150 MB, and — the fact that settles it — **CloudFront only auto-compresses
+  below 10,000,000 bytes**. A whole-book al-Kafi index measured 10,628,733
+  bytes, missing the ceiling by 6%, so every reader who searched would have
+  pulled it raw. Per volume each file is 1-2 MB and arrives around 250-450 KB
+  gzipped. Verified against the live site: `bihar/assets/search-index.json`
+  comes back with `Content-Encoding: gzip`.
+- **`reader.js` resolves four candidates in order** and takes the first that
+  loads: this language's volume, this language's book, the Arabic volume, the
+  Arabic book. The last is what every book used before, so nothing regressed.
+  A translated page must search its OWN language, and `BOOK` cannot supply it —
+  `BOOK` is pinned to the Arabic root so `toc.json` resolves.
+- **`fold()` in `build_search_index.py` must match `fold()` in `reader.js`
+  exactly.** The reader's query is folded by one and matched against text
+  folded by the other. A disagreement is a word that can never be found, with
+  no error anywhere to say so. `FOLD` and `DROP` are transcribed; change them
+  together. Keep `DROP` written as `\uXXXX` escapes — an earlier edit left the
+  literal combining marks in the source, where they are invisible.
+- **The index includes footnotes**, matching the hand-made Bihar index: on
+  `bihar/1/26/` it carries 1,400 folded characters against 1,269 for the body
+  alone. A rare word is usually explained in the editor's note.
+- **The files are NOT committed** — `.gitignore` covers `**/assets/search-*.json`.
+  They are derived in one command and would add over 20% to a repository that
+  already struggles to push over Drive. `aws s3 sync` does not read
+  `.gitignore`, so `deploy_s3.py` uploads them anyway. The trap that creates is
+  real and guarded: deploying from a clone that never ran the builder would
+  make `--delete` **remove** them from S3 and leave every Search button saying
+  "Could not load." with nothing in the output to explain it. `deploy_s3.py`
+  now refuses, per volume — checking "the book has some index" would pass on
+  Bihar forever, because `bihar/assets/search-index.json` is the old
+  volume-1-only file and still exists.
+
+> **Only Arabic Bihar and al-Kafi pages carry a `btn-search` at all.** Bayt
+> al-Ahzan, جامع المقدمات and the translated trees have no search button, so an
+> index for them is only reachable through the site-wide `/search/`, which
+> reads `<slug>/assets/search-index.json` per book. Giving those books the
+> button is a change to each one's builder and has not been made.
+
+> **Site-wide full-text search does not scale to this library and has not been
+> attempted.** `/search/` fetches one file per book, so it sees Bihar volume 1
+> and nothing else of Bihar or al-Kafi. Covering 53,000 pages client-side means
+> shipping ~165 MB. The shape that would work is asking the reader for a book
+> and volume first, then loading that one index — not done.
+
+**Run it before every deploy:**
+```
+python _translation-kit/build_search_index.py --all
+```
+
+## Site-wide search — the inverted index (2026-09-22)
+
+`/search/` is the library's most-used feature and until now it could not work.
+It downloaded **one index per book and scanned it**, which is fine for a
+231-page book and impossible for 53,000 pages: the library's text is ~165 MB.
+
+It is now inverted. Instead of scanning text, look up the WORD: for each word,
+the list of pages it appears on. Three files answer a query:
+
+| File | Size | When |
+|---|---|---|
+| `assets/search/pages.json` | 7.83 MB raw, **0.54 MB gzipped** | once per visit |
+| `assets/search/t-000…511.json` | 27 MB total, **median 23 KB gzipped** | one per query word |
+| the result pages themselves | ~3 KB gzipped each | ~20 per result page |
+
+Measured end to end: a three-word query with an exclusion, over the whole
+library, transferred **234 KB** on the local server — less on CloudFront, which
+compresses the HTML. 52,909 pages and 310,147 words are indexed: all 110 Bihar
+volumes, al-Kafi, both Bayt al-Ahzan editions, جامع المقدمات, مفاتیح, the Qur'an,
+and every translation (en/fa/ur).
+
+- **Snippets come from fetching the RESULT PAGES, not the per-volume text.**
+  Twenty results spread over twenty volumes would be 6 MB of volume files
+  against 60 KB of pages, and the pages are already in the CDN.
+- **That fetch is also what makes "exact phrase" exact.** The index can only
+  say the words are all somewhere on the page, never that they are adjacent.
+  «باب فضل الصدقة» returns 33 candidates and 17 survive the check. Anything that
+  removes the page fetch silently turns phrase search into "all these words".
+- **Page ids are POSITIONS in `pages.json`.** Shards and page table are one
+  artefact in two files; rebuild them together, always. A stale shard does not
+  error — it returns confidently wrong pages, which is worse.
+- **The shard hash is FNV-1a 32 and must stay so.** The browser hashes the word
+  itself, so no word→shard table ships; `crypto.subtle` offers SHA only, and
+  there is no MD5 in a browser. `shard_of()` in the builder and `fnv1a()` in
+  `reader.js` are the same four lines. In JS the multiply is written as shifts
+  because `h * 16777619` leaves the exact-integer range.
+- **`deploy_s3.py` refuses to publish without these**, because they are
+  gitignored and `--delete` would otherwise strip them off S3.
+
+### Three silent failures this feature produced, all found by measuring
+
+None raised an error. Each returned plausible, wrong results.
+
+1. **`\u0600-\u06FF` in the tokeniser.** The Arabic block contains the COMMA
+   (U+060C), SEMICOLON, QUESTION MARK and FULL STOP (U+06D4), so «الصدقه،» was
+   one token and a search for «الصدقه» could never match it. Python's `\w` is
+   already Unicode-aware — the extra range was wrong *and* unnecessary.
+2. **`<div class="body"` with the closing quote.** مفاتیح writes
+   `class="body mafatih"`, so the match failed and the book produced **694
+   empty rows** — an entire book unsearchable, no error. Match `<div class="body`
+   without the quote. `build_search_index.py` now prints a count of pages that
+   extracted no text; it reports only مفاتیح's 5 category landing pages, which
+   genuinely have none.
+3. **`'[^\p{L}\p{N}_]+'` written as a JS string.** `\p` in a string literal is
+   just `p`, so the regex became `[^p{L}p{N}_]+` — a class that splits on
+   Arabic LETTERS. Every query tokenised to nothing and the page said "type at
+   least two characters". It needs `'[^\p{L}\p{N}_]+'`. It is built with
+   `new RegExp(...)` inside try/catch rather than a `/…/u` literal so an engine
+   without property escapes falls back instead of failing to parse the file.
+
+> **The tokeniser parity test is the check that holds this together.** The
+> query is tokenised by `reader.js` and the text by `build_site_index.py`; any
+> disagreement is a word that can never be found, with nothing to say so. Take
+> 40 real pages, tokenise in both, compare the sets — currently 5,034 tokens,
+> 0 mismatches. **Extract the regex from the SHIPPED file when testing.** The
+> first run of this test passed while the shipped regex was broken, because it
+> tested the pattern as intended rather than as deployed.
+
+**Run both, in this order, before every deploy:**
+```
+python _translation-kit/build_search_index.py --all
+python _translation-kit/build_site_index.py
+```
+
 ## Pager invariants — the check that did not exist until 2026-09-11
 
 - **Never derive prev/next from a batch's ordering.** A batch is a unit of translation
@@ -596,6 +783,9 @@ stays dark (a cream-on-white mark disappears on a light tab bar), and the Apple 
 | `jame-al-muqaddimat/1/` + `1/1–609/` | 610 | Vol 1 contents + pages, 9 treatises |
 | `jame-al-muqaddimat/2/` + `2/1–607/` | 608 | Vol 2 contents + pages, 6 treatises |
 | `mafatih/` + 689 pieces | 690 | Cover (11 tiles) + every piece, Arabic + انصاریان Persian |
+| `kafi/` | 1 | Volume selector — all 8 tiles active |
+| `kafi/1/`…`kafi/8/` | 8 | Volume indexes, 2,703 chapter rows total |
+| `kafi/1/…8/<page>/` (Arabic, source) | 4,484 | Complete 2026-09-22, no translation (`data-trlangs=""`) |
 
 **جامع المقدمات (2026-09-03).** Multi-volume, Bihar-shaped: `/jame-al-muqaddimat/<vol>/<page>/`.
 Persian commentary around Arabic matn, so every block carries its own `lang` (`ar`/`fa`)
@@ -789,8 +979,11 @@ footnote numbering never has to reach the screen. The Arabic arrives fully vocal
 > `صوت` marker, so the 38 names are learned where the markup proves them and removed
 > elsewhere only on an exact match.
 
-**Bihar is complete in Arabic: all 110 volumes.** Volume 1 is also in en/fa/ur; 2–110 are not translated. The Qur'an is complete in all four languages.
-The remaining `catalog.json` entries are placeholders.
+**Bihar is complete in Arabic: all 110 volumes**, and **al-Kafi is complete in
+Arabic: all 8.** Bihar volume 1 is also in en/fa/ur; 2–110 and all of al-Kafi are
+not translated. The Qur'an is complete in all four languages.
+Of the four canonical books only al-Kafi is published; الفقيه, التهذيب and
+الاستبصار are still `catalog.json` placeholders, as are الغدير and البرهان.
 
 ---
 

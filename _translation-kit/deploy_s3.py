@@ -15,9 +15,18 @@ Three things this does that a bare `aws s3 sync` does not:
 1. **It does not publish the workshop.** `_translation-kit/` is 192 MB of build
    scripts and source JSON and is, today, served live — so is `CLAUDE.md`.
    Harmless while the repo is public; the moment the repo goes private, serving
-   them would leak exactly what was closed. `--delete` on the first pass means
-   running this against a bucket populated before these rules existed REMOVES
-   them, rather than merely stopping their upload.
+   them would leak exactly what was closed.
+
+   **`--delete` does NOT remove something you add to EXCLUDE.** The filters
+   apply to the DESTINATION listing as well as the source, so an excluded key
+   is not considered for deletion — it is simply invisible to sync. Adding a
+   pattern here stops future uploads and nothing more. Anything already in the
+   bucket has to be removed by hand, once:
+
+       aws s3 rm s3://<bucket>/<prefix>/ --recursive
+
+   This was learned the hard way: `.claude/launch.json` was served live and
+   survived a deploy that excluded it.
 
 2. **Cache headers per file type**, which GitHub Pages does not allow at all.
    The pages are short-lived, the fonts never change. This is the proper fix for
@@ -50,12 +59,13 @@ sys.stdout.reconfigure(encoding="utf-8")
 # reader must never receive is shorter and far less likely to silently drop a
 # new book than an allow-list that must be edited every time one is added.
 #
-# `--delete` on the first pass means anything already on S3 and excluded here is
-# REMOVED from the CDN, which is what makes this safe to run against a bucket
-# that was populated before these rules existed.
+# Adding a pattern here stops the upload; it does NOT delete what is already in
+# the bucket, because sync's filters hide the key from the delete pass too.
+# Remove those by hand once — see the module docstring.
 EXCLUDE = [
     "_translation-kit/*",   # 192 MB of build scripts and source JSON
     ".git/*", ".github/*", ".gitattributes", ".gitignore",
+    ".claude/*",            # agent config; launch.json was live until 2026-09-22
     "*.md",                 # CLAUDE.md, CHANGELOG.md, README
     "*.py", "*.ps1", "*.sh",
     ".DS_Store", "desktop.ini", "Thumbs.db",
@@ -71,7 +81,14 @@ PAGE_CACHE = "public,max-age=600"          # what GitHub Pages serves today
 ASSET_CACHE = [
     ("fonts & images", "public,max-age=31536000,immutable",
      ["woff2", "woff", "ttf", "otf", "png", "jpg", "jpeg", "gif", "svg", "ico", "webp"]),
-    ("css & js", "public,max-age=86400", ["css", "js"]),
+    # Ten minutes, NOT a day. `ASSETS_V` is frozen, so the URL never changes
+    # and a browser's own cache is the only thing deciding when a reader gets
+    # new JS — a CloudFront invalidation cannot reach into it. At max-age=86400
+    # a returning reader could run yesterday's reader.js for a full day, which
+    # makes CLAUDE.md's rule ("ship the JS change on its own, it is live within
+    # ten minutes") simply untrue. These are 77 KB and 66 KB and revalidate to
+    # a ~200-byte 304, and the edge is invalidated on every deploy anyway.
+    ("css & js", "public,max-age=600", ["css", "js"]),
 ]
 
 
@@ -95,6 +112,37 @@ def main():
         sys.exit(f"{root} does not look like the Library root (no index.html)")
     if not shutil.which("aws") and not a.dry_run:
         sys.exit("the AWS CLI is not installed — see DEPLOY.md, step 1")
+
+    # The search indexes are NOT in git (see .gitignore) — they are derived and
+    # too large to commit. `aws s3 sync --delete` therefore has a trap: deploying
+    # from a clone that has never run build_search_index.py would DELETE them off
+    # S3, and every book's Search button would start answering "Could not load."
+    # with nothing in this output to say why. Refuse instead.
+    # Per VOLUME, not per book: bihar/assets/search-index.json is the old
+    # volume-1-only file and still exists, so "the book has some index" would
+    # pass while 109 volumes had none.
+    missing = []
+    for b in ("bihar", "kafi"):
+        if not (root / b).is_dir():
+            continue
+        vols = [d.name for d in (root / b).iterdir()
+                if d.is_dir() and d.name.isdigit()]
+        gap = [v for v in vols if not (root / b / "assets" / f"search-{v}.json").is_file()]
+        if gap:
+            missing.append(f"{b} ({len(gap)} of {len(vols)} volumes)")
+    # The site-wide index is the one readers actually reach from /search/.
+    # Its shards hold POSITIONS into pages.json, so a half-present set is
+    # worse than none: it answers with confidently wrong pages.
+    sd = root / "assets" / "search"
+    if not (sd / "pages.json").is_file() or len(list(sd.glob("t-*.json"))) < 2:
+        missing.append("site-wide index (assets/search/)")
+    if missing and not a.dry_run:
+        print("no search indexes for: " + ", ".join(missing))
+        print("they are gitignored and must be built before deploying:")
+        print("    python _translation-kit/build_search_index.py --all")
+        print("    python _translation-kit/build_site_index.py")
+        print("(--dry-run skips this check)")
+        return 1
 
     rc = 0
     print("")

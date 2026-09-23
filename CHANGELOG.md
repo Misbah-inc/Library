@@ -4,6 +4,216 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-22
+
+### الكافي is published in Arabic — 8 volumes, 4,484 pages
+
+The library's second complete hadith book, and the first of the four canonical
+books. From the Ghaemiyeh HTML exports of ghbook.ir book 2153, extracted with
+the same `bihar_ar_extract.py` the Bihar build uses — the export format is
+identical, so the extractor and the losslessness audit are shared rather than
+forked.
+
+```
+8 volumes   4,484 pages   23,282 footnotes   2,703 chapter rows
+```
+
+**The edition is دار التعارف للمطبوعات، بيروت (1411 هـ / 1990 م)**, edited by
+محمد جعفر شمس الدين, named by each volume's own هوية الكتاب. This matters more
+here than it did for Bihar: most al-Kafi citations in circulation are to
+al-Ghaffari's دار الكتب الإسلامية printing, which has different pagination, so
+the edition is stated on every volume index in all four languages.
+
+### Volume 4's export has no chapter headings at all
+
+Its 362 باب titles ship as ordinary paragraphs — no `<H4>` anywhere in the file
+— while volumes 3 and 5 have 332 and 386. Extracted faithfully, volume 4 came
+out with **7 contents rows across 599 pages**, so the drawer was useless on the
+one volume covering الصدقة, الصيام, الحج and الصيد.
+
+They are promoted to headings before the build, by the only pattern that is
+exact here: a paragraph beginning `N- باب` and under 250 characters. It fires
+362 times, the numbers run 1..362 with two breaks (one of them a typo in the
+source itself), and it never fires inside a hadith. The promotion **asserts the
+text is byte-identical afterwards** — only a tag may change — and volume 4
+re-audits at 0 uncaptured tokens.
+
+It is deliberately not applied anywhere else. Volume 6 carries *both* forms, an
+unnumbered `<H4>` running head and a numbered paragraph repeating it, so the
+same promotion there would double all 422 of its chapter rows.
+
+### What was checked
+
+- **`bihar_ar_audit.py`: `UNCAPTURED SOURCE TOKENS: 0` on all eight volumes.**
+  Word-frequency equality against the raw export — the check that found every
+  one of the three text-destroying faults in the Bihar build.
+- **96 random pages across the 8 volumes, 605 blocks, diffed block for block
+  against the extraction JSON** — not just "nothing is missing" but nothing
+  reordered, merged or truncated on the page a reader actually sees. 0
+  mismatches.
+- **All 23,282 footnotes emitted**, checked page by page against the source
+  across all 4,484 pages. 0 mismatches.
+- **Every prev/next chain is a single unbroken path** visiting each page exactly
+  once, with the `<head>` links agreeing with the pager buttons on all 4,484
+  pages.
+- Verified in a browser over HTTP: the volume selector, a volume index in
+  Arabic and in English, a reading page, the jump dropdown, and the contents
+  drawer — which returns 367 rows on volume 4 and none from any other volume.
+
+Volume 1 paginates its front matter 1..10 before the text restarts at 1, the
+same collision six Bihar volumes have, and takes the same `fm-1..fm-10` ids: in
+the prev/next chain, out of `pages-1.json`, so a citation to «vol 1 p 5» still
+resolves to al-Kulayni's page 5.
+
+Arabic only. `data-trlangs=""` on every page, `data-langs="ar"` on every
+selector tile, and no `translated` array in `catalog.json`, so a reader browsing
+in English stays on the Arabic tree instead of being sent to `/en/kafi/`, which
+does not exist.
+
+### The home-page counter had been wrong since the Bihar build
+
+It sums a hand-written `pages` field in `catalog.json`. Bihar's still said
+**231** — volume 1 alone, from before volumes 2–110 existed — so the site
+advertised **2,556 pages while serving about 49,000**. Nothing derives that
+number and nothing checks it. Bihar is now 44,537 and al-Kafi 4,484, both
+counted off disk.
+
+`quran`'s `pages` is **2**, which is also wrong (115 pages exist), but what the
+field is meant to mean for a book paginated by surah is a judgement call, so it
+is left for the owner rather than guessed at.
+
+### Search now works across the whole library — 52,909 pages, every language
+
+`/search/` is the library's most important feature and it could not have worked
+at this size. It downloaded **one index per book and scanned it** — fine for a
+231-page book, impossible for 53,000 pages, because the library's text is about
+165 MB. In practice it saw Bihar volume 1 and nothing else.
+
+It is now an **inverted index**: instead of scanning text, look up the word. For
+each word, the list of pages it appears on, split across 512 shards that the
+browser addresses by hashing the word itself.
+
+| | Size | Fetched |
+|---|---|---|
+| `assets/search/pages.json` | 0.54 MB gzipped | once per visit |
+| `assets/search/t-000…511.json` | median **23 KB** gzipped | one per query word |
+| the result pages, for snippets | ~3 KB each | ~20 per page of results |
+
+A three-word query with an exclusion, across the whole library, transferred
+**234 KB** — and less than that on CloudFront, which compresses the HTML.
+
+**Indexed: 52,909 pages, 310,147 words.** All 110 Bihar volumes, al-Kafi, both
+Bayt al-Ahzan editions, جامع المقدمات, مفاتیح, the Qur'an — and every translation,
+so searching *Fatima* finds the English pages and «البقیع» finds the Arabic and
+the English side by side. Results put the reader's own language first.
+
+**Exact phrase is genuinely exact.** An inverted index can only say the words
+are all somewhere on the page, never that they are adjacent. So each result
+page is fetched and its real text checked: «باب فضل الصدقة» gives 47 candidates
+and 17 survive. That page fetch is also where the snippets come from — twenty
+results in twenty volumes would be 6 MB of volume files against 60 KB of pages.
+
+In-book search (the Search button inside Bihar and al-Kafi) is per volume for
+the same reason, and that is also what the site index is built from.
+
+### Three silent failures, none of which raised an error
+
+Each returned plausible, wrong results. All were found by measuring rather than
+by reading the code.
+
+1. **The tokeniser treated Arabic punctuation as letters.** `\u0600-\u06FF`
+   contains the Arabic comma, semicolon, question mark and full stop, so
+   «الصدقه،» was a single token and a search for «الصدقه» could never match it.
+   Python's `\w` is already Unicode-aware; the extra range was wrong as well as
+   unnecessary.
+2. **مفاتیح produced 694 empty rows.** It writes `class="body mafatih"` and the
+   extractor matched the literal `<div class="body"` *with* the closing quote.
+   An entire book was unsearchable and nothing said so. It is 4.10 MB now
+   instead of 0.08 MB, and the builder prints a count of pages that extract no
+   text — it reports only مفاتیح's 5 category landing pages, which have none.
+3. **`'[^\p{L}\p{N}_]+'` as a JavaScript string.** `\p` in a string literal is
+   just `p`, so the regex became `[^p{L}p{N}_]+` — a class that splits on
+   Arabic **letters**. Every query tokenised to nothing and the page answered
+   "type at least two characters".
+
+The third is the one worth remembering, because **the parity test passed while
+it was broken**: the test compared the pattern as intended, not as shipped. It
+now extracts the regex from the served `reader.js` and compares against Python
+over 40 real pages — 5,034 tokens, 0 mismatches.
+
+### 165 MB of derived data that is not in git
+
+The per-volume text (~130 MB) and the site index (~35 MB) are a second copy of
+the library's text. Committing them would add over 20% to a repository that is
+already hard to push over Drive, and they rebuild in one command. They are
+gitignored — and because `aws s3 sync` does not read `.gitignore`, they still
+reach the live site.
+
+That leaves one trap, and it is guarded: deploying from a machine that never
+built them would make `--delete` **remove** them from S3, and every search would
+start answering "Could not load." with nothing in the output to explain it.
+`deploy_s3.py` now refuses in that state. It checks Bihar and al-Kafi **per
+volume** — asking only whether the book has *some* index would pass forever,
+because `bihar/assets/search-index.json` is the old volume-1-only file and is
+still there.
+
+```
+python _translation-kit/build_search_index.py --all
+python _translation-kit/build_site_index.py
+```
+
+### Deployed to library.misbah-inc.com
+
+`deploy_s3.py` + a CloudFront invalidation, verified live: `/kafi/` and its
+volume indexes, reading pages including `fm-` front matter, the search assets,
+site-wide search (623 hits for «الصدقة» across مفاتيح and الكافي), exact phrase
+(17 of 47 candidates), and in-book search on `kafi/4/5/` (48 hits, scoped to
+volume 4). Every index file is served `Content-Encoding: gzip` — `pages.json`
+is 7.83 MB raw and so sits under CloudFront's 10,000,000-byte compression
+ceiling, arriving as 569 KB. A whole-library search transferred 971 KB.
+
+**The deploy took 52 minutes, and none of it was AWS.** 170 MB of new indexes
+uploaded in under a minute and unchanged pages were correctly skipped; the time
+went on `aws s3 sync` stat-ing 53,000 files across a streamed Google Drive
+folder. Everything that walks this tree costs the same — `verify_pagers.py` took
+~50 minutes on the same day. `DEPLOY.md` said "a one-page fix takes seconds",
+which was wrong, and now documents syncing a single subtree for routine changes,
+plus the durable fix of marking the Drive folder "Available offline".
+
+Three things this deploy exposed:
+
+1. **`.claude/launch.json` was being served from the bucket.** Adding it to
+   `EXCLUDE` did not remove it: `aws s3 sync --delete` applies its filters to the
+   *destination* listing too, so an excluded key is invisible to the delete pass
+   rather than deleted by it. The script's own docstring claimed the opposite;
+   both are corrected, and the file is gone from S3.
+2. **CSS and JS were being cached for a day.** `ASSETS_V` is frozen, so the URL
+   never changes and a browser's own cache is the only thing deciding when a
+   reader gets new JavaScript — a CloudFront invalidation cannot reach into it.
+   At `max-age=86400` a returning reader could have run yesterday's `reader.js`
+   for a full day, making CLAUDE.md's "live within ten minutes" untrue on AWS.
+   Now 600, matching the pages; the files are 77 KB and 66 KB and revalidate to
+   a ~200-byte 304.
+3. `bihar/110/433/` 404s — correctly. Volume 110 runs pages 2–430 plus four
+   `fm-` pages; 433 was its page *count*. Noted because it looked like a fault
+   and was not.
+
+### New scripts
+
+| Script | Role |
+|---|---|
+| `kafi_ar_build.py` | `kafi_v<N>.json` → al-Kafi's Arabic reading pages |
+| `kafi_ar_wire.py` | volume selector, volume indexes, `toc.json`, catalog row |
+| `build_search_index.py` | per-volume in-book text, every book and language |
+| `build_site_index.py` | the 512-shard inverted index behind `/search/` |
+
+`kafi_ar_wire.py` builds its chrome rather than lifting it from a published page
+the way `bihar_ar_wire.py` does, because there was no published al-Kafi page to
+lift from. The markup is the same shape as Bihar's — same classes, same
+`data-i18n` keys, same `<main class="cover">` — so `reader.js` needed no change.
+
+---
+
 ## 2026-09-13 (part 5)
 
 ### بحار الأنوار is complete in Arabic — volumes 7-110, 42,400 new pages

@@ -511,8 +511,73 @@
     });
     runSearch(P);
   }
+  /* ---------- site search: shard maths ----------
+     FNV-1a 32 over the UTF-8 bytes, identical to shard_of() in
+     build_site_index.py. The browser hashes the word itself so no
+     word -> shard table has to be shipped; crypto.subtle offers SHA only,
+     and there is no MD5 in a browser, which is why it is this hash.
+     The multiply is written as shifts because h * 16777619 overflows a
+     double's exact-integer range: 16777619 = 2^24 + 2^8 + 2^7 + 2^4 + 2^1 + 1. */
+  var UTF8 = typeof TextEncoder !== 'undefined' ? new TextEncoder() : null;
+  function fnv1a(s) {
+    var b = UTF8 ? UTF8.encode(s) : null, h = 0x811c9dc5, i;
+    if (!b) { b = []; for (i = 0; i < s.length; i++) b.push(s.charCodeAt(i) & 255); }
+    for (i = 0; i < b.length; i++) {
+      h ^= b[i];
+      h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+    }
+    return h >>> 0;
+  }
+  function pad3(n) { return n < 10 ? '00' + n : n < 100 ? '0' + n : '' + n; }
+  /* "0.4.1.2s" -> [0, 4, 5, 84]: base-36 gaps between ascending page ids. */
+  function unpack(s) {
+    if (!s) return [];
+    var p = s.split('.'), out = new Array(p.length), n = 0;
+    for (var i = 0; i < p.length; i++) { n += parseInt(p[i], 36); out[i] = n; }
+    return out;
+  }
+  /* Both inputs are ascending, so these are linear merges, not O(n*m). */
+  function inter(a, b) {
+    var o = [], i = 0, j = 0;
+    while (i < a.length && j < b.length) {
+      if (a[i] === b[j]) { o.push(a[i]); i++; j++; }
+      else if (a[i] < b[j]) i++; else j++;
+    }
+    return o;
+  }
+  function union(a, b) {
+    var o = [], i = 0, j = 0;
+    while (i < a.length && j < b.length) {
+      if (a[i] === b[j]) { o.push(a[i]); i++; j++; }
+      else if (a[i] < b[j]) o.push(a[i++]); else o.push(b[j++]);
+    }
+    while (i < a.length) o.push(a[i++]);
+    while (j < b.length) o.push(b[j++]);
+    return o;
+  }
+  function minus(a, b) {
+    var o = [], i = 0, j = 0;
+    while (i < a.length) {
+      while (j < b.length && b[j] < a[i]) j++;
+      if (j < b.length && b[j] === a[i]) i++; else o.push(a[i++]);
+    }
+    return o;
+  }
+
+  /* Split a QUERY into the same tokens build_site_index.py split the TEXT
+     into, or a lookup asks the index for a word it can never contain.
+     Splitting on whitespace alone is not enough: «الصدقة، البلاء» would ask
+     for «الصدقه،» with the Arabic comma still attached. Python's \w is
+     Unicode-aware; JavaScript's is ASCII-only and would destroy every Arabic
+     word, so the equivalent has to be spelled out with property escapes.
+     Older engines without /u property escapes fall back to whitespace, which
+     is the previous behaviour rather than a crash. */
+  var WORDSEP = (function () {
+    try { return new RegExp('[^\\p{L}\\p{N}_]+', 'u'); }
+    catch (e) { return /\s+/; }
+  })();
   function tok(s) {
-    return fold(s || '').text.split(/\s+/).filter(function (x) { return x.length > 1; });
+    return fold(s || '').text.split(WORDSEP).filter(function (x) { return x.length > 1; });
   }
   function runSearch(P) {
     resBox.innerHTML = '<p class="empty-note">' + esc(t('searching')) + '</p>';
@@ -539,42 +604,134 @@
       if (!phrase && !all.length && !any.length) {
         resBox.innerHTML = '<p class="empty-note">' + esc(t('minChars')) + '</p>'; return;
       }
-      Promise.all(books.map(function (b) {
-        return load(ROOT + '/' + b.slug + '/assets/search-index.json')
-          .then(function (idx) { return { book: b, idx: idx }; })
-          .catch(function () { return null; });
-      })).then(function (sets) {
-        var out = [];
-        sets.filter(Boolean).forEach(function (set) {
-          set.idx.forEach(function (row) {
-            var txt = row.t;
-            if (not.some(function (w) { return txt.indexOf(w) !== -1; })) return;
-            if (phrase && txt.indexOf(phrase) === -1) return;
-            if (all.length && !all.every(function (w) { return txt.indexOf(w) !== -1; })) return;
-            if (any.length && !any.some(function (w) { return txt.indexOf(w) !== -1; })) return;
-            var mark = phrase || all[0] ||
-              any.filter(function (w) { return txt.indexOf(w) !== -1; })[0] || '';
-            var at = mark ? txt.indexOf(mark) : 0, n = 0, i = 0;
-            if (mark) { while ((i = txt.indexOf(mark, i)) !== -1) { n++; i += mark.length; } }
-            out.push({ b: set.book, row: row, at: Math.max(0, at), n: n, mark: mark });
+      /* ---- site-wide full text, through the sharded inverted index ----
+         The old code downloaded one index per book and scanned it. That is
+         fine at 231 pages and impossible at 53,000: the library's text is
+         ~165 MB. Here a word is looked up instead of scanned — the browser
+         hashes it to one shard of ~34 KB and reads that shard only.
+         Snippets come from fetching the RESULT PAGES themselves (~3 KB each,
+         already cached by the CDN), not the per-volume text files: twenty
+         results in twenty volumes would be 6 MB of volume files against
+         60 KB of pages. */
+      var SROOT = ROOT + '/assets/search';
+      var terms = [], ptoks = phrase ? tok(phrase) : [];
+      function want(w) { if (w && terms.indexOf(w) < 0) terms.push(w); }
+      ptoks.forEach(want); all.forEach(want); any.forEach(want); not.forEach(want);
+      if (!terms.length) {
+        resBox.innerHTML = '<p class="empty-note">' + esc(t('minChars')) + '</p>'; return;
+      }
+      load(SROOT + '/pages.json').then(function (PT) {
+        var NSH = (PT.meta && PT.meta.shards) || 512, rows = PT.rows;
+        return Promise.all(terms.map(function (w) {
+          return load(SROOT + '/t-' + pad3(fnv1a(w) % NSH) + '.json')
+            .then(function (sh) { return unpack(sh[w]); })
+            .catch(function () { return []; });
+        })).then(function (lists) {
+          var by = {};
+          terms.forEach(function (w, i) { by[w] = lists[i]; });
+
+          /* phrase words and "all these words" both have to be present */
+          var must = ptoks.concat(all), cand = null;
+          must.forEach(function (w) {
+            cand = cand === null ? by[w] : inter(cand, by[w]);
           });
+          if (cand === null) {
+            any.forEach(function (w) { cand = cand === null ? by[w] : union(cand, by[w]); });
+          } else if (any.length) {
+            var u = [];
+            any.forEach(function (w) { u = union(u, by[w]); });
+            cand = inter(cand, u);
+          }
+          cand = cand || [];
+          not.forEach(function (w) { cand = minus(cand, by[w]); });
+
+          /* book / category come straight off the page table */
+          var keep = [];
+          for (var i = 0; i < cand.length; i++) {
+            var r = rows[cand[i]];
+            if (!r) continue;
+            if (P.book && r[1] !== P.book) continue;
+            if (P.cat && r[2] !== P.cat) continue;
+            keep.push(cand[i]);
+          }
+          /* the reader's own language first, then Arabic, then the rest */
+          keep.sort(function (a, b) {
+            var la = rows[a][3], lb = rows[b][3];
+            var ra = la === lang ? 0 : la === 'ar' ? 1 : 2;
+            var rb = lb === lang ? 0 : lb === 'ar' ? 1 : 2;
+            return ra - rb || a - b;
+          });
+          if (!keep.length) {
+            resBox.innerHTML = '<p class="empty-note">' + esc(t('noResults')) + '</p>';
+            return;
+          }
+          var mark = phrase || all[0] || any[0] || '';
+          var shown = 0, verified = 0, PAGE = 20;
+          var head = '<p class="empty-note" id="res-count"></p>';
+          resBox.innerHTML = head + '<div id="res-list"></div>' +
+            '<div style="text-align:center;margin:1.2rem 0">' +
+            '<button class="btn" id="res-more" hidden></button></div>';
+          var list = document.getElementById('res-list');
+          var more = document.getElementById('res-more');
+          var count = document.getElementById('res-count');
+
+          function batch() {
+            more.hidden = true;
+            var slice = keep.slice(shown, shown + PAGE);
+            shown += slice.length;
+            count.textContent = t('searching');
+            /* Fetch each result page and read its own text. This is what
+               makes an EXACT PHRASE exact: the inverted index can only say
+               the words are all on the page, not that they are adjacent. */
+            Promise.all(slice.map(function (id) {
+              var r = rows[id];
+              return fetch(ROOT + '/' + r[0]).then(function (x) {
+                return x.ok ? x.text() : '';
+              }).then(function (html) {
+                var d = new DOMParser().parseFromString(html, 'text/html');
+                var b = d.querySelector('.body');
+                var raw = b ? b.textContent.replace(/\s+/g, ' ').trim() : '';
+                var f = fold(raw).text;
+                if (phrase && f.indexOf(phrase) === -1) return null;
+                var at = mark ? f.indexOf(mark) : 0, n = 0, i = 0;
+                if (mark) { while ((i = f.indexOf(mark, i)) !== -1) { n++; i += mark.length; } }
+                return { r: r, raw: raw, f: f, at: Math.max(0, at), n: n };
+              }).catch(function () {
+                return { r: rows[id], raw: '', f: '', at: 0, n: 0 };
+              });
+            })).then(function (got) {
+              var html = '';
+              got.filter(Boolean).forEach(function (h) {
+                verified++;
+                var s = Math.max(0, h.at - 50);
+                var snip = h.raw ? h.f.slice(s, Math.min(h.f.length, h.at + 70)) : '';
+                var bk = CAT.books.filter(function (b) { return b.slug === h.r[1]; })[0];
+                var bits = [bk ? pick(bk.title) : h.r[1]];
+                if (h.r[4]) bits.push(t('volume') + ' ' + num(h.r[4]));
+                if (h.r[6]) bits.push(h.r[6]);
+                bits.push(t('page') + ' ' + num(h.r[5]));
+                if (h.n) bits.push(num(h.n) + ' ' + t('occurrences'));
+                html += '<a class="res" href="' + ROOT + '/' + h.r[0] +
+                  (mark ? '?q=' + encodeURIComponent(mark) : '') +
+                  '" lang="' + h.r[3] + '"><span class="res-h">' +
+                  esc(bits.join(' · ')) + '</span>' +
+                  (snip ? '<span class="res-t">…' + (marked(snip, mark) || esc(snip)) +
+                    '…</span>' : '') + '</a>';
+              });
+              list.innerHTML += html;
+              count.textContent = num(verified) + ' · ' + t('results') +
+                (shown < keep.length ? ' (' + num(keep.length) + ')' : '');
+              if (shown < keep.length) {
+                more.hidden = false;
+                more.textContent = t('showAllRes');
+              }
+            });
+          }
+          more.addEventListener('click', batch);
+          batch();
         });
-        if (!out.length) {
-          resBox.innerHTML = '<p class="empty-note">' + esc(t('noResults')) + '</p>'; return;
-        }
-        out.sort(function (x, y) { return y.n - x.n; });
-        resBox.innerHTML = '<p class="empty-note">' + num(out.length) + ' · ' +
-          esc(t('results')) + '</p>' + out.slice(0, 300).map(function (h) {
-          var s = Math.max(0, h.at - 50);
-          var snip = h.row.t.slice(s, Math.min(h.row.t.length, h.at + 60));
-          var part = h.row.part && (h.row.part[lang] || h.row.part.ar) || '';
-          return '<a class="res" href="' + ROOT + '/' + h.row.href +
-            (h.mark ? '?q=' + encodeURIComponent(h.mark) : '') + '"><span class="res-h">' +
-            esc(pick(h.b.title)) + ' · ' + esc(part) + ' · ' + esc(t('page')) + ' ' +
-            num(h.row.p) + (h.n ? ' · ' + num(h.n) + ' ' + esc(t('occurrences')) : '') +
-            '</span><span class="res-t">…' + (marked(snip, h.mark) || esc(snip)) +
-            '…</span></a>';
-        }).join('');
+      }).catch(function () {
+        resBox.innerHTML = '<p class="empty-note">' + esc(t('loadFail')) + '</p>';
       });
     }).catch(function () {
       resBox.innerHTML = '<p class="empty-note">' + esc(t('loadFail')) + '</p>';
@@ -643,6 +800,30 @@
       body.innerHTML = '<p class="note-msg">' + esc(t('loadFail')) + '</p>';
     });
   });
+  /* Where THIS page's searchable text lives.
+     Per volume, never per book: Bihar as one file is 126 MB, and CloudFront
+     only auto-compresses below 10,000,000 bytes, so a single file would also
+     arrive uncompressed. Each volume is ~1 MB, ~250 KB on the wire.
+     A translated page searches its OWN language, which BOOK cannot give us —
+     BOOK is pinned to the Arabic root above so toc.json resolves. Try, in
+     order: this language's volume, this language's whole book, the Arabic
+     volume, the Arabic book. The last is what every book had before this. */
+  function loadSearchIndex() {
+    var m = document.getElementById('page-meta');
+    var slug = m && m.getAttribute('data-slug');
+    var vol = m && m.getAttribute('data-volume');
+    var roots = [];
+    if (slug && FIXED && FIXED !== 'ar') roots.push(ROOT + '/' + FIXED + '/' + slug);
+    roots.push(slug ? ROOT + '/' + slug : BOOK);
+    var urls = [];
+    for (var i = 0; i < roots.length; i++) {
+      if (vol) urls.push(roots[i] + '/assets/search-' + vol + '.json');
+      urls.push(roots[i] + '/assets/search-index.json');
+    }
+    return urls.reduce(function (p, u) {
+      return p.catch(function () { return load(u); });
+    }, Promise.reject(new Error('no index')));
+  }
   on('btn-search', 'click', function () {
     var body = openDrawer(t('search'));
     body.innerHTML = '<div class="search-row"><input id="dq" data-i18n-ph="ph">' +
@@ -655,7 +836,7 @@
       var box = document.getElementById('dhits');
       if (needle.length < 2) { box.innerHTML = '<p class="note-msg">' + esc(t('minChars')) + '</p>'; return; }
       box.innerHTML = '<p class="note-msg">' + esc(t('searching')) + '</p>';
-      load(BOOK + '/assets/search-index.json').then(function (idx) {
+      loadSearchIndex().then(function (idx) {
         var hits = [];
         idx.forEach(function (row) {
           var n = 0, at = -1, i = 0;

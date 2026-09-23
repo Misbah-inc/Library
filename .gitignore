@@ -7,3 +7,20 @@ __pycache__/
 .DS_Store
 Thumbs.db
 *.swp
+
+# In-book search indexes — derived, large, and regenerated in one command:
+#   python _translation-kit/build_search_index.py --all
+# They are a second copy of every book's text (Bihar alone is ~150 MB across
+# 110 files), so committing them would add more than 20% to a repository that
+# already struggles to push over Google Drive. `aws s3 sync` does not read this
+# file, so deploy_s3.py still uploads them and the live site still has search.
+# bihar/assets/search-index.json predates this and stays tracked; git does not
+# untrack a file just because a pattern starts matching it.
+**/assets/search-*.json
+
+# Site-wide search: the inverted index (512 shards) and the page table.
+# Same reasoning — derived, ~17 MB, rebuilt by:
+#   python _translation-kit/build_site_index.py
+# Page ids in the shards are POSITIONS in pages.json, so the two must always
+# be rebuilt together; never restore one from an older copy.
+assets/search/

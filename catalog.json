@@ -210,7 +210,6 @@
     {
       "slug": "kafi",
       "category": "hadith",
-      "placeholder": true,
       "volumes": 8,
       "title": {
         "ar": "الكافي",
@@ -227,8 +226,18 @@
         "ur": "شیخ کلینی",
         "en": "Shaykh al-Kulayni"
       },
-      "pages": 0,
-      "href": ""
+      "pages": 4484,
+      "href": "kafi/",
+      "volumesPublished": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
     },
     {
       "slug": "faqih",
@@ -380,7 +389,7 @@
       },
       "volumes": 110,
       "volume": 1,
-      "pages": 231,
+      "pages": 44537,
       "translated": [
         "en",
         "fa",
