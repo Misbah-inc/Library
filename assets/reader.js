@@ -606,13 +606,24 @@
       }
       /* ---- site-wide full text, through the sharded inverted index ----
          The old code downloaded one index per book and scanned it. That is
-         fine at 231 pages and impossible at 53,000: the library's text is
+         fine at 231 pages and impossible at 55,000: the library's text is
          ~165 MB. Here a word is looked up instead of scanned — the browser
-         hashes it to one shard of ~34 KB and reads that shard only.
+         hashes it to one shard of ~23 KB and reads that shard only.
+
+         Nothing fetched here grows with the library. meta.json is 5 KB: shard
+         counts plus the SEGMENT TABLE, one row per source file giving the id
+         range it occupies and its book, category, language and volume. That
+         is all the book and category filters need, because each source file
+         occupies a contiguous run of ids. Page rows — name, label, chapter —
+         live in p-*.json blocks of 1,000 and are fetched only for the results
+         on screen. It replaced an 8.5 MB pages.json that every searching
+         reader downloaded whole, and that was 85% of the way to CloudFront's
+         compression ceiling, past which it would have arrived uncompressed.
+
          Snippets come from fetching the RESULT PAGES themselves (~3 KB each,
-         already cached by the CDN), not the per-volume text files: twenty
-         results in twenty volumes would be 6 MB of volume files against
-         60 KB of pages. */
+         already cached by the CDN). That fetch is also what makes an EXACT
+         PHRASE exact: the index can only say the words are all on the page,
+         never that they are adjacent. */
       var SROOT = ROOT + '/assets/search';
       var terms = [], ptoks = phrase ? tok(phrase) : [];
       function want(w) { if (w && terms.indexOf(w) < 0) terms.push(w); }
@@ -620,8 +631,19 @@
       if (!terms.length) {
         resBox.innerHTML = '<p class="empty-note">' + esc(t('minChars')) + '</p>'; return;
       }
-      load(SROOT + '/pages.json').then(function (PT) {
-        var NSH = (PT.meta && PT.meta.shards) || 512, rows = PT.rows;
+      load(SROOT + '/meta.json').then(function (M) {
+        var NSH = M.shards || 512, PSH = M.pageShard || 1000, segs = M.segments;
+        /* segs are ascending and non-overlapping by construction */
+        function segFor(id) {
+          var lo = 0, hi = segs.length - 1;
+          while (lo <= hi) {
+            var mid = (lo + hi) >> 1, s = segs[mid];
+            if (id < s[0]) hi = mid - 1;
+            else if (id >= s[0] + s[1]) lo = mid + 1;
+            else return s;
+          }
+          return null;
+        }
         return Promise.all(terms.map(function (w) {
           return load(SROOT + '/t-' + pad3(fnv1a(w) % NSH) + '.json')
             .then(function (sh) { return unpack(sh[w]); })
@@ -645,20 +667,21 @@
           cand = cand || [];
           not.forEach(function (w) { cand = minus(cand, by[w]); });
 
-          /* book / category come straight off the page table */
-          var keep = [];
+          /* book / category / language come from the segment table, so this
+             costs nothing and needs no page rows at all */
+          var keep = [], segOf = {};
           for (var i = 0; i < cand.length; i++) {
-            var r = rows[cand[i]];
-            if (!r) continue;
-            if (P.book && r[1] !== P.book) continue;
-            if (P.cat && r[2] !== P.cat) continue;
+            var s = segFor(cand[i]);
+            if (!s) continue;
+            if (P.book && s[2] !== P.book) continue;
+            if (P.cat && s[3] !== P.cat) continue;
+            segOf[cand[i]] = s;
             keep.push(cand[i]);
           }
           /* the reader's own language first, then Arabic, then the rest */
           keep.sort(function (a, b) {
-            var la = rows[a][3], lb = rows[b][3];
-            var ra = la === lang ? 0 : la === 'ar' ? 1 : 2;
-            var rb = lb === lang ? 0 : lb === 'ar' ? 1 : 2;
+            var ra = segOf[a][4] === lang ? 0 : segOf[a][4] === 'ar' ? 1 : 2;
+            var rb = segOf[b][4] === lang ? 0 : segOf[b][4] === 'ar' ? 1 : 2;
             return ra - rb || a - b;
           });
           if (!keep.length) {
@@ -667,53 +690,71 @@
           }
           var mark = phrase || all[0] || any[0] || '';
           var shown = 0, verified = 0, PAGE = 20;
-          var head = '<p class="empty-note" id="res-count"></p>';
-          resBox.innerHTML = head + '<div id="res-list"></div>' +
+          resBox.innerHTML = '<p class="empty-note" id="res-count"></p>' +
+            '<div id="res-list"></div>' +
             '<div style="text-align:center;margin:1.2rem 0">' +
             '<button class="btn" id="res-more" hidden></button></div>';
           var list = document.getElementById('res-list');
           var more = document.getElementById('res-more');
           var count = document.getElementById('res-count');
 
+          function href(id, row) {
+            var s = segOf[id];
+            return (s[4] !== 'ar' ? s[4] + '/' : '') + s[2] + '/' +
+                   (s[5] ? s[5] + '/' : '') + row[0] + '/';
+          }
           function batch() {
             more.hidden = true;
             var slice = keep.slice(shown, shown + PAGE);
             shown += slice.length;
             count.textContent = t('searching');
-            /* Fetch each result page and read its own text. This is what
-               makes an EXACT PHRASE exact: the inverted index can only say
-               the words are all on the page, not that they are adjacent. */
-            Promise.all(slice.map(function (id) {
-              var r = rows[id];
-              return fetch(ROOT + '/' + r[0]).then(function (x) {
-                return x.ok ? x.text() : '';
-              }).then(function (html) {
-                var d = new DOMParser().parseFromString(html, 'text/html');
-                var b = d.querySelector('.body');
-                var raw = b ? b.textContent.replace(/\s+/g, ' ').trim() : '';
-                var f = fold(raw).text;
-                if (phrase && f.indexOf(phrase) === -1) return null;
-                var at = mark ? f.indexOf(mark) : 0, n = 0, i = 0;
-                if (mark) { while ((i = f.indexOf(mark, i)) !== -1) { n++; i += mark.length; } }
-                return { r: r, raw: raw, f: f, at: Math.max(0, at), n: n };
-              }).catch(function () {
-                return { r: rows[id], raw: '', f: '', at: 0, n: 0 };
-              });
-            })).then(function (got) {
+            /* only the page blocks these results actually fall in */
+            var need = {};
+            slice.forEach(function (id) { need[Math.floor(id / PSH)] = 1; });
+            Promise.all(Object.keys(need).map(function (k) {
+              return load(SROOT + '/p-' + pad3(+k) + '.json')
+                .then(function (rows) { return [k, rows]; })
+                .catch(function () { return [k, []]; });
+            })).then(function (blocks) {
+              var PB = {};
+              blocks.forEach(function (b) { PB[b[0]] = b[1]; });
+              return Promise.all(slice.map(function (id) {
+                var blk = PB[Math.floor(id / PSH)] || [];
+                var row = blk[id % PSH];
+                if (!row) return null;
+                var h = href(id, row);
+                return fetch(ROOT + '/' + h).then(function (x) {
+                  return x.ok ? x.text() : '';
+                }).then(function (html) {
+                  var d = new DOMParser().parseFromString(html, 'text/html');
+                  var b = d.querySelector('.body');
+                  var raw = b ? b.textContent.replace(/\s+/g, ' ').trim() : '';
+                  var f = fold(raw).text;
+                  if (phrase && f.indexOf(phrase) === -1) return null;
+                  var at = mark ? f.indexOf(mark) : 0, n = 0, i = 0;
+                  if (mark) { while ((i = f.indexOf(mark, i)) !== -1) { n++; i += mark.length; } }
+                  return { id: id, row: row, h: h, raw: raw, f: f,
+                           at: Math.max(0, at), n: n };
+                }).catch(function () {
+                  return { id: id, row: row, h: h, raw: '', f: '', at: 0, n: 0 };
+                });
+              }));
+            }).then(function (got) {
               var html = '';
-              got.filter(Boolean).forEach(function (h) {
+              got.filter(Boolean).forEach(function (x) {
                 verified++;
-                var s = Math.max(0, h.at - 50);
-                var snip = h.raw ? h.f.slice(s, Math.min(h.f.length, h.at + 70)) : '';
-                var bk = CAT.books.filter(function (b) { return b.slug === h.r[1]; })[0];
-                var bits = [bk ? pick(bk.title) : h.r[1]];
-                if (h.r[4]) bits.push(t('volume') + ' ' + num(h.r[4]));
-                if (h.r[6]) bits.push(h.r[6]);
-                bits.push(t('page') + ' ' + num(h.r[5]));
-                if (h.n) bits.push(num(h.n) + ' ' + t('occurrences'));
-                html += '<a class="res" href="' + ROOT + '/' + h.r[0] +
+                var s = segOf[x.id];
+                var st = Math.max(0, x.at - 50);
+                var snip = x.raw ? x.f.slice(st, Math.min(x.f.length, x.at + 70)) : '';
+                var bk = CAT.books.filter(function (b) { return b.slug === s[2]; })[0];
+                var bits = [bk ? pick(bk.title) : s[2]];
+                if (s[5]) bits.push(t('volume') + ' ' + num(s[5]));
+                if (x.row[2]) bits.push(x.row[2]);
+                bits.push(t('page') + ' ' + num(x.row[1]));
+                if (x.n) bits.push(num(x.n) + ' ' + t('occurrences'));
+                html += '<a class="res" href="' + ROOT + '/' + x.h +
                   (mark ? '?q=' + encodeURIComponent(mark) : '') +
-                  '" lang="' + h.r[3] + '"><span class="res-h">' +
+                  '" lang="' + s[4] + '"><span class="res-h">' +
                   esc(bits.join(' · ')) + '</span>' +
                   (snip ? '<span class="res-t">…' + (marked(snip, mark) || esc(snip)) +
                     '…</span>' : '') + '</a>';

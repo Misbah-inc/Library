@@ -135,6 +135,35 @@ So a normal change is:
    ```
 
    It compares local against the bucket, uploads only what differs, and invalidates the
+
+   **For a change that only ADDS or UPDATES known paths — a new book, a
+   rebuilt index — use `--only` instead, and expect minutes rather than
+   hours:**
+
+   ```
+   python _translation-kit/deploy_s3.py --bucket library-misbah-inc \
+          --dist E2P6OCWDH7403J \
+          --only burhan --only assets/search \
+          --only sitemap-2.xml --only catalog.json
+   ```
+
+   The default sync stats EVERY file in the tree to decide what changed.
+   Measured on the البرهان deploy, from this Google Drive folder:
+   **3,526,796 metadata operations** across ~65,000 files — about 54 per file
+   — **67 minutes elapsed for 370 seconds of CPU**, so 91% of the time was
+   spent waiting on Drive. That price is paid in full whether one page changed
+   or four thousand, and it rises with every book published: the tree was
+   ~48,600 files when this document was written and is ~65,000 now.
+
+   `--only` walks just the paths named — 4,354 files for a book instead of
+   65,000 — and invalidates just those prefixes (a directory as `/burhan/*`, a
+   single file as `/sitemap-2.xml`). Each path counts as one against the
+   1,000-a-month free allowance, so a handful costs what the blanket `/*` does.
+
+   > **`--only` never passes `--delete`, so it cannot remove anything.**
+   > Anything that DELETES or RENAMES a file must go through the default
+   > whole-site sync — it is the only mode that can notice something
+   > disappeared. When in doubt, use the default and wait.
    CDN.
 
    **A full deploy takes about 50 minutes, and that is Google Drive, not AWS.**

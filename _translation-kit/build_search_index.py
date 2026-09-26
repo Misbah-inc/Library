@@ -122,18 +122,27 @@ def chapter_map(root, vol):
     if not tp.is_file():
         tp = LIB / root.name / "assets" / "toc.json"
     if not tp.is_file():
-        return {}
+        return ([], [])
     try:
         toc = json.loads(tp.read_text(encoding="utf-8"))
     except Exception:
-        return {}
+        return ([], [])
     rows = [r for r in toc if isinstance(r, dict) and r.get("p") is not None]
     if vol is not None:
         rows = [r for r in rows if str(r.get("vol", vol)) == str(vol)]
     if not rows:
-        return {}
+        return ([], [])
     rows.sort(key=lambda r: r["p"])
-    return rows
+    # Front matter and the author's own text are TWO page-number spaces, and
+    # they overlap. Six Bihar volumes, al-Kafi 1, al-Faqih 1 and البرهان 1 all
+    # paginate a publisher's foreword 1..N before the text restarts at 1, so a
+    # toc row for fm page 10 and a reading page numbered 10 are different pages
+    # with the same number. Matching on the number alone put a front-matter
+    # heading on 45 main pages of Bihar 29, 25 of البرهان 1 and 15 of al-Faqih 1,
+    # and left every fm page with no chapter label at all — its own rows were
+    # never reachable, because an fm page's `n` is None.
+    return ([r for r in rows if "/fm-" not in r.get("href", "")],
+            [r for r in rows if "/fm-" in r.get("href", "")])
 
 
 def part_for(rows, n):
@@ -164,13 +173,16 @@ def build(rel, force=False):
     files = total = 0
     for vol, pages in groups:
         out = assets / (f"search-{vol}.json" if vol else "search-index.json")
-        rows = chapter_map(root, vol)
+        rows, fm_rows = chapter_map(root, vol)
         recs = []
         for p in pages:
             n = int(p.name) if p.name.isdigit() else None
+            # An fm page carries its own number in its own space.
+            fm_n = int(p.name[3:]) if p.name.startswith("fm-") and p.name[3:].isdigit() else None
             recs.append({"href": f"{rel}/{vol + '/' if vol else ''}{p.name}/",
                          "p": n if n is not None else p.name,
-                         "part": part_for(rows, n),
+                         "part": (part_for(fm_rows, fm_n) if fm_n is not None
+                                  else part_for(rows, n)),
                          "t": fold(page_text((p / "index.html").read_text(encoding="utf-8")))})
         recs.sort(key=lambda r: (r["p"] if isinstance(r["p"], int) else -1, str(r["p"])))
         for r in recs:

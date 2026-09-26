@@ -47,6 +47,7 @@ common way to get this setup wrong.
 """
 
 import argparse
+import json
 import pathlib
 import shutil
 import subprocess
@@ -99,11 +100,79 @@ def run(cmd, dry):
     return subprocess.call(cmd)
 
 
+def deploy_only(a, root):
+    """Upload just the named paths, skipping the whole-site comparison.
+
+    **Why this exists.** `aws s3 sync` over the site root stats EVERY file to
+    decide what changed. Measured during the البرهان deploy, on this Google
+    Drive File Stream folder: **3,526,796 metadata operations** against ~65,000
+    files — about 54 per file — 67 minutes elapsed for 370 seconds of CPU, so
+    91% of the time was spent waiting on Drive. That cost is paid in full
+    whether one page changed or four thousand, and it grows with every book:
+    the tree was ~48,600 files when DEPLOY.md was written and is ~65,000 now.
+
+    Publishing a book touches a KNOWN set of paths, so there is no reason to
+    look at the other 60,000. `--only burhan --only assets/search` walks 4,354
+    files instead of 65,000.
+
+    **It deliberately does NOT pass `--delete`.** Inside a prefix that would
+    remove every key not present locally, and since the search indexes are
+    gitignored and rebuilt, a deploy from a tree that lacks them would strip
+    them off S3 — the exact failure the guard above exists to prevent. So this
+    mode ADDS and UPDATES only. Anything that removes or renames a file has to
+    go through the default whole-site sync, which is the only mode that can
+    see that something disappeared. When in doubt, use the default.
+    """
+    rc = 0
+    for rel in a.only:
+        rel = rel.strip("/").replace(chr(92), "/")
+        src = root / rel
+        if not src.exists():
+            print(f"   !! {rel} does not exist under {root} — skipped")
+            rc |= 1
+            continue
+        print("")
+        print(f"== {rel}  ({PAGE_CACHE})   [add/update only — no --delete]")
+        if src.is_dir():
+            cmd = ["aws", "s3", "sync", str(src), f"s3://{a.bucket}/{rel}",
+                   "--cache-control", PAGE_CACHE, "--only-show-errors"]
+            for pat in EXCLUDE:
+                cmd += ["--exclude", pat]
+        else:
+            cmd = ["aws", "s3", "cp", str(src), f"s3://{a.bucket}/{rel}",
+                   "--cache-control", PAGE_CACHE, "--only-show-errors"]
+        rc |= run(cmd, a.dry_run)
+
+        # Fonts, images, CSS and JS carry their own cache headers, and only
+        # `cp --metadata-directive REPLACE` rewrites them: sync skips a file
+        # whose bytes already match, headers and all.
+        # ONLY under assets/. The first version of this asked
+        # `src.rglob("*.woff2")` to decide, which walks the whole subtree once
+        # per extension — 4,354 directories for a book, over Drive, to
+        # establish that a tree of .html and .json holds no fonts. That is the
+        # very cost this mode exists to avoid. A book prefix never contains a
+        # font, an image, a stylesheet or a script, so the path answers it.
+        if src.is_dir() and (rel == "assets" or rel.startswith("assets/")):
+            for label, cache, exts in ASSET_CACHE:
+                print(f"   re-stamp {label}  ({cache})")
+                cmd = ["aws", "s3", "cp", str(src), f"s3://{a.bucket}/{rel}",
+                       "--recursive", "--metadata-directive", "REPLACE",
+                       "--cache-control", cache, "--only-show-errors",
+                       "--exclude", "*"]
+                for e in exts:
+                    cmd += ["--include", f"*.{e}"]
+                rc |= run(cmd, a.dry_run)
+    return rc
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--bucket", required=True)
     ap.add_argument("--dist", help="CloudFront distribution id, to invalidate")
     ap.add_argument("--root", default=str(pathlib.Path(__file__).resolve().parent.parent))
+    ap.add_argument("--only", action="append", default=[], metavar="PATH",
+                    help="deploy just these paths (repeatable) instead of the "
+                         "whole site - e.g. --only burhan --only assets/search")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
 
@@ -121,8 +190,29 @@ def main():
     # Per VOLUME, not per book: bihar/assets/search-index.json is the old
     # volume-1-only file and still exists, so "the book has some index" would
     # pass while 109 volumes had none.
+    # DERIVED from catalog.json, not a hardcoded list. Written as
+    # ("bihar", "kafi", "faqih") it silently stopped covering تهذيب الأحكام and
+    # الاستبصار the day they were published, and البرهان after them — the guard
+    # existed and simply did not look at them.
+    #
+    # The key is `volumesPublished`, NOT "has numbered subdirectories". A first
+    # attempt at this used the directory shape and blocked the deploy on
+    # بيت الأحزان, مفاتيح and the Qur'an, whose numbered subdirectories are
+    # PAGES and surahs, not volumes — 189, 663 and 114 of them, none of which
+    # has or wants a per-volume index. `volumesPublished` is the catalogue's
+    # own statement that a book is paginated per volume, so it is the thing to
+    # read. جامع المقدمات has per-volume indexes but does not declare the
+    # field, so it stays outside the guard; add the field there to include it.
     missing = []
-    for b in ("bihar", "kafi", "faqih"):
+    guard = ["bihar"]
+    try:
+        cat = json.loads((root / "catalog.json").read_text(encoding="utf-8"))
+        guard = [b["slug"] for b in cat.get("books", [])
+                 if not b.get("placeholder") and b.get("href")
+                 and b.get("volumesPublished")]
+    except Exception as e:
+        print(f"could not read catalog.json ({e}) — guarding bihar only")
+    for b in guard:
         if not (root / b).is_dir():
             continue
         vols = [d.name for d in (root / b).iterdir()
@@ -147,28 +237,42 @@ def main():
         return 1
 
     rc = 0
-    print("")
-    print(f"== whole site  ({PAGE_CACHE})   [--delete: removes what is excluded]")
-    cmd = ["aws", "s3", "sync", str(root), f"s3://{a.bucket}",
-           "--cache-control", PAGE_CACHE, "--delete", "--only-show-errors"]
-    for pat in EXCLUDE:
-        cmd += ["--exclude", pat]
-    rc |= run(cmd, a.dry_run)
-
-    for label, cache, exts in ASSET_CACHE:
+    if a.only:
+        rc |= deploy_only(a, root)
+    else:
         print("")
-        print(f"== re-stamp {label}  ({cache})")
-        cmd = ["aws", "s3", "cp", str(root / "assets"), f"s3://{a.bucket}/assets",
-               "--recursive", "--metadata-directive", "REPLACE",
-               "--cache-control", cache, "--only-show-errors", "--exclude", "*"]
-        for e in exts:
-            cmd += ["--include", f"*.{e}"]
+        print(f"== whole site  ({PAGE_CACHE})   [--delete: removes what is excluded]")
+        cmd = ["aws", "s3", "sync", str(root), f"s3://{a.bucket}",
+               "--cache-control", PAGE_CACHE, "--delete", "--only-show-errors"]
+        for pat in EXCLUDE:
+            cmd += ["--exclude", pat]
         rc |= run(cmd, a.dry_run)
+
+        for label, cache, exts in ASSET_CACHE:
+            print("")
+            print(f"== re-stamp {label}  ({cache})")
+            cmd = ["aws", "s3", "cp", str(root / "assets"), f"s3://{a.bucket}/assets",
+                   "--recursive", "--metadata-directive", "REPLACE",
+                   "--cache-control", cache, "--only-show-errors", "--exclude", "*"]
+            for e in exts:
+                cmd += ["--include", f"*.{e}"]
+            rc |= run(cmd, a.dry_run)
 
     if a.dist:
         print("\n== invalidate CloudFront")
+        # One wildcard per changed prefix. A path counts as ONE against
+        # the 1,000-a-month free allowance whether or not it carries a
+        # wildcard, so a handful of prefixes costs what the blanket /* does.
+        # A DIRECTORY invalidates as «/burhan/*»; a single file as
+        # «/sitemap-2.xml». Appending the wildcard to a file gives
+        # «/sitemap-2.xml/*», which matches nothing, so the stale file
+        # stays at the edge for its full max-age with nothing to say so.
+        def inv(x):
+            x = x.strip("/").replace(chr(92), "/")
+            return f"/{x}/*" if (root / x).is_dir() else f"/{x}"
+        paths = [inv(x) for x in a.only] if a.only else ["/*"]
         rc |= run(["aws", "cloudfront", "create-invalidation",
-                   "--distribution-id", a.dist, "--paths", "/*"], a.dry_run)
+                   "--distribution-id", a.dist, "--paths"] + paths, a.dry_run)
 
     print("\nDRY RUN — nothing uploaded" if a.dry_run else
           ("\ndone" if rc == 0 else f"\n** one or more steps failed (rc={rc}) **"))

@@ -14,18 +14,38 @@ text is about 165 MB, and no reader is going to download the library to search
 it. So the text is inverted: for each WORD, the list of pages it appears on.
 A reader searching «الصدقة» needs the entry for that one word, not the corpus.
 
-Three files answer a query:
+Four files answer a query, and NONE of them is the whole corpus:
 
-  assets/search/pages.json      every page: href, book, category, language,
-                                volume, page label, chapter. ~0.6 MB gzipped,
-                                fetched once, needed to render any result.
+  assets/search/meta.json       shard counts and the SEGMENT TABLE: one row per
+                                source file giving the id range it occupies and
+                                its book, category, language and volume. ~130
+                                rows. Fetched once; this is all that book and
+                                category filtering needs.
   assets/search/t-<NNN>.json    512 shards of word -> page ids. A word lands in
                                 a shard by fnv1a(word) % 512, so the browser
                                 computes the shard itself and no lookup table
-                                is needed. ~34 KB gzipped each.
-  <book>/assets/search-<vol>.json   already built, and used here only for
-                                snippets and exact-phrase confirmation, fetched
-                                lazily for the volumes actually on screen.
+                                is needed. ~23 KB gzipped each.
+  assets/search/p-<NNN>.json    page rows — name, printed label, chapter — in
+                                blocks of 1,000 ids. Fetched only for the
+                                results actually being displayed.
+  <book>/assets/search-<vol>.json   used only by the per-book Search button.
+
+**Why the page table is sharded.** It used to be one `pages.json` carrying
+href/book/category/language/volume/label/chapter for every page. At 55,393
+pages that reached 8,471,418 bytes — 85% of CloudFront's 10,000,000-byte
+auto-compression ceiling. Crossing that ceiling is not an error: the file
+simply starts arriving RAW, 8.5 MB instead of 0.57 MB gzipped, to every reader
+who searches. Two changes removed the cliff rather than postponing it:
+
+  * book, category, language and volume moved into the segment table, because
+    each source file occupies a CONTIGUOUS run of ids and those fields are
+    properties of the run, not of 55,000 separate pages;
+  * what remains is split into blocks of 1,000, and a reader fetches only the
+    blocks holding their own results.
+
+The href is rebuilt from segment + name rather than stored. `main()` asserts
+that the rebuild reproduces the original exactly for every page, because if it
+ever stops doing so, every search result links to a 404.
 
 Postings are DELTA-ENCODED IN BASE 36 and joined with «.» — «0.4.1.2s» is pages
 0, 4, 5, 53. Page ids ascend within a word, so the gaps are small and most
@@ -37,9 +57,12 @@ Two things that will silently break search if they drift:
 1. **Tokenisation here must match the browser's.** Both split on the same
    non-word class over the same folded text. A word split differently in the
    two places is a word that can never be found, with no error to say so.
-2. **Page ids are POSITIONAL** — an index into pages.json. Rebuild both files
-   together, always. A stale shard against a fresh page table does not fail;
-   it silently returns the wrong pages, which is far worse than an error.
+2. **Page ids are POSITIONAL** — an index into the concatenated run of source
+   files. `t-*`, `p-*` and `meta.json` are one artefact in many files; rebuild
+   them together, always. A stale shard against a fresh segment table does not
+   fail, it silently returns the wrong pages, which is far worse than an error.
+   The builder deletes every `t-*` and `p-*` before writing, so a shrunken set
+   cannot leave orphans behind.
 """
 
 import argparse
@@ -128,9 +151,13 @@ def sources(slugs):
     return out
 
 
+PAGE_SHARD = 1000     # pages per p-*.json shard
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--shards", type=int, default=512)
+    ap.add_argument("--page-shard", type=int, default=PAGE_SHARD)
     a = ap.parse_args()
 
     cat = json.loads((LIB / "catalog.json").read_text(encoding="utf-8"))
@@ -141,23 +168,42 @@ def main():
         sys.exit("no per-volume indexes found — run build_search_index.py --all first")
 
     t0 = time.time()
-    pages = []                                  # positional: id -> row
+    # Each source file contributes a CONTIGUOUS run of ids, which is what makes
+    # the segment table possible: book, category, language and volume are
+    # properties of the run, not of each page, so they are stored once per file
+    # (~130 rows) instead of 55,000 times. That is most of the old page table.
+    rows = []                                   # positional: id -> [name, p, chapter]
+    segs = []                                   # [start, count, book, cat, lang, vol]
     post = collections.defaultdict(list)        # word -> ascending page ids
     for path, book, lang, vol in src:
-        rows = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
-        for r in rows:
-            pid = len(pages)
-            pages.append([r["href"], book, category.get(book, ""), lang,
-                          vol or "", r["p"],
-                          (r.get("part") or {}).get("ar", "")])
+        src_rows = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
+        start = len(rows)
+        for r in src_rows:
+            pid = len(rows)
+            name = r["href"].rstrip("/").rsplit("/", 1)[-1]
+            # The reader rebuilds the href from segment + name. If that ever
+            # stops reproducing the original exactly, every search result links
+            # to a 404 — so it is asserted here, where it is cheap, rather than
+            # discovered in the browser.
+            rebuilt = (f"{lang + '/' if lang != 'ar' else ''}{book}/"
+                       f"{vol + '/' if vol else ''}{name}/")
+            if rebuilt != r["href"]:
+                sys.exit(f"href cannot be rebuilt: {r['href']!r} -> {rebuilt!r}")
+            rows.append([name, r["p"], (r.get("part") or {}).get("ar", "")])
             for w in {w for w in SPLIT.split(r["t"]) if len(w) >= MINLEN}:
                 post[w].append(pid)
+        segs.append([start, len(src_rows), book, category.get(book, ""),
+                     lang, vol or ""])
         print(f"  {pathlib.Path(path).relative_to(LIB).as_posix():<44} "
-              f"{len(rows):>5} pages  [{lang}]")
+              f"{len(src_rows):>5} pages  [{lang}]")
 
     OUT.mkdir(parents=True, exist_ok=True)
-    for old in OUT.glob("t-*.json"):            # a stale shard returns WRONG pages
-        old.unlink()
+    # A stale shard of either kind returns WRONG pages rather than failing.
+    for pat in ("t-*.json", "p-*.json"):
+        for old in OUT.glob(pat):
+            old.unlink()
+    if (OUT / "pages.json").exists():           # the unsharded table this replaces
+        (OUT / "pages.json").unlink()
 
     buckets = collections.defaultdict(dict)
     for w, ids in post.items():
@@ -174,38 +220,45 @@ def main():
         (OUT / f"t-{h:03d}.json").write_bytes(b)
         total += len(b)
 
-    meta = {"shards": a.shards, "pages": len(pages), "words": len(post),
-            "built": time.strftime("%Y-%m-%d")}
-    (OUT / "pages.json").write_bytes(json.dumps(
-        {"meta": meta, "rows": pages}, ensure_ascii=False,
-        separators=(",", ":")).encode("utf-8"))
+    nps = (len(rows) + a.page_shard - 1) // a.page_shard
+    ptotal = biggest = 0
+    for k in range(nps):
+        chunk = rows[k * a.page_shard:(k + 1) * a.page_shard]
+        b = json.dumps(chunk, ensure_ascii=False,
+                       separators=(",", ":")).encode("utf-8")
+        (OUT / f"p-{k:03d}.json").write_bytes(b)
+        ptotal += len(b)
+        biggest = max(biggest, len(b))
 
-    pt = (OUT / "pages.json").stat().st_size
-    # CloudFront auto-compresses only BELOW 10,000,000 bytes. pages.json is
-    # fetched by every reader who searches; at 8.5 MB it arrives as 0.57 MB
-    # gzipped, and one byte over the ceiling it arrives as 8.5 MB raw — a 15x
-    # regression with no error anywhere to announce it. ~153 bytes per page,
-    # so the ceiling is around 65,000 pages.
-    #
-    # The fix when it comes is to shard the page table the way the postings are
-    # already sharded — a reader needs the rows for their hits, not all of them.
+    meta = {"shards": a.shards, "pageShard": a.page_shard, "pageShards": nps,
+            "pages": len(rows), "words": len(post), "segments": segs,
+            "built": time.strftime("%Y-%m-%d")}
+    (OUT / "meta.json").write_bytes(json.dumps(
+        meta, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+    mt = (OUT / "meta.json").stat().st_size
+
+    # CloudFront auto-compresses only BELOW 10,000,000 bytes, and nothing warns
+    # when a file crosses it — it just starts arriving raw. Sharding keeps every
+    # file far under, and this check is kept so that stops being true loudly.
     CF_LIMIT = 10_000_000
-    if pt > CF_LIMIT:
+    worst = max(mt, biggest, total // max(1, a.shards))
+    if worst > CF_LIMIT * 0.8:
         print("")
-        print(f"  ** pages.json is {pt:,} bytes, OVER CloudFront's "
-              f"{CF_LIMIT:,}-byte compression ceiling. It will be served "
-              f"UNCOMPRESSED. Shard it before deploying. **")
-    elif pt > CF_LIMIT * 0.8:
-        print("")
-        print(f"  ! pages.json is at {100*pt/CF_LIMIT:.0f}% of CloudFront's "
-              f"compression ceiling ({pt:,} of {CF_LIMIT:,} bytes) — about "
-              f"{(CF_LIMIT-pt)//max(1, pt//len(pages)):,} more pages of headroom.")
-    print(f"\n  {len(pages):,} pages, {len(post):,} words, {a.shards} shards")
-    print(f"  assets/search/pages.json   {pt/1048576:6.2f} MB")
-    print(f"  assets/search/t-*.json     {total/1048576:6.2f} MB "
-          f"({total/a.shards/1024:.0f} KB average shard)")
+        print(f"  ! largest search file is {worst:,} bytes, "
+              f"{100*worst/CF_LIMIT:.0f}% of CloudFront's compression ceiling")
+
+    print("")
+    print(f"  {len(rows):,} pages, {len(post):,} words, "
+          f"{len(segs)} segments")
+    print(f"  assets/search/meta.json    {mt/1024:7.1f} KB   "
+          f"(fetched once — was an 8.5 MB page table)")
+    print(f"  assets/search/p-*.json     {ptotal/1048576:6.2f} MB in {nps} shards, "
+          f"largest {biggest/1024:.0f} KB")
+    print(f"  assets/search/t-*.json     {total/1048576:6.2f} MB in {a.shards} shards, "
+          f"average {total/a.shards/1024:.0f} KB")
     print(f"  {time.time()-t0:.0f}s")
-    print("\n  NOT committed (.gitignore) — deploy_s3.py uploads them.")
+    print("")
+    print("  NOT committed (.gitignore) — deploy_s3.py uploads them.")
 
 
 if __name__ == "__main__":

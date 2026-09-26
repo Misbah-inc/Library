@@ -42,6 +42,12 @@ extract.py → [external translation] → merge_build.py → verify.py → commi
 | `kafi_ar_wire.py` | al-Kafi's volume selector, volume indexes, `toc.json` and catalog row |
 | `faqih_ar_build.py` | `faqih_v<N>.json` → «من لا يحضره الفقيه» Arabic reading pages |
 | `faqih_ar_wire.py` | al-Faqih's volume selector, volume indexes, `toc.json`, catalog row |
+| `abl_extract.py` | **ablibrary.net** → per-page JSON — the second extraction path, for التهذيب and الاستبصار |
+| `abl_audit.py` | structural audit of an ablibrary extraction — **the round-trip check does not catch a bad split** |
+| `tahdhib_ar_build.py` / `tahdhib_ar_wire.py` | تهذيب الأحكام pages, selector, indexes, `toc.json`, catalog |
+| `burhan_ar_extract.py` | Ghaemiyeh البرهان export → `burhan_v<N>.json` — its OWN extractor: the page marker opens its page here, the running header splits across paragraphs, and there are no note divs |
+| `burhan_ar_build.py` / `burhan_ar_wire.py` | البرهان في تفسير القرآن pages, selector, indexes, `toc.json`, catalog |
+| `istibsar_ar_build.py` / `istibsar_ar_wire.py` | الاستبصار, likewise |
 | `build_search_index.py` | per-volume in-book search indexes — **required before every deploy** |
 | `build_site_index.py` | the site-wide inverted index behind `/search/` — **also required** |
 | `deploy_s3.py` | publishes the site to S3 + CloudFront — see `DEPLOY.md` |
@@ -116,6 +122,38 @@ So the rule is the opposite of what it used to be:
 If a future host ever does set a long `max-age`, the scalable fix is still not a stamp
 in the HTML — it is a caching header, or one small stable loader file that the pages
 point at permanently. Never per-deploy state in N pages.
+
+### The Amiri subset is Arabic-only — do not let it claim Latin
+
+`assets/fonts/amiri-*.woff2` is a subset. Below U+0600 it contains **exactly
+`U+20`, `U+21`, `U+28`, `U+A0`** — space, `!`, `(`, nbsp. No `)`, no brackets,
+no hyphen, **no ASCII digits**. Read it yourself before doubting this:
+
+```python
+from fontTools.ttLib import TTFont
+sorted(TTFont("assets/fonts/amiri-400.woff2").getBestCmap())
+```
+
+That single stray `(` was drawn by Amiri while its own closing partner fell
+back to the serif, so every «( 66 )» marker in the library rendered with
+mismatched brackets — 29.3px against 17.8px, measured on the page. Both faces
+therefore carry:
+
+```css
+unicode-range:U+20,U+A0,U+600-10FFFF;
+```
+
+which keeps Amiri for everything it has and hands `!` and `(` to the same
+fallback as their neighbours. **If the font is ever re-subset, re-check that
+range against the new cmap** — widen it and the mismatch returns; narrow it
+carelessly and Arabic falls back across 61,000 pages.
+
+> **A rendering fault is invisible in the source.** The HTML was right, the
+> data was right, the round-trip passed, and the page still looked wrong. It
+> took measuring a character's drawn width — `Range.getBoundingClientRect()`
+> per character — to see it. When a reader reports that something *looks*
+> wrong and the markup checks out, measure what the browser draws before
+> concluding the report is mistaken.
 
 ### Shared assets
 
@@ -488,9 +526,9 @@ the list of pages it appears on. Three files answer a query:
 
 Measured end to end: a three-word query with an exclusion, over the whole
 library, transferred **234 KB** on the local server — less on CloudFront, which
-compresses the HTML. 52,909 pages and 310,147 words are indexed: all 110 Bihar
-volumes, al-Kafi, both Bayt al-Ahzan editions, جامع المقدمات, مفاتیح, the Qur'an,
-and every translation (en/fa/ur).
+compresses the HTML. **61,057 pages and 326,564 words** are indexed across 150
+segments: all 110 Bihar volumes, all four canonical books, both Bayt al-Ahzan
+editions, جامع المقدمات, مفاتیح, the Qur'an, and every translation (en/fa/ur).
 
 - **The page table is SHARDED, and the fields that repeat are not in it.**
   It began as one `pages.json` holding href/book/category/language/volume/
@@ -609,6 +647,270 @@ and audited by the shared `bihar_ar_extract.py` / `bihar_ar_audit.py`.
 > rather than the tag name and handles all of them — 86 / 226 / 177 / 172 باب
 > headings captured. An early pass here counted raw tags and reported volume 1
 > as having zero chapters, which was alarming and wrong.
+
+## تهذيب الأحكام and الاستبصار — the ablibrary path (2026-09-23)
+
+Ten volumes / 4,081 pages and four / 1,583, at `/tahdhib/<vol>/<page>/` and
+`/istibsar/<vol>/<page>/`. Both by شيخ الطائفة الطوسي, both **تحقيق حسن الموسوي
+الخرسان، دار الكتب الإسلامية، طهران**. With al-Kafi (شمس الدين، دار التعارف) and
+al-Faqih (الغفاري) that is **four canonical books and three editors — never copy
+an edition line between these builders.**
+
+### Why these two do not come from Ghaemiyeh
+
+Every other book here does. These cannot, and it was measured before choosing:
+
+- **Neither Ghaemiyeh export has a single footnote** — zero note divs, zero
+  anchors, zero `<HR>` across all fourteen volumes. ablibrary has 6,036 note
+  blocks.
+- **Ghaemiyeh's الاستبصار has no printed page markers at all**, only hadith ids
+  (`-روایت-1-728`). This library addresses and cites every page by its printed
+  number; there is nothing to build a URL from. A constraint, not a preference.
+
+The cost is vocalisation: Ghaemiyeh is **82%** (Tahdhib) and **63%** (Istibsar)
+against ablibrary's 0%. The two agree page for page, so it can be added later as
+an overlay — the exports are kept in `Claude outputs/<book>-ghbook-html/` for
+that. **Do not "upgrade" either book by swapping the source**; that would trade
+the apparatus and, for Istibsar, the pagination itself.
+
+### What ablibrary gives, and the checks that hold it together
+
+`Contents` returns **one text blob per page** plus one notes blob — no
+paragraphs, no headings, no structure of any kind. All of it has to be rebuilt,
+and the first attempt got the central fact backwards.
+
+> **A newline before a block start IS a boundary; a newline inside a block is a
+> wrap.** The text is hard-wrapped at ~80 characters, so it is tempting to
+> strip every newline and re-split on a hadith pattern. That is what shipped
+> first, and it ran whole pages together into one paragraph. Every hadith and
+> every باب **begins at a line start**; only continuation lines wrap. Split on
+> line starts, join the rest.
+
+- **Four hadith numbering forms across two books.** Missing one does not fail —
+  it merges every hadith on the page into the preceding paragraph, and the
+  round-trip check still passes because no text was lost:
+
+  | | |
+  |---|---|
+  | التهذيب v1 | `( 316 ) 7 وأخبرني…` |
+  | التهذيب v3 | `* ( 125 ) * 76 - وروى…` |
+  | الاستبصار v2 | `[ 28 ] 4 - فأما ما رواه…` |
+  | الاستبصار v1 | `176 - 1 أخبرني…` |
+
+  Istibsar v1 shipped with **0 splits and 251 single-block pages**; Tahdhib v2
+  was 91% run together. Because the bare-number form exists, **HEAD_LINE must be
+  tested before HADITH_LINE**, or «25 - باب مقدار الصاع» reads as hadith 25.
+- **Headings are found on the line, not matched against the contents.** A line
+  opening with an optional number and باب/كتاب/أبواب is a heading, and it **keeps
+  its number** — the edition prints «25 - باب مقدار الصاع» as one heading, and
+  splitting the number off strands it at the end of the previous paragraph.
+  الاستبصار v3 alone brackets them, «[ 1 - باب من يستحق… ]», and found 2 of 238
+  until the pattern allowed it.
+- **A heading is EXACTLY ONE LINE.** Letting it absorb continuation lines the
+  way a paragraph does swallowed whole passages — the ziyāra after
+  «9 - باب وداع أمير المؤمنين» became part of the heading in التهذيب v6, a full
+  hadith did the same in الاستبصار v4 — and both then appeared in the contents
+  drawer as a chapter title hundreds of characters long. Check the longest
+  heading per volume after any change; 78 characters is the real ceiling here.
+- **A heading and its first hadith can share one source line**, e.g.
+  «33 - باب علامة أول يوم من شهر رمضان [ 199 ] 1 - أخبرني…». Split at the
+  marker, or the pair is published as one title.
+- **An UNNUMBERED heading candidate must be confirmed against the contents.**
+  A wrapped continuation line often begins with باب/كتاب/أبواب by accident:
+  «كتاب حريز أنه قال» is the middle of hadith 1418, «كتاب الله عز وجل» is a
+  quotation, «أبواب كندة في الصحن» is a place. Each became a false chapter. A
+  candidate carrying its own number is trusted; one without must appear in
+  ablibrary's table of contents.
+- **`toc.json` is built from the headings found in the text**, so every row's
+  page is true by construction. ablibrary's own page pointer is never used:
+  both fields it offers are wrong in several volumes, and a contents row that
+  sends a reader to an unrelated page is worse than one that is absent.
+- **The notes blob holds TWO different things and they are not
+  interchangeable.** `( 1 ) المظنون قويا…` is a numbered footnote with a
+  matching `( 1 )` marker in the body — anchor it, so the reader can click it
+  as they can in Bihar. `- 163 - التهذيب ج 1 ص 372` is the editor's تخريج, keyed
+  to a HADITH number and pointing at nothing in the text — render it with `*`
+  and never give it a number. Flattening both into one numbered list is what
+  made the parentheses look scrambled on the page.
+- **Only anchor a marker whose note exists, and never at a block's start.**
+  `( 316 ) 7` opens a hadith in التهذيب; converting that to a footnote link
+  would be silent nonsense.
+
+> **A parenthesised NUMBER inside RTL text renders reversed.** «( 21 ) 4 -»
+> displays as «) 21 ( 4 -» because brackets are bidi-neutral and take the
+> surrounding direction. This is NOT a data fault — the source has normal
+> parentheses and the round-trip proves the text is exact — so no amount of
+> checking the JSON will find it. `bidi_nums()` in both builders wraps each
+> number group in `<bdi>`, which isolates it. **Only number groups**:
+> «( عليه السلام )» holds strong RTL text, resolves correctly on its own, and
+> must be left alone. To verify, measure what the browser draws — walk the
+> character rectangles with a Range and sort by x. Reading the HTML tells you
+> nothing, because the HTML was right all along.
+
+### Two checks, and why one is not enough
+
+```
+python abl_extract.py …      # round-trip: no text lost
+python abl_audit.py <dir>    # structure: text split correctly
+```
+
+- **`check()` in the extractor** asserts every page's blocks re-join to the
+  source character for character, undoing the `[1]` anchoring first. It caught
+  the heading matcher splitting «الاستحباب» into «الاستح» + «باب».
+- **`abl_audit.py` exists because the round-trip is not enough.** EVERY defect
+  this book family produced — four numbering forms, bracketed headings, mixed-up
+  footnotes, headings swallowing whole passages, false chapters, reversed
+  parentheses — **round-tripped perfectly**. No text was ever lost; it was split,
+  labelled or rendered wrongly. **Proving nothing was lost is not proving it is
+  right**, and treating the first as the second is what put a broken build on
+  the site. The audit checks shape per volume: blocks per page, hadith starts,
+  headings, and footnote markers with no note on their own page. A healthy
+  volume runs 4-5 blocks per page; a broken one runs 1.1-1.5.
+
+> **A long single block is not a fault.** A ziyāra, one detailed legal hadith,
+> or Imam Ali's endowment document each fill a page continuously. 197 such pages
+> were checked by hand and 179 were genuinely one passage, so the audit
+> thresholds on the RATE (>25% of a volume) rather than on any single page.
+
+> **The hadith marker style differs per volume, and that is the source's own
+> inconsistency — do not normalise it.** الاستبصار v1 is bare «176 - 1», v2 and
+> v3 «[ 28 ] 4», v4 «( 21 ) 4»; التهذيب v1 and v5-v10 «( N )», v2-v4 «* ( N ) *».
+> ablibrary's reader shows the same, so the pages match it character for
+> character and a copied citation still matches its source. The owner chose this
+> explicitly on 2026-09-25 after being shown the alternative.
+
+> **ablibrary's book ids are not in volume order.** `6027` is Tahdhib **volume
+> 10**, not volume 2, because «ج١٠» string-sorts right after «ج١». Derive the
+> mapping by locating each volume's text — a wrong mapping still matches, since
+> it is the same book, and only surfaces later as citations pointing at the
+> wrong volume.
+
+## البرهان في تفسير القرآن — Ghaemiyeh again, and why the source is argued per book (2026-09-25)
+
+Five volumes, 4,348 pages, at `/burhan/<vol>/<page>/`. By السيد هاشم البحراني
+(d. 1107 هـ), **تحقيق قسم الدراسات الإسلامية، مؤسسة البعثة، قم** — the Asifi
+foreword is signed قم المشرفة، 10 شعبان 1412 هـ. Built by
+`burhan_ar_extract.py` → `burhan_ar_build.py` → `burhan_ar_wire.py` from the
+Ghaemiyeh export (ghbook.ir book 2694), kept in `Books/al-Borhan/html/`.
+
+**This book reverses التهذيب's source decision, and the reasoning that chose
+ablibrary there is simply untrue of this export.** Both were measured before
+choosing:
+
+| | ablibrary (1939-1943) | Ghaemiyeh (2694) |
+|---|---|---|
+| surah headings in the body | **0 in any volume** | **2,221** |
+| empty pages | 193 of 4,349 (4.4%) | none |
+| footnotes | 12,162 | 12,042 + 12,109 تخريج, **vocalised** |
+
+ablibrary's «سورة المائدة مدنية» exists only in its table of contents, and 35
+of its empty pages are exactly the surah-opening pages whose printed content IS
+the surah title. Ghaemiyeh's `سورة فاتحة الكتاب ..... ص : 93` points at page 93
+— one of those empty pages — and البقرة at 119 and آل عمران at 591 likewise, so
+**the two agree page for page** and either can check a citation.
+
+> Do not carry a source decision from one book to the next. التهذيب went to
+> ablibrary because its Ghaemiyeh export had no footnotes and no printed page
+> markers; this one has both. Reusing that conclusion here would have published
+> a tafsīr with no chapter headings and 193 blank pages.
+
+### Three conventions inverted from Bihar's export
+
+Same publisher, same markup, and each of these silently destroys pages if the
+Bihar rules are reused:
+
+1. **The page marker OPENS its page here; in Bihar it CLOSES it.** A page is
+   «البرهان في تفسير القرآن، ج 1، ص: 217» followed by that page's text, and
+   page 216's footnotes sit BEFORE the marker. CLAUDE.md's جامع المقدمات note
+   already says to check the tail of a new export before assuming either way —
+   this is the export that proves why.
+2. **The running header is split across paragraphs on 4% of pages**, at an
+   arbitrary point, sometimes MID-WORD («الب» + «رهان في تفسير القرآن، ج 2»),
+   and sometimes leaving the page NUMBER alone in its own paragraph. Matching
+   it inside a single paragraph finds 96% of markers and merges the rest into
+   their neighbour — which presents as 118 missing pages, not as an error.
+   `reflow_markers()` matches across a window of up to four paragraphs, and the
+   header must **BEGIN in the window's first paragraph**; without that anchor
+   the window reaches forward over ordinary prose to the next page's header and
+   republishes that prose on the wrong page, on nearly every page of the book.
+3. **There are no `content_note` divs at all.** Footnotes are plain paragraphs
+   after a `______` rule, in two kinds that are not interchangeable — the same
+   split التهذيب has: «8- تفسير القمّي 1: 29.» is تخريج keyed to the hadith's
+   own bracket number, «(1) في «س»: عن.» is a numbered footnote.
+
+### The body marker is «N», never [N]
+
+**«[1]» in this book is a hadith number or a Qur'anic AYA number**, not a
+footnote marker — «251/ [1]- ابن بابويه» opens a narration, and
+«* ( بِسْمِ اللَّه الرَّحْمنِ الرَّحِيمِ [1] ) *» carries the verse's number.
+The footnote marker is «1», in guillemets. `REF` in `burhan_ar_build.py`
+matches the guillemets alone; anchoring brackets the way `tahdhib_ar_build.py`
+does would turn all 11,447 narration numbers and every verse number into links
+to notes that do not exist.
+
+A تخريج note **keeps its number here**, printed «٨ -» as the edition prints it,
+because that 8 is the hadith's own «[8]» on the same page. التهذيب renders these
+with «*» because there the key is a running id that appears nowhere on the
+page; here it does. The two are still never merged into one numbered list.
+
+### ablibrary is the authority on which pages exist
+
+Ghaemiyeh **drops one running header roughly every 256 pages** — labels 93,
+349, 605 and 861 are absent in almost every volume — and omits blank pages
+entirely. Neither is recoverable from the export alone: with no header there is
+nothing in the markup to say a page ended. So `--abl` supplies the missing cut,
+located by matching that page's opening words.
+
+- **Try several opening lines, not just the first.** Where a printed page
+  breaks mid-sentence the two editions spell the joint differently («عز و جل»
+  against «عزوجل»), so the first line can be unfindable while the second is
+  exact. That is the whole difference between placing page 349 and publishing
+  it blank.
+- **A pre-marker match must be a whole-paragraph START, not a substring.**
+  ablibrary's v1 page 2 is «بسم الله الرحمن الرحيم» alone, and that phrase also
+  sits mid-sentence in the foreword's opening paragraph — a substring test
+  handed the whole of مقدمة page 7 to printed page 2.
+- **The run before the first marker holds SEVERAL pages**, so its cut points
+  are all found first and the run sliced BETWEEN them. Taking each page as
+  "everything from its own opening onwards" gives the first such page the whole
+  run and leaves every later one empty.
+- **Ghaemiyeh's own Persian cataloguing record is dropped** (سرشناسه / شابك /
+  رده بندي / آدرس ثابت). It sits before the first marker, and left alone the
+  repair pass adopts it as the printed title page — volumes 2-5 published
+  «شابك 964-7866-20-8» as page 1.
+
+Six printed pages are published BLANK because Ghaemiyeh has no text for them:
+the title page of volumes 2-5, v1's «بسم الله الرحمن الرحيم», and v4's
+«سورة الفرقان» title page. Blank, not absent — CLAUDE.md's rule, so a citation
+never 404s.
+
+### Heading levels carry the navigation
+
+`content_h3` is the surah division («سورة البقرة مدنية», «المستدرك (سورة آل
+عمران)»); `h4`/`h5` are the verse groups inside it («سورة البقرة(2): آية 195»).
+Bihar's `+1` mapping collapses all three to one level, which leaves the
+contents drawer as 400 undifferentiated verse rows with no surah heading among
+them to navigate by. **Volume 5 has 72 surah headings and volume 4 only four** —
+that is the book's shape, not a fault: v5 carries من الدخان إلى الناس while v1
+covers only الفاتحة والبقرة وآل عمران.
+
+`burhan_ar_wire.py` therefore reads the contents from the headings in the pages,
+not from an external index as `tahdhib_ar_wire.py` must — so every row's page is
+true by construction, because the row IS the heading on that page.
+
+### The audit
+
+```
+python burhan_ar_extract.py <export.htm> <vol> --abl <dir> --out burhan_v<N>.json
+```
+
+It exits non-zero when a page cannot be placed, and prints the repair counts
+per kind. The losslessness check is the word-frequency one Bihar uses, run
+against the **post-reflow** item stream rather than the raw file — the raw
+stream still contains every running header, so comparing against it reports
+~1,250 phantom losses per volume (the page numbers) and that is enough noise to
+hide a real one. Measured that way: **67 uncaptured tokens out of 2,005,443**,
+all of them the export's own `<H1>` title element and «اشارة».
 
 ## Pager invariants — the check that did not exist until 2026-09-11
 
@@ -857,6 +1159,12 @@ stays dark (a cream-on-white mark disappears on a light tab bar), and the Apple 
 | `faqih/` | 1 | Volume selector — all 4 tiles active |
 | `faqih/1/`…`faqih/4/` | 4 | Volume indexes, 789 chapter rows total |
 | `faqih/1/…4/<page>/` (Arabic, source) | 2,484 | Complete 2026-09-23, no translation (`data-trlangs=""`) |
+| `tahdhib/` + `tahdhib/1/`…`10/` | 11 | Volume selector + volume indexes, 360 chapter rows |
+| `tahdhib/1/…10/<page>/` (Arabic, **ablibrary**) | 4,081 | Complete 2026-09-23, no translation |
+| `istibsar/` + `istibsar/1/`…`4/` | 5 | Volume selector + volume indexes, 837 chapter rows |
+| `istibsar/1/…4/<page>/` (Arabic, **ablibrary**) | 1,583 | Complete 2026-09-23, no translation |
+| `burhan/` + `burhan/1/`…`5/` | 6 | Volume selector + volume indexes, 2,168 chapter rows |
+| `burhan/1/…5/<page>/` (Arabic, **Ghaemiyeh**) | 4,348 | Complete 2026-09-25, no translation |
 
 **جامع المقدمات (2026-09-03).** Multi-volume, Bihar-shaped: `/jame-al-muqaddimat/<vol>/<page>/`.
 Persian commentary around Arabic matn, so every block carries its own `lang` (`ar`/`fa`)
@@ -1053,8 +1361,11 @@ footnote numbering never has to reach the screen. The Arabic arrives fully vocal
 **Bihar is complete in Arabic: all 110 volumes**, and **al-Kafi is complete in
 Arabic: all 8.** Bihar volume 1 is also in en/fa/ur; 2–110 and all of al-Kafi are
 not translated. The Qur'an is complete in all four languages.
-Of the four canonical books, **al-Kafi and من لا يحضره الفقيه are published**;
-التهذيب and الاستبصار are still `catalog.json` placeholders, as are الغدير and البرهان.
+**All four canonical books are published in Arabic** — الكافي, من لا يحضره الفقيه,
+تهذيب الأحكام and الاستبصار. The last two come from **ablibrary**, not Ghaemiyeh;
+see that section for why, and do not swap their source. **البرهان في تفسير القرآن**
+is published too, from Ghaemiyeh — the opposite choice, argued from that export
+rather than carried over. الغدير remains a `catalog.json` placeholder.
 
 ---
 

@@ -1,6 +1,18 @@
+/* The Amiri subset shipped here covers Arabic, and below U+0600 it holds
+   ONLY space, '!', '(' and nbsp — no ')', no '[', no ']', no '-', no ASCII
+   digits. So '(' rendered in Amiri while its own closing partner fell back
+   to the serif, and the pair looked mismatched wherever a numbered marker
+   appears: «( 66 )» came out with a tall '(' and a small ')'. Measured on
+   the page, 29.3px against 17.8px for what should be mirror images.
+   unicode-range keeps Amiri for everything it actually has and hands those
+   two strays to the same fallback as their neighbours, so the pair matches.
+   Amiri's coverage below U+0600 is exactly U+20, U+21, U+28, U+A0 — verified
+   from the font's cmap — so U+20 + U+A0 + U+600 and up loses nothing else. */
 @font-face{font-family:'Amiri';font-style:normal;font-weight:400;font-display:swap;
+  unicode-range:U+20,U+A0,U+600-10FFFF;
   src:url(fonts/amiri-400.woff2) format('woff2')}
 @font-face{font-family:'Amiri';font-style:normal;font-weight:700;font-display:swap;
+  unicode-range:U+20,U+A0,U+600-10FFFF;
   src:url(fonts/amiri-700.woff2) format('woff2')}
 @font-face{font-family:'Vazirmatn';font-style:normal;font-weight:400;font-display:swap;
   src:url(fonts/vazirmatn-400.woff2) format('woff2')}

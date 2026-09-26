@@ -270,7 +270,6 @@
     {
       "slug": "tahdhib",
       "category": "hadith",
-      "placeholder": true,
       "volumes": 10,
       "title": {
         "ar": "تهذيب الأحكام",
@@ -287,13 +286,24 @@
         "ur": "شیخ طوسی",
         "en": "Shaykh al-Tusi"
       },
-      "pages": 0,
-      "href": ""
+      "pages": 4081,
+      "href": "tahdhib/",
+      "volumesPublished": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ]
     },
     {
       "slug": "istibsar",
       "category": "hadith",
-      "placeholder": true,
       "volumes": 4,
       "title": {
         "ar": "الاستبصار",
@@ -310,8 +320,14 @@
         "ur": "شیخ طوسی",
         "en": "Shaykh al-Tusi"
       },
-      "pages": 0,
-      "href": ""
+      "pages": 1583,
+      "href": "istibsar/",
+      "volumesPublished": [
+        1,
+        2,
+        3,
+        4
+      ]
     },
     {
       "slug": "quran",
@@ -351,13 +367,12 @@
     {
       "slug": "burhan",
       "category": "tafsir",
-      "placeholder": true,
       "volumes": 5,
       "title": {
-        "ar": "تفسير البرهان",
-        "fa": "تفسیر البرهان",
-        "ur": "تفسیر البرہان",
-        "en": "Tafsir al-Burhan"
+        "ar": "البرهان في تفسير القرآن",
+        "fa": "البرهان في تفسير القرآن",
+        "ur": "البرہان فی تفسیر القرآن",
+        "en": "Al-Burhan fi Tafsir al-Qur'an"
       },
       "subtitle": {
         "en": "Qur'anic exegesis by way of narration"
@@ -368,8 +383,15 @@
         "ur": "سید ہاشم بحرانی",
         "en": "Sayyid Hashim al-Bahrani"
       },
-      "pages": 0,
-      "href": ""
+      "pages": 4348,
+      "href": "burhan/",
+      "volumesPublished": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
     },
     {
       "slug": "bihar",
