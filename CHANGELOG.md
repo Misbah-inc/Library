@@ -153,6 +153,55 @@ indexes need a rebuild to pick it up, and Bihar is 44,000 pages over Drive. That
 is its own pass — nothing is broken, only a caption is wrong.
 
 
+
+### Deployed, and a deploy that no longer costs an hour
+
+Live at **library.misbah-inc.com/burhan/**, verified on the real site: no
+console errors, `[` and `]` at 7.25/7.26px, every footnote marker resolving,
+and CloudFront compressing `search-1.json` from 2.74 MB to 731 KB.
+
+The deploy took **67 minutes**, and measuring it found the reason:
+**3,526,796 metadata operations** across ~65,000 files — about 54 per file —
+for **370 seconds of CPU**, so 91% of the wall time was spent waiting on
+Google Drive. `aws s3 sync` over the site root stats every file to decide what
+changed, and that price is paid in full whether one page changed or four
+thousand. It also rises with every book: the tree was ~48,600 files when
+DEPLOY.md was written.
+
+`deploy_s3.py` now takes `--only PATH` (repeatable), which uploads just the
+named paths and invalidates just those prefixes — a directory as `/burhan/*`,
+a single file as `/sitemap-2.xml`. Publishing a book walks 4,354 files instead
+of 65,000. Each invalidation path counts as one against the 1,000-a-month free
+allowance, so a handful costs what the blanket `/*` does.
+
+> **`--only` never passes `--delete`, so it cannot remove anything.** Within a
+> prefix `--delete` would strip every key not present locally, including the
+> gitignored search indexes — the exact failure the guard exists to prevent.
+> Anything that deletes or renames a file must go through the default
+> whole-site sync, the only mode that can see something disappeared.
+
+Two mistakes building it, both caught before they shipped: asking
+`rglob("*.woff2")` whether a prefix held fonts, which walks 4,354 directories
+over Drive to learn that a tree of .html and .json has none — the very cost the
+mode exists to avoid; and giving a single file the invalidation path
+`/sitemap-2.xml/*`, which matches nothing, leaving the stale file at the edge
+for its full max-age with nothing to say so.
+
+### Committed
+
+Three books, in two commits — `تهذيب الأحكام and الاستبصار` (5,704 files) and
+`البرهان في تفسير القرآن` (4,378). **تهذيب and الاستبصار had been live since
+2026-09-23 while existing only in the working folder**, along with the entire
+ablibrary extraction path (`abl.py`, `pb.py`, `abl_extract.py`, `abl_audit.py`
+and both builders). Nothing is pushed; that stays the owner's.
+
+> Staging 865 files took 9m19s for 0.5s of CPU. Each `git add` refreshes the
+> whole index, so many small batches pay that scan repeatedly — larger batches
+> are cheaper here, which is the opposite of the advice under "Committing from
+> Google Drive" and worth knowing alongside it. GitHub Desktop was also running
+> five concurrent `git.exe` scans of the same 65,000-file repo throughout;
+> closing it while committing a large batch is worth doing.
+
 ---
 
 ## 2026-09-25 (part 2)
