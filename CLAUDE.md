@@ -47,6 +47,7 @@ extract.py → [external translation] → merge_build.py → verify.py → commi
 | `tahdhib_ar_build.py` / `tahdhib_ar_wire.py` | تهذيب الأحكام pages, selector, indexes, `toc.json`, catalog |
 | `burhan_ar_extract.py` | Ghaemiyeh البرهان export → `burhan_v<N>.json` — its OWN extractor: the page marker opens its page here, the running header splits across paragraphs, and there are no note divs |
 | `burhan_ar_build.py` / `burhan_ar_wire.py` | البرهان في تفسير القرآن pages, selector, indexes, `toc.json`, catalog |
+| `ghadir_ar_build.py` / `ghadir_ar_wire.py` | الغدير pages, selector, indexes, `toc.json`, catalog — extraction uses the shared `bihar_ar_extract.py` |
 | `istibsar_ar_build.py` / `istibsar_ar_wire.py` | الاستبصار, likewise |
 | `build_search_index.py` | per-volume in-book search indexes — **required before every deploy** |
 | `build_site_index.py` | the site-wide inverted index behind `/search/` — **also required** |
@@ -399,6 +400,83 @@ Then open `http://localhost:8080`. This avoids CORS issues that block `catalog.j
 
 ---
 
+## Arabic orthography: ي / ى / ی — the check that costs one line (2026-09-28)
+
+Ghaemiyeh exports write Persian **ی (U+06CC)** where Arabic has TWO letters:
+**ي** (yāʾ) and **ى** (alif maqṣūra). They are not interchangeable — «موسى»,
+«إلى», «على» take ى; «التي», «عليها», «علي» (the name) take ي.
+
+> **NEVER convert ی → ي in bulk.** It was done to الغدير on 2026-09-27 and was
+> wrong for ~12% of occurrences, turning «موسى» into «موسي». Worse, it swaps an
+> obviously-foreign letter for a confidently-wrong Arabic one, which no reader
+> can detect. **Leaving ی is better than guessing ي.**
+
+**The standing check: a correctly typeset Arabic book here runs 6-23% ى**
+(as a share of ي+ى). Bihar is 12.0%, الغدير 12.4% against ablibrary's 12.5%.
+**A conversion producing 0% is wrong, and one number says so.** Every
+verification of the الغدير conversion passed because each tested whether the
+script did what was intended, never whether the intention was right. Measure the
+OUTPUT against an independent reference, not against your own plan.
+
+**The repair is parallel text.** ablibrary carries the same books correctly
+typeset. Four tiers, most certain first: the same 5-word window in the
+reference → a form unambiguous across the whole reference corpus → an ambiguous
+form settled by the preceding word → **leave ی and count it**. Only tier 1 can
+separate «على» from «علي», because that is a difference of meaning. Tools:
+`bihar_yeh_fix.py` (`--maqsura` inverts it: input ي, ask whether it should be
+ى — that is volume 1's defect, a blanket ی→ي at build time), plus
+`ghadir_yeh_fix.py`.
+
+- **ى is word-final.** Verified: 54,717 of 54,718 reference occurrences. So a
+  word's non-final ی is always ي, and fixing only the last one leaves «یحیى».
+- **«علي بن» is the name and «يعلى بن» is the narrator Yaʿlā.** A rule matching
+  «على بن» without a lookbehind corrupts 35 correct names to repair 25
+  misprints. `(?<![ء-يى])` guards it.
+- **«شی ء» is شيء** and **«علی بن» is علي** — decidable from orthography alone,
+  no context needed. Still outstanding in volumes 2-110 (~14,000, 0.3/page).
+- **`پ`, `چ`, `گ` are never touched** — real Persian letters with no Arabic
+  equivalent, in nisbas like «الچلبي», «الگلپايگاني».
+
+### Scope: the chrome holds real Persian and Urdu
+
+**Edit only inside `<div class="body">`, and assert the rest byte-identical.**
+The chrome carries `data-fa="علامه محمدباقر مجلسی"` and `data-ur=…` — genuine
+Persian and Urdu whose ی is CORRECT. A file-wide replacement corrupts the
+language switcher on 44,306 pages while the Arabic looks perfect.
+
+> **Volume 1 puts those attributes INSIDE the body**, in its heading span, so
+> the body scope does not protect them. The exact check: these passes only ever
+> write ي or ى, so a `data-fa`/`data-ur` holding either is proof of damage.
+> 52 found, 0 damaged.
+
+### What must catch up outside the body — and it is all DERIVED
+
+Repairing the body alone leaves four things in the old spelling. None is
+re-inferred; each is copied from text already fixed, with the reproduction rate
+measured BEFORE writing anything.
+
+1. **`toc.json`** — the contents drawer on every page, 20,026 ی in 5,480 Arabic
+   titles. Take each title from the heading on its own row's page (300/300
+   reproduce). Its `fa`/`ur`/`en` fields must not change — assert the counts.
+2. **The 110 volume index pages** carry chapter rows inline as
+   `<span data-ar="TITLE">TITLE</span>`. Key them off the corrected toc.
+3. **`<meta name="description">`** is the first 150 chars of the page's own
+   block text, so it re-derives exactly (200/200). Still outstanding.
+4. **en/fa/ur volume 1** — a translated page CARRIES the Arabic beside each
+   translated line, so repairing the source desynchronises three trees and
+   `verify.py` fails. **Copy the corrected Arabic (`bihar_v1_resync.py`); never
+   re-infer it** — a second pass may disagree with the first, and on an fa/ur
+   page it would be loose among genuine Persian.
+
+### Search indexes do NOT need rebuilding for an orthography change
+
+`fold()` maps **ي, ى AND ی all to ی**, so the stored `t` is already byte-identical
+to what a rebuild would produce, and the *searchable* text never changed. Only
+`part.ar`, the chapter label, is stored unfolded — and it comes from `toc.json`.
+`bihar_search_relabel.py` refreshes the labels with **zero page reads**, against
+seven hours for a full rebuild, and refuses to run unless it first re-derives
+`t` from live pages and finds every sample identical.
+
 ## الكافي — the second Arabic book (2026-09-22)
 
 Eight volumes, 4,484 pages, at `/kafi/<vol>/<page>/`. Built by
@@ -526,8 +604,8 @@ the list of pages it appears on. Three files answer a query:
 
 Measured end to end: a three-word query with an exclusion, over the whole
 library, transferred **234 KB** on the local server — less on CloudFront, which
-compresses the HTML. **61,057 pages and 326,564 words** are indexed across 150
-segments: all 110 Bihar volumes, all four canonical books, both Bayt al-Ahzan
+compresses the HTML. **71,779 pages and 366,867 words** are indexed across 166
+segments (rebuilt 2026-09-28): all 110 Bihar volumes, all four canonical books, both Bayt al-Ahzan
 editions, جامع المقدمات, مفاتیح, the Qur'an, and every translation (en/fa/ur).
 
 - **The page table is SHARDED, and the fields that repeat are not in it.**
@@ -912,6 +990,91 @@ stream still contains every running header, so comparing against it reports
 hide a real one. Measured that way: **67 uncaptured tokens out of 2,005,443**,
 all of them the export's own `<H1>` title element and «اشارة».
 
+## الغدير — a source typeset in Persian (2026-09-26)
+
+Eleven volumes, 6,374 pages, 18,457 footnotes, at `/ghadir/<vol>/<page>/`. By
+**العلامة عبد الحسين أحمد الأميني النجفي**, **تحقيق مركز الغدير للدراسات
+الإسلامية، قم، 1416 هـ / 1995 م** (ghbook.ir 9638). The library's
+second-largest book after Bihar.
+
+**The export is the ordinary Bihar shape** — `ص: N` markers, `<SPAN
+class=chapter>` segments, real `content_note` divs with `content_notelink`
+anchors — so `bihar_ar_extract.py` and `bihar_ar_audit.py` read it unmodified.
+Only the prep and the builder are this book's own. It arrives as ONE 25 MB
+`koli` file containing all eleven volumes, split on `<H2>المجلد N</H2>`.
+
+### The text is Persian-typeset and is normalised before extraction
+
+The export writes every Arabic yāʾ and kāf with the PERSIAN codepoint:
+**411,830 `ی` (U+06CC) and 103,778 `ک` (U+06A9) against ZERO `ي` (U+064A) and
+ZERO `ك` (U+0643)**. Every other Arabic book here is the other way round —
+measured on published pages of Bihar, al-Kafi, al-Faqih, التهذيب, الاستبصار and
+البرهان, all Arabic-dominant with zero Persian forms. Publishing it as-is would
+make الغدير the only book in the library in Persian letter forms, visible to
+any reader who copies a citation.
+
+**The owner approved the conversion on 2026-09-26.** It runs in the prep step,
+verified per volume position by position: same length, only those two
+codepoints differing, and the counts of `ي`/`ك` rising by exactly the number
+converted.
+
+> **`پ`, `چ` and `گ` are NEVER touched.** They are real Persian letters with no
+> Arabic equivalent, and they appear in Arabic nisbas of Persian and Indian
+> place names — «الچلبي», «التورپشتي», «السهارنپوري», «الگلپايگاني». Those take
+> a proper Arabic `ي` for the nisba ending, so converting the yāʾ in them is
+> correct; converting the `چ` would be nonsense. 92 distinct words contain one,
+> 42 of which also carry a yāʾ or kāf.
+
+> **The conversion disarmed a guard in the shared extractor.**
+> `bihar_ar_extract.py` drops the Ghaemiyeh blurb by matching the literal
+> «تعريف مرکز» with a PERSIAN kāf. After normalisation the text reads «تعريف
+> مركز» and no longer matches, so the publisher's donation appeal — bank
+> account, Isfahan office address, telephone numbers — survived into volume 11.
+> The prep step now cuts it explicitly, case-insensitively, and accepting
+> either kāf. **A fix in one place can disable a check in another that nothing
+> connects them.**
+
+### What the prep step must strip, and why each was missed once
+
+- **The `<H1>` book title.** Prepending the file head to each volume
+  republished «الغدير في الكتاب و السنه و الادب» as a text block on 10 of the
+  11. The prefix is cut at `<BODY>` instead.
+- **The `<H2>المجلد N</H2>` split marker**, which otherwise becomes a heading
+  block reading "المجلد 2" on page 1.
+- **Ghaemiyeh's Persian cataloguing record** — سرشناسه / عنوان و نام پديدآور /
+  مشخصات نشر / وضعيت فهرست / يادداشت / موضوع / شناسه افزوده / رده بندي /
+  شماره كتابشناسي / آدرس ثابت / شابك. It was published as **page 1 of volumes
+  2-11**. The first pattern written for it required the key immediately
+  followed by a colon and so matched only the single-word keys: «عنوان و نام
+  **پديدآور**:» and «مشخصات **نشر**:» passed straight through **while the
+  assertion passed**, because the assertion tested `سرشناسه` alone. Allow up to
+  40 characters before the colon, and assert against every key.
+- **The promo block, which sits AFTER `</BODY></HTML>`** under a LOWERCASE
+  `<h1>`. The extractor reads from `<BODY` to end of file, so it sees it.
+
+### Every note carries its own number in its text
+
+Note 1 reads «1- أخرجه الحافظ…», so rendering the builder's «(١)» in front of
+it shows the number twice — true of **2,428 of volume 1's 2,428 notes**, and of
+every volume. `note_text()` in `ghadir_ar_build.py` strips it **only when the
+leading number equals the note's own**, so a note that genuinely opens with a
+different figure is untouched: one v1 note reads «3- 1 - نزلت… 2 - نزلت…», and
+the «3- » goes while the enumeration stays.
+
+> **al-Kafi and al-Faqih are LIVE with this same doubling** — `kafi/1/50` shows
+> 3 of 3 and `faqih/1/100` 6 of 6. Bihar's export omits the numbers, so Bihar
+> is unaffected. Fixing the two means rebuilding and redeploying 6,968
+> published pages; it has not been done.
+
+### `UNCAPTURED SOURCE TOKENS: 0` is necessary, not sufficient
+
+Volumes 2-10 reported **0** while publishing Ghaemiyeh's cataloguing record as
+page 1. Zero means nothing was **lost** — it says nothing about what was
+wrongly **included**. It was volume 11's **142** that exposed the promo block,
+and only because that block happened to fall outside a captured segment. Pair
+the audit with a check on the OUTPUT for text that should never appear:
+catalogue keys, promo strings, and — here — any surviving `ی` or `ک`.
+
 ## Pager invariants — the check that did not exist until 2026-09-11
 
 - **Never derive prev/next from a batch's ordering.** A batch is a unit of translation
@@ -925,7 +1088,10 @@ all of them the export's own `<H1>` title element and «اشارة».
   Farsi Bayt al-Ahzan has 31 deliberate numbering gaps and مفاتیح interleaves named slugs
   with ordinals. It asserts the chain is a single path reaching every page exactly once.
 - **`<link rel=prev/next>` and the pager buttons are written separately.** They must
-  agree; only the buttons are ever noticed. The head links are absolute and the buttons
+  agree; only the buttons are ever noticed. **This describes `build.py`'s
+  en/fa/ur output; `bihar_ar_build.py` writes the head links RELATIVE**, so any
+  checker must resolve them against the PAGE's directory, not the site root —
+  resolving against the root reports all 360 sampled pages as broken. The head links are absolute and the buttons
   relative, so any tool comparing them has to resolve both before comparing.
 - **A rebuild is not a no-op.** `build.py`'s `description()` takes the first 150 chars of
   the *first* translated line, so re-running it over a page that opens with a heading
@@ -1165,6 +1331,8 @@ stays dark (a cream-on-white mark disappears on a light tab bar), and the Apple 
 | `istibsar/1/…4/<page>/` (Arabic, **ablibrary**) | 1,583 | Complete 2026-09-23, no translation |
 | `burhan/` + `burhan/1/`…`5/` | 6 | Volume selector + volume indexes, 2,168 chapter rows |
 | `burhan/1/…5/<page>/` (Arabic, **Ghaemiyeh**) | 4,348 | Complete 2026-09-25, no translation |
+| `ghadir/` + `ghadir/1/`…`11/` | 12 | Volume selector + volume indexes, 853 chapter rows |
+| `ghadir/1/…11/<page>/` (Arabic, **Ghaemiyeh**) | 6,374 | Complete 2026-09-26, no translation |
 
 **جامع المقدمات (2026-09-03).** Multi-volume, Bihar-shaped: `/jame-al-muqaddimat/<vol>/<page>/`.
 Persian commentary around Arabic matn, so every block carries its own `lang` (`ar`/`fa`)
@@ -1394,6 +1562,25 @@ In rough priority order. Nothing here is started.
 3. ~~**Bihar volumes 7–110**~~ — **done 2026-09-13.** All 110 volumes in Arabic.
    Translations are the remaining work, and they are what forces the hosting move.
 4. **A `.gitattributes`** to silence the CRLF warnings, if the noise ever matters.
+5. **Finish the Bihar orthography pass in volumes 2-110** — «شی ء» → «شي ء»
+   (~14,000, 0.3/page) and the meta descriptions, both exactly derivable and
+   both already implemented in `bihar_chrome_fix.py`; volume 1 has them.
+   Dropped on 2026-09-28 only because the pass measured at ~24 hours of Drive
+   I/O. **Fold it into the next Bihar rebuild rather than paying a separate
+   44,537-page rewrite**, and thread it — see the Drive note below.
+6. **Run `verify_pagers.py` in full** at the next genuine page rebuild. It was
+   substituted by a 360-page sample on 2026-09-28 (0 problems) because it walks
+   71,779 pages single-file (~8 hours) to check navigation that byte-equality
+   guards already proved untouched. That reasoning holds for an in-place text
+   edit; it does NOT hold once pages are rebuilt.
+
+> **When Drive goes slow, measure before blaming the code.** On 2026-09-28 reads
+> went from 0.4s to **8-20s per file** and the Drive client showed "Syncing… 1
+> file, more than 12 hours left" — a stuck transfer, with an ETA computed from
+> ~zero throughput. Compute was **8-12 ms against 8,000 ms of waiting**.
+> **Quit and reopen Google Drive** (tray → ⚙ → Quit); it came back 20× faster.
+> And thread anything touching thousands of files: 32 concurrent reads give
+> ~29 files/sec where serial gives 2.4.
 
 ### Known-good state
 

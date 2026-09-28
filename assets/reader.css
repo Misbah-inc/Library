@@ -249,6 +249,15 @@ mark{background:var(--mark);color:inherit;padding:0 .12em;border-radius:3px}
             justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap}
 .part-label .folio{color:var(--rubric);font-weight:700;font-size:.8rem;letter-spacing:.04em;
                    white-space:nowrap}
+/* A parenthesised LATIN-digit group inside RTL text renders reversed —
+   «(1 / 458)» drew as «(458 / 1». The builders wrap these in <bdi>, but a
+   bare <bdi> is dir="auto", which takes direction from the first STRONG
+   character, and such a group has none: brackets are bidi-neutral, digits
+   weak. The HTML spec says fall back to ltr — Chrome does, iOS Safari falls
+   back to the parent rtl — so the desktop page looked right while the phone
+   did not. State it here rather than depend on the UA default, and it holds
+   for تهذيب, الاستبصار, البرهان and الغدير at once, with no page rebuilt. */
+.body bdi{direction:ltr;unicode-bidi:isolate}
 .body p,.body h3{font-weight:700;margin:0 0 1.05rem}
 .body p{font-family:var(--ar);font-size:var(--body-size);line-height:var(--lead);
         text-align:justify;hyphens:none}

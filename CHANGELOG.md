@@ -4,6 +4,201 @@ Changes to the Misbah Library website. One entry per session, most recent first.
 
 ---
 
+## 2026-09-28
+
+### بحار الأنوار — ي / ى restored across all 110 volumes
+
+The whole book was published with Ghaemiyeh's Persian **ی (U+06CC)** standing in
+for two different Arabic letters — **ي** (yāʾ) and **ى** (alif maqṣūra).
+44,537 pages, 3.1 million occurrences. Volume 1 had the same fault in the
+opposite direction: a blanket ی→ي at build time, so it carried **zero ى** and
+printed «موسي», «إلي», «علي الكتب» for موسى, إلى, على.
+
+**A blanket conversion is what caused this, and it was not repeated.** The same
+shortcut was applied to الغدير on 2026-09-27 and was wrong for ~12% of
+occurrences. Correctly typeset books in this library run **6-23% ى**; a
+conversion producing 0% is visibly wrong from a single number. That number is
+now the standing check — see CLAUDE.md.
+
+**The method is parallel text, not inference.** ablibrary carries the same book
+correctly typeset (books 1976-2085). Four tiers, most certain first: the same
+5-word window found in the reference; else a word-form unambiguous across the
+whole reference corpus; else an ambiguous form settled by the preceding word;
+else **leave ی and count it**. Only tier 1 can separate «على» (preposition) from
+«علي» (name), because that is a difference of meaning, not spelling.
+
+| | |
+|---|---:|
+| word-final letters resolved | **1,375,452** |
+| — from parallel text | 1,045,860 (76%) |
+| — form unambiguous | 272,064 |
+| — by preceding word | 65,525 |
+| non-final ی → ي | 2,239,989 |
+| left as ی, unresolvable | 278,981 |
+
+**Result: 12.0% ى across 44,537 pages**, every volume inside the 6-23% band
+(5.2%-16.2%), volume 1 at 9.4%. Verified against the band, not against intent.
+
+What is deliberately still ی: «روى»/«روي» and «أبي»/«أبى» are both real words,
+and a confident wrong guess is worse than a visibly foreign letter. 2.6 per page.
+
+### The scope was the dangerous part
+
+Edits were confined to `<div class="body">` and both ends of every file asserted
+byte-identical. The chrome carries `data-fa` and `data-ur` holding **genuine
+Persian and Urdu** — «علامه محمدباقر مجلسی» is Persian and its ی is correct. A
+file-wide replacement would have corrupted the language switcher on 44,306
+pages while the Arabic looked perfect.
+
+Volume 1 puts those attributes **inside** the body, in its heading span, so the
+guard did not cover them. Checked exactly rather than argued: the passes only
+ever write ي or ى, so a Persian/Urdu attribute holding either is proof of
+damage. **52 found, 0 damaged.**
+
+### Everything outside the body that had to catch up
+
+- **`toc.json`** — the contents drawer, on every page: 5,450 of 6,771 chapter
+  titles corrected. Not re-inferred — **taken from the heading on each row's own
+  already-fixed page** (measured first: 300/300 reproduce). fa/ur fields
+  byte-identical, asserted.
+- **110 volume index pages** — 5,367 titles, from the corrected toc.
+- **en/fa/ur volume 1** — a translated page CARRIES the Arabic beside each
+  translated line, so repairing the source desynchronises three trees. 658 pages
+  resynced by **copying** the corrected Arabic, never re-inferring it: a second
+  inference pass may disagree with the first, and on an fa/ur page it would be
+  loose among genuine Persian. `verify.py`: **0 failures × 3 languages**.
+- **Search indexes** — 37,695 chapter labels refreshed WITHOUT re-reading 61,000
+  pages. `t` is stored folded and `fold()` maps ي, ى and ی all to ی, so every
+  `t` already equals what a rebuild would produce. Only `part.ar` is unfolded.
+  The relabeller refuses to run unless it first re-derives `t` from live pages
+  and finds them identical — 42 sampled, 0 differ.
+
+### Deployed and verified live
+
+Served pages compared against disk: `bihar/2/100/` 104/18/1, `bihar/1/26/`
+69/8/3, `bihar/52/192/` 82/7/2 — all match. Site index rebuilt: 71,779 pages,
+366,867 words.
+
+### Not done, deliberately
+
+- **«شی ء» → «شي ء»** in volumes 2-110, ~14,000 occurrences (0.3/page), and
+  **meta descriptions** still in the old spelling (invisible on the page;
+  affects Google snippets only). Both are exactly derivable and are in
+  `bihar_chrome_fix.py`; volume 1 already has them. They were dropped when the
+  pass measured out at ~24 hours of Drive I/O and the owner chose to ship.
+- **`verify_pagers.py` was NOT run in full.** It walks 71,779 pages single-file
+  (~8 hours) to check navigation that three separate byte-equality guards prove
+  untouched — prev/next live outside the edited region. Substituted a 360-page
+  sample across 25 volumes plus all three translated trees: **0 problems**.
+  Run the full walk before any commit that genuinely rebuilds pages.
+
+### New tooling
+
+`bihar_yeh_fix.py` (`--maqsura` inverts it for volume 1), `bihar_chrome_fix.py`
+(`--toc`, `--vindex`), `bihar_v1_resync.py`, `bihar_search_relabel.py`.
+
+> **Google Drive wedged mid-session** — "Syncing… 1 file, more than 12 hours
+> left" — and reads went from 0.4s to **8-20s per file**, which looks exactly
+> like slow code. It is not: compute measured 8-12 ms against 8,000 ms of
+> waiting. **Quitting and reopening Google Drive restored it (20× faster).**
+> Measure read latency before blaming a script, and thread every pass that
+> touches thousands of files — the first run spawned a subprocess per volume and
+> spent 45 of its 190 minutes reloading the same 424 MB index.
+
+---
+
+## 2026-09-26
+
+### الغدير — 6,374 pages, and a source that was typeset in Persian
+
+Eleven volumes at `/ghadir/<vol>/<page>/`, by **العلامة عبد الحسين أحمد الأميني
+النجفي**, **تحقيق مركز الغدير للدراسات الإسلامية، قم، 1416 هـ / 1995 م**
+(ghbook.ir 9638). At 6,374 pages this is the library's **second-largest book
+after Bihar** — larger than الكافي (4,484) or التهذيب (4,081) — with **18,457
+footnotes**, every one anchored.
+
+**ghbook.ir was reachable this time**, so both sources were measured properly
+rather than assumed. They are DIFFERENT EDITIONS, and each had one decisive
+flaw:
+
+| | Ghaemiyeh (مركز الغدير) | ablibrary (2825-2836) |
+|---|---:|---:|
+| pages | **6,374** | ~4,500 |
+| footnotes, vol 1 | **2,428** | 329 |
+| vocalisation | **7.87%** | **0.00%** |
+| headings in body | **937** | none |
+| orthography | **Persian ی/ک throughout** | proper Arabic ي/ك |
+
+Ghaemiyeh carries **7.4× the footnotes**, which for الغدير matters more than for
+any other book here — the work IS its documentation of sources. Its one defect
+was encoding: **411,830 `ی` (U+06CC) and 103,778 `ک` (U+06A9) against ZERO `ي`
+and ZERO `ك`**. Every other Arabic book in this library is the other way round,
+so publishing it as-is would have made الغدير the only one in Persian letter
+forms — visible to anyone copying a citation.
+
+> Bihar, al-Kafi and al-Faqih also come from Ghaemiyeh and are correctly
+> Arabic, so this is a defect of THIS export, not of the source.
+
+**The owner approved normalising ی→ي and ک→ك** (2026-09-26). 510,672 + 125,799
+characters converted, verified per volume position by position: same length,
+only those two codepoints differing, and **`پ`/`چ`/`گ` left untouched** — real
+Persian letters with no Arabic equivalent, appearing in Arabic nisbas of
+Persian and Indian place names («الچلبي», «التورپشتي», «الگلپايگاني»), which
+take a proper Arabic `ي` for the nisba ending and so are correct to convert.
+
+### Four defects caught before anything reached the Library folder
+
+None would have been found by reading the code, and none by the audit alone:
+
+1. **The `<H1>` book title** was prepended unconverted to every volume file and
+   republished as a text block on 10 of the 11.
+2. **Ghaemiyeh's Persian cataloguing record** (سرشناسه / مشخصات نشر / يادداشت)
+   was published as **page 1 of volumes 2-11**. The first filter written for it
+   required the key immediately followed by a colon and so matched only the
+   single-word keys — «عنوان و نام **پديدآور**:» and «مشخصات **نشر**:» sailed
+   through *while the assertion passed*, because the assertion tested one key.
+3. **The publisher's donation appeal** — bank account, Isfahan office address,
+   telephone numbers — sitting AFTER `</BODY></HTML>` under a lowercase `<h1>`.
+   The extractor reads from `<BODY` to end of file, so it saw it.
+4. **Every footnote rendered its number twice**, «(١) 1- …», because this export
+   writes each note's number into its own text: 2,428 of volume 1's 2,428 notes.
+
+> **The ک→ك conversion silently disarmed a guard.** `bihar_ar_extract.py` drops
+> the Ghaemiyeh blurb by matching the literal «تعريف مرکز» with a PERSIAN kāf.
+> After normalisation the text reads «تعريف مركز» and no longer matched — which
+> is how defect 3 survived. A fix in one place can disable a check in another
+> that nothing connects them.
+
+> **A losslessness audit cannot see surplus.** Volumes 2-10 reported **0
+> uncaptured tokens** while publishing the catalogue, because zero means
+> nothing was LOST, not that nothing wrong was INCLUDED. It was volume 11's
+> **142** that exposed the promo block, and only because that block failed to
+> be captured. `UNCAPTURED SOURCE TOKENS: 0` is necessary, not sufficient.
+
+Final state: **0 uncaptured tokens** in ten volumes and 1 in volume 1 (the
+structural «اشارة»), **0 Persian letters in any page's body text**, 18,457
+footnote links all resolving, and 853 contents rows across the eleven volumes.
+
+### al-Kafi and al-Faqih have the same doubled footnote numbers
+
+Defect 4 above is **not new** — it is live on both books:
+
+```
+kafi/1/50    (١) 1- اي ننقص ونظلم...     3 of 3 doubled
+faqih/1/100  (١) 1- الظاهر أن القضاء...  6 of 6 doubled
+bihar/1/26   (١) و في نسخة: ...          0 of 1  (Bihar's export omits them)
+```
+
+Fixed in `ghadir_ar_build.py` only, and precisely: the leading number is
+stripped **only when it equals the note's own number**, so a note whose text
+genuinely opens with a different figure is untouched. One volume-1 note reads
+«3- 1 - نزلت… 2 - نزلت…»; the «3- » went and the enumeration stayed.
+
+Fixing al-Kafi and al-Faqih means rebuilding and redeploying 6,968 published
+pages. **Not done here** — it is its own job.
+
+---
+
 ## 2026-09-25 (part 3)
 
 ### البرهان في تفسير القرآن — extracted from Ghaemiyeh, checked against ablibrary

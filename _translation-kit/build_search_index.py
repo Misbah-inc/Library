@@ -85,6 +85,13 @@ def page_text(src):
         return ""
     # strip the footnote REFERENCE numerals (the markers), keep the notes
     art = FNREF.sub(" ", art)
+    # Drop the Unicode bidi isolates الغدير's builder puts around Latin-digit
+    # citation groups (U+2066 … U+2069). They are invisible and carry no
+    # meaning, but fold() keeps them — it only strips diacritics — so without
+    # this they would sit inside the indexed text and a phrase crossing one
+    # could never match, since a reader's query will never contain them.
+    art = art.translate({0x2066: None, 0x2067: None, 0x2068: None,
+                         0x2069: None, 0x200E: None, 0x200F: None})
     return WS.sub(" ", html.unescape(TAG.sub(" ", art))).strip()
 
 
